@@ -163,12 +163,12 @@ export default function Home() {
                 <div className={styles.linkRow}>
                   <Link
                     className={`${styles.linkChip} ${styles.linkChipPrimary}`}
-                    to="https://github.com/inderanz">
+                    to="https://www.linkedin.com/in/ichauhan/">
                     Connect on LinkedIn ↗
                   </Link>
                   <Link
                     className={styles.linkChip}
-                    to="https://github.com/inderanz/google-adk-training">
+                    to="https://github.com/inderanz">
                     GitHub Profile ↗
                   </Link>
                   <Link className={styles.linkChip} to={allModulesUrl}>

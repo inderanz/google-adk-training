@@ -43,7 +43,7 @@ const config = {
         {
           title: 'Instructor',
           items: [
-            {label: 'LinkedIn', href: 'https://github.com/inderanz'},
+            {label: 'LinkedIn', href: 'https://www.linkedin.com/in/ichauhan/'},
             {label: 'GitHub', href: 'https://github.com/inderanz/google-adk-training'},
           ],
         },
