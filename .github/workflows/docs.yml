@@ -3,7 +3,8 @@ name: Deploy Docusaurus to GitHub Pages
 on:
   push:
     branches:
-      - solution
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: write
