@@ -201,3 +201,6 @@ nanobanana-output/
 specs/
 ANTIGRAVITY.md
 CLAUDE.md
+
+.playwright-mcp/
+*.png
