@@ -89,3 +89,5 @@ In a deterministic `Workflow`, the output of one node is automatically passed as
 - **Edges** can be simple tuples or use dictionaries for conditional routing — but the dictionary matches against `ctx.route`, which only a `@node` function can set. A plain `Agent`, even with a Pydantic `output_schema`, never sets it on its own.
 - This approach is **preferred for well-defined business processes** where you want maximum predictability and lowest latency.
 - You can mix and match: a node in a deterministic `Workflow` can itself be a dynamic `@node` workflow!
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module17-structured-routing-README -->

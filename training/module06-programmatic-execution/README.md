@@ -95,3 +95,5 @@ if __name__ == "__main__":
 - **Runner**: The execution engine. You typically use one Runner to serve many users.
 - **Isolation**: The ADK ensures session isolation using `user_id` and `session_id`.
 - **`run_debug()`**: A convenient method for quick programmatic testing without manually handling async event streams.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module06-programmatic-execution-README -->

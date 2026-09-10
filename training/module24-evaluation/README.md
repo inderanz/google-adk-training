@@ -127,3 +127,5 @@ This allows you to "stress test" your agent against hundreds of diverse, generat
 - **User Simulation:** Use dynamic user simulation to test your agent against varied, LLM-generated personas and scenarios, going beyond static examples.
 - **Importance of Trajectory Testing:** Testing the `tool_trajectory` is often more critical than just the final response because it validates the agent's underlying reasoning process.
 - **CI/CD Integration:** The `uv run adk eval` command can be integrated as a standard test step in CI/CD pipelines to prevent regressions.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module24-evaluation-README -->

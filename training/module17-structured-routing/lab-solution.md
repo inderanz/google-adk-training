@@ -87,3 +87,5 @@ root_agent = Workflow(
 
 3.  **`classify_and_route` is a `@node` function, just like in Module 18 -- so what's actually different about this pattern compared to a full Dynamic Workflow?**
     *   **Answer:** The scope of the hand-written code. In this lab, exactly one `@node` function exists, and its only job is to run the classifier and set `ctx.route` — the *routing itself* (which specialist runs next) is still declared in the `Workflow`'s `edges`, visible at a glance and shown in the Dev UI's Graph View. In a full Dynamic Workflow (Module 18), the orchestrator node contains the `if`/`else` routing logic itself, so the destination of a branch is only knowable by reading the Python code, not by looking at a graph. This pattern is a middle ground: you pay the small one-time cost of a `@node` wrapper to get an LLM classification into `ctx.route`, but the actual multi-way branching stays declarative.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module17-structured-routing-lab-solution -->

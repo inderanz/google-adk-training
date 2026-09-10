@@ -50,3 +50,5 @@ In the lab for this module, you will put this into practice by integrating a pow
 - A wrapped third-party tool counts as a custom function tool, so it can freely mix with your own function tools — but, as in Module 12, it still **cannot** share a `tools` list with a built-in tool like `google_search`; use sequential composition if you need both.
 
 This wraps up **Part 2: Tools & Capabilities** — your agent can now search, remember, call your own functions, and borrow tools from an entire ecosystem. In Part 3, you'll learn how to coordinate multiple specialized agents into **Multi-Agent Systems**.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module14-third-party-tools-README -->

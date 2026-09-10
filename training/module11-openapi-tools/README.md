@@ -54,3 +54,5 @@ The ADK handles the HTTP request, query/path parameter encoding, and JSON parsin
 - **`OpenAPIToolset`** generates tools automatically from a spec (dict or file) -- no client generation, no hand-written wrapper functions.
 - Each operation's `operationId` becomes the tool's name the agent sees and calls -- it must be unique across the spec.
 - This pattern lets your agent securely and reliably communicate with any enterprise service that publishes an OpenAPI spec, and stays in sync automatically when the spec is updated.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module11-openapi-tools-README -->

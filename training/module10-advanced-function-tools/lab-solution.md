@@ -62,3 +62,5 @@ root_agent = Agent(
 
 3.  **How could you extend this agent to remember other things?**
     *   **Answer:** You can create more tools that follow the same pattern (e.g., `store_preference(key, value)`, `recall_preference(key)`). Because `tool_context.state` is just a Python dictionary, you can store any JSON-serializable data there.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module10-advanced-function-tools-lab-solution -->

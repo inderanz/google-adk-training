@@ -131,3 +131,4 @@ You have now mastered the three ways to run an ADK agent:
 *   `uv run adk run <agent_name>`: For quick tests and automated scripting in the terminal.
 *   `uv run adk api_server`: For running your agent as a service to be integrated with other applications.
 
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module05-running-agents-lab-solution -->

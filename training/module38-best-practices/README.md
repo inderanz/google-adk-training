@@ -68,3 +68,5 @@ my_agent_node = Agent(
 - **Framework Resilience:** Propagate exceptions to enable ADK 2.0 automatic retries and HITL.
 - **Model Efficiency:** Match the model capability to the task complexity.
 - **Strict Schemas:** Use Pydantic to enforce "fail-closed" security at every node boundary.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module38-best-practices-README -->

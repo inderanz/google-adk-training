@@ -76,3 +76,5 @@ root_agent = Workflow(
 - **Specialization is Key:** Each node should have a narrow, well-defined purpose.
 - **Workflow Runtime:** ADK 2.0 manages the transitions and state sharing between nodes automatically.
 - **Modularity:** Breaking a large problem into multiple nodes makes your AI application easier to test, debug, and scale.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module15-intro-to-multi-agent-systems-README -->

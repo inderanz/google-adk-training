@@ -48,3 +48,5 @@ class SafetyGuardrailPlugin(BasePlugin):
 - **Fail-Closed** ensures that unsafe messages never reach the user.
 - **Plugins** allow you to implement safety guardrails without polluting your agent's business logic.
 - **Separation of Expertise**: The team managing safety policies can update the plugin without needing to understand the internal prompts of every agent.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module25_5-rai-safety-plugins-README -->

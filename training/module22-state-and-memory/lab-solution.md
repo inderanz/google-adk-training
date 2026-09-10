@@ -256,3 +256,5 @@ root_agent = Agent(
         *   "Remind me about the security implications of that code review we did." (Even if the exact phrase 'security implications' wasn't used).
         *   "I'm confused about asynchronous programming; what did you teach me about Python coroutines?"
         This allows for a more natural, intuitive, and flexible interaction with the agent's long-term knowledge.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module22-state-and-memory-lab-solution -->

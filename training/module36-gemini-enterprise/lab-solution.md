@@ -78,3 +78,5 @@ This file contains example answers and thought processes for the conceptual lab 
 
 3.  **How does grounding an agent in a private, enterprise data source (like SharePoint) using a secure data connector mitigate the risk of the agent hallucinating or providing incorrect information?**
     *   **Answer:** Grounding an agent in private, secure enterprise data sources (via Data Connectors) is the most effective method to mitigate hallucination and ensure accuracy. This approach leverages **Retrieval Augmented Generation (RAG)**, forcing the LLM to base its responses on retrieved, up-to-date, and approved company information from sources like SharePoint, Google Drive, or Salesforce, rather than relying solely on its static pre-trained knowledge. By providing specific, relevant context at inference time, it drastically reduces the risk of the agent fabricating information and ensures that responses are accurate, relevant, and secure according to enterprise standards.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module36-gemini-enterprise-lab-solution -->

@@ -64,3 +64,4 @@ async def refinement_workflow(ctx: Context, node_input: str):
 - **Safety First:** Always use a `max_iterations` limit to prevent infinite loops and excessive API costs.
 - **Node-to-Node passing:** The output of one iteration is manually passed as the input to the next via `ctx.run_node()`.
 
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module20-cyclic-workflows-README -->

@@ -36,3 +36,5 @@ The source code, examples, and issue trackers for the ADK.
 *   **GitHub Discussions:** For questions, ideas, and community interaction.
 
 By familiarizing yourself with these resources, you have built a strong foundation for the rest of this course.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module01-intro-to-ai-agents-lab-solution -->

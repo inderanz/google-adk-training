@@ -65,3 +65,5 @@ This file should be created and can be left empty. It is required for the ADK to
 
 3.  **The `StdioConnectionParams` launches the MCP server as a subprocess. What are the security implications of this, and why is it important that the server is sandboxed to a specific `TARGET_FOLDER_PATH`?**
     *   **Answer:** Launching any external process, especially one that can interact with the file system, introduces significant security risks. If the MCP server itself (or its dependencies) were compromised or had a vulnerability, it could potentially gain access to the entire host system. Sandboxing the server to a `TARGET_FOLDER_PATH` is critical because it acts as a security boundary. It restricts the server's operations to *only* that specific directory, preventing it from reading, writing, or deleting files outside of its designated area. This minimizes the "blast radius" of any potential exploit and is a fundamental security practice for running external tools in a production environment.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module27-intro-to-mcp-lab-solution -->

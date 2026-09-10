@@ -85,3 +85,5 @@ root_agent = Workflow(
 
 3.  **How does `tool_context.actions` allow you to implement business rules that the LLM cannot override?**
     *   **Answer:** Because the `actions` are processed by the **Python runtime**, not the LLM. When our code sets `transfer_to_agent`, the ADK intercepts this and forces the transition. The LLM doesn't even get to see the result of the tool before the hand-off happens, ensuring the business logic (like the $10,000 limit) is strictly enforced.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module13-tool-context-lab-solution -->

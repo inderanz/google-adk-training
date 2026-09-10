@@ -101,3 +101,5 @@ If you see a `404 NOT_FOUND` error for `gemini-3.5-flash`, it is likely a region
     The `uv.lock` file records the exact version of every dependency (and sub-dependency) installed. If you share your project, `uv sync` reads this file to recreate an identical environment, preventing "it works on my machine" bugs.
 *   **What are the security implications of storing API keys in a `.env` file versus hardcoding them in your script?**
     Hardcoding keys makes them visible to anyone viewing your source code, and they will likely be committed to version control (like GitHub) by accident. A `.env` file is meant to be ignored by git (`.gitignore`), keeping your secrets local and safe.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module02-environment-setup-lab-solution -->

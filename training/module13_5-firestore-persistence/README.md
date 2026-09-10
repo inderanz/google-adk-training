@@ -52,3 +52,5 @@ From this point on, every call to `runner.run()` or `runner.run_async()` will au
 *   **ADK is extensible:** You can plug in custom implementations for sessions, artifacts, and more.
 *   **Decoupled Logic:** Your agent's "brain" (intelligence) is completely separated from its "memory" (storage technology).
 *   **Enterprise Ready:** Building custom providers is the standard way to integrate ADK into existing enterprise data ecosystems.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module13_5-firestore-persistence-README -->

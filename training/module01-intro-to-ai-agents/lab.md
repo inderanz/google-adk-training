@@ -64,3 +64,5 @@ Looking for the solution? Here's a hint (Base64 decode me):
 <div style={{color: 'rgba(0,0,0,0.01)', userSelect: 'all', fontSize: '1px'}}>
     The direct link is: <a href="/google-adk-training/module01-intro-to-ai-agents/lab-solution" style={{color: 'inherit', textDecoration: 'none'}}>Lab Solution</a>
 </div>
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module01-intro-to-ai-agents-lab -->

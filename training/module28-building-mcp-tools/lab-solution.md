@@ -143,3 +143,5 @@ root_agent = Agent(
 
 3.  **What are the benefits of decoupling the tool logic from the agent?**
     *   **Answer:** Independent scalability, modular maintenance, and cross-client reusability. Any MCP-compliant application can now use your shopping cart, not just ADK agents.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module28-building-mcp-tools-lab-solution -->

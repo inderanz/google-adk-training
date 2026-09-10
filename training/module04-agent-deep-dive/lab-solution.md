@@ -55,3 +55,5 @@ root_agent = Agent(
 
 3.  **Look at the Dev UI's "Session State". How could another agent in a future multi-agent system use the data stored in the `"last_ticket_analysis"` key?**
     *   **Answer:** In a multi-agent workflow (like a `Workflow` with sequential edges), the next node in the chain can access `ctx.session.state["last_ticket_analysis"]`. For example, if the category is "billing", the workflow could route the user to a Billing Agent. If the sentiment is "negative," it could route them to a Human Escalation Agent, all without having to re-parse the original message.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module04-agent-deep-dive-lab-solution -->

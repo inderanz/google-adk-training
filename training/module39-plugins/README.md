@@ -68,3 +68,5 @@ runner = Runner(app=app, session_service=...)
 - They inherit from `BasePlugin` and use three patterns: **Observing**, **Intervening**, and **Amending**.
 - Plugins are registered globally on the `App` object, running before any agent-level callbacks.
 - The **`ReflectAndRetryToolPlugin`** makes agents robust by automatically catching tool errors, feeding them back to the model, and allowing it to self-correct without crashing.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module39-plugins-README -->

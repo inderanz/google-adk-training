@@ -175,9 +175,11 @@ Contributions are welcome! If you find an issue, have a suggestion for a new mod
 
 ---
 
-## 📜 Licensing
+## 📜 Licensing & Attribution
 
-The documentation and textual content of this training course are licensed under the **Creative Commons Attribution 4.0 International License (CC BY 4.0)**.
+The documentation, curriculum, and challenge lab courseware are licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)**.
 
-Software components, such as the code in the `sample-agents` directory, are licensed under the **Apache License, Version 2.0**. Please see the `LICENSE` file within those directories for full details.
+Software components, such as the code in the `sample-agents` directory, are licensed under the **Apache License, Version 2.0**.
+
+For guidelines on citing or attributing this repository in publications, tutorials, or research, please see **[ATTRIBUTION.md](./ATTRIBUTION.md)** and **[CITATION.cff](https://github.com/inderanz/google-adk-training/blob/main/CITATION.cff)**.
 

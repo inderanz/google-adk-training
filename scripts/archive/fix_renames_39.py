@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: CC-BY-NC-4.0
+# Author: Inder Chauhan (https://www.linkedin.com/in/ichauhan/)
+# Fingerprint: IC-ADK-2026-SIG-scripts-archive-fix_renames_39
+
 import os
 def fix_renames(filepath):
     try:

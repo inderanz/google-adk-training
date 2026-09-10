@@ -94,3 +94,5 @@ By leveraging the `ToolContext`, you can elevate your custom functions from simp
 - Use **`FunctionTool`** to add metadata and safety controls to your Python functions.
 - **`tool_context.actions`** allows tools to steer the Workflow Runtime (Transfers, Skipping).
 - Tools are "Framework Aware" components, not just isolated functions.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module13-tool-context-README -->

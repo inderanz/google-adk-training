@@ -100,3 +100,5 @@ if __name__ == "__main__":
 
 3.  **How does this plugin help with "transient" errors, like a temporary network glitch in a tool?**
     *   **Answer:** If a tool fails due to a network glitch (e.g., raising a `ConnectionError`), the plugin catches it. It feeds the error ("Connection failed") back to the agent. The agent, seeing this, will likely decide to "try again" (retry the same tool call). If the glitch was temporary, the second attempt might succeed. This adds automatic resilience to your tools.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module39-plugins-lab-solution -->

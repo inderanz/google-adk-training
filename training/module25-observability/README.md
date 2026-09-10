@@ -86,3 +86,5 @@ app = App(name="production_agent", root_agent=my_agent)
     *   Use **Plugins** for business-specific logic (e.g., custom alerting, session-level metrics).
     *   Use **Native Telemetry** for infrastructure monitoring and performance profiling.
 - **Separation of Concerns**: Infrastructure code stays outside your agent's core logic, ensuring maintainability.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module25-observability-README -->

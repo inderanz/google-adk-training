@@ -51,3 +51,5 @@ By providing a clear separation between development (ADK) and operations (Gemini
 - **Grounding and Hallucination Mitigation:** Grounding an agent in private, secure enterprise data sources (via Data Connectors) is the most effective method to mitigate hallucination and ensure accuracy. This approach leverages **Retrieval Augmented Generation (RAG)**, forcing the LLM to base its responses on retrieved, up-to-date, and approved company information rather than its static pre-trained knowledge. This drastically reduces the risk of the agent fabricating information and ensures responses are relevant and secure.
 
 This completes **Part 6: Deployment & Enterprise** — you now know how to choose a deployment platform, ship to it, and govern what runs on it. In Part 7, you'll put everything from the entire course together in two capstone-scale projects.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module36-gemini-enterprise-README -->

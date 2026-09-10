@@ -279,3 +279,5 @@ registerProcessor('audio-processor', AudioProcessor);
 
 3.  **What are the benefits of using WebSockets for this application compared to the Server-Sent Events (SSE) approach used in the previous UI lab?**
     *   **Answer:** WebSockets are essential for this voice streaming application because they provide a **full-duplex (bidirectional) communication channel**. This is crucial as the client needs to continuously stream microphone audio *to* the server while simultaneously receiving the agent's audio response *from* the server. SSE, on the other hand, is a **unidirectional** protocol (server-to-client only), making it unsuitable for scenarios requiring continuous client input like voice interaction.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module30-custom-streaming-client-lab-solution -->

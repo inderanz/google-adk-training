@@ -55,3 +55,5 @@ In this course, you will learn to think in **Graphs and Nodes**, mastering ADK 2
 - AI Agents are autonomous systems that perceive, reason, and act using tools.
 - **ADK 2.0** uses a **Graph Architecture** where Agents and Tools are **Nodes** connected by **Edges**.
 - The **Workflow Runtime** is the engine that orchestrates complex multi-agent interactions on the **Gemini Enterprise Agent Platform**.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module01-intro-to-ai-agents-README -->

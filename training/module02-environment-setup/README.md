@@ -138,3 +138,5 @@ This happens if you are not running the command inside the virtual environment.
 - **Python 3.10+** and **google.adk >= 2.1.0** are strictly required.
 - **`uv`** is the recommended tool for managing Python projects and environments.
 - Use a **`.env`** file to manage your API key or project settings securely.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module02-environment-setup-README -->

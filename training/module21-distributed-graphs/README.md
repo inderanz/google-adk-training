@@ -61,3 +61,5 @@ ADK 2.0 also ships an improved `A2aAgentExecutor` implementation that fixes know
 - **Protocol standard**: A2A uses standard HTTP and JSON (Agent Cards) for cross-platform compatibility.
 - **Workflow Integration**: `RemoteA2aAgent` allows remote services to be used as standard nodes in any ADK 2.0 `Workflow`.
 - **Latency awareness**: Remote nodes involve network calls; use them for heavy tasks (like complex research) where the network overhead is negligible compared to the processing time.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module21-distributed-graphs-README -->

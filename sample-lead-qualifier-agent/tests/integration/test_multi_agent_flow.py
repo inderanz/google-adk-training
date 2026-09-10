@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: CC-BY-NC-4.0
+# Author: Inder Chauhan (https://www.linkedin.com/in/ichauhan/)
+# Fingerprint: IC-ADK-2026-SIG-sample-lead-qualifier-agent-tests-integration-test_multi_agent_flow
+
 # Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

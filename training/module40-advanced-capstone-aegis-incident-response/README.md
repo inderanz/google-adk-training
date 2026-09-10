@@ -100,3 +100,5 @@ Every simulated piece in this lab is a drop-in replacement point:
 *   **Real observability:** replace the `print()` calls in the AgentOps hooks with real OpenTelemetry spans and metrics, exported to Cloud Trace and Cloud Logging — Module 25 covers this pattern in depth.
 *   **Real deployment:** once the pieces above are real, deploy the three agents the same way you learned in Modules 32-35 (Cloud Run for the two A2A servers, Agent Runtime for the orchestrator).
 *   **Agent Skills for the playbooks:** `search_remediation_playbooks` is currently a plain function returning a fixed string. Module 39.5's Skills pattern (`SkillToolset` + `load_skill_from_dir`) is arguably a better fit than a hand-written RAG query for this: bundle each CIS/NIST playbook as its own Skill, with the remediation steps living in the Skill's `references/` folder, loaded via Progressive Disclosure only when the Mitigation Agent actually needs that specific playbook instead of always in context.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module40-advanced-capstone-aegis-incident-response-README -->

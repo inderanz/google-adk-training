@@ -109,3 +109,5 @@ root_agent = Agent(
 
 3.  **The `MCPToolset` on the client side doesn't need to know *how* the server is storing its state. Why is this separation of concerns a key benefit of the MCP architecture?**
     *   **Answer:** This separation of concerns is a key benefit of the MCP architecture because it decouples the client (the ADK agent using `MCPToolset`) from the server's internal implementation details. The agent only needs to know the server's URL and the tool's schema (its name, description, and input arguments). It doesn't care whether the server stores state in memory, a file, Redis, or a database. This allows the server's backend to be changed or upgraded (e.g., migrating from file-based state to Redis) without requiring any changes or redeployment of the client agent, promoting modular maintenance, independent evolution, and system robustness.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module34-deploying-mcp-server-cloud-run-lab-solution -->

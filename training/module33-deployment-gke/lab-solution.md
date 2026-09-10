@@ -67,3 +67,5 @@ Navigating to `http://<EXTERNAL-IP>` in a browser returns a bare `{"detail":"Not
         *   **Security Risk:** Exposes sensitive internal information (e.g., agent's full instruction, tool definitions, detailed execution traces) that should not be publicly accessible in production.
         *   **Resource Overhead:** Adds unnecessary size to the container image and consumes additional memory and CPU resources, increasing operational costs for a service that will not be interacted with via a UI.
         Using `adk api_server` results in a leaner, more secure, and more efficient production deployment tailored for backend-to-backend communication.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module33-deployment-gke-lab-solution -->

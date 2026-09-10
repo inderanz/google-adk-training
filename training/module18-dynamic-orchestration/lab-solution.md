@@ -84,3 +84,5 @@ root_agent = Workflow(
 
 3.  **Can a dynamic workflow call another dynamic workflow?**
     *   **Answer:** Yes! In ADK 2.0, every `Workflow` and every `@node` function is just a **Node**. This allows for deep nesting and modularity: you can build complex systems by composing many small, testable dynamic workflows together.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module18-dynamic-orchestration-lab-solution -->

@@ -283,3 +283,5 @@ If you're looking for where to go next:
 *   Star and share the repo if it got you here — it's open source, and word of mouth is what keeps a self-service course like this alive.
 
 Welcome to the other side: from first agent to production.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module40-advanced-capstone-aegis-incident-response-lab-solution -->

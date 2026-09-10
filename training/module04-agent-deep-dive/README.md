@@ -135,3 +135,5 @@ This is essential for building multi-agent systems where one agent's output is n
 - The `instruction` parameter is the most powerful tool for controlling behavior.
 - **`output_schema`**: Enforces strict JSON output via Pydantic on the final response -- the agent can still call tools during its thought loop; only the final answer is constrained to the schema.
 - **`output_key`**: Automatically saves the agent's response into the session state for cross-node data passing.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module04-agent-deep-dive-README -->

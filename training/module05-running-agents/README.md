@@ -64,3 +64,5 @@ While these commands feel like magic, they are powered by the **App** and **Runn
 - `uv run adk run`: A headless, command-line interface for quick tests and automated scripting.
 - `uv run adk api_server`: Runs the agent as a standalone HTTP server, exposing a RESTful API for integration and deployment.
 - All CLI commands leverage the core **App** and **Runner** engine of ADK 2.0.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module05-running-agents-README -->

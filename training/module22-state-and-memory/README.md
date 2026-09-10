@@ -83,3 +83,5 @@ The Memory Service provides **long-term, searchable memory** for your agent, lik
 - **Update State** via `tool_context` or `callback_context` to ensure safety and persistence.
 - **Session Rewind** allows reverting a conversation to a previous state (with limitations).
 - **Memory Service** provides long-term recall, with `VertexAiMemoryBankService` offering advanced semantic capabilities.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module22-state-and-memory-README -->

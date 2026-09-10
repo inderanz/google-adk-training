@@ -116,3 +116,5 @@ This system uses a more complex `AuthConfig` object and is designed for producti
 - You must configure an `artifact_service` in your `Runner`, using `InMemoryArtifactService` for development and `GcsArtifactService` for production.
 - Tools interact with artifacts asynchronously using the `ToolContext`, with methods like `save_artifact`, `load_artifact`, and `list_artifacts`.
 - **Asynchronous Operations:** All interactions with the Artifact Service (e.g., `save_artifact`, `load_artifact`) are asynchronous (`async`). This is because file I/O operations, especially with cloud storage services like GCS, can be time-consuming. Using `async` ensures that the main Python thread remains non-blocking, allowing the agent to handle other tasks or requests concurrently while waiting for file operations to complete.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module23-artifacts-README -->

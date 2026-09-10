@@ -217,3 +217,5 @@ if __name__ == "__main__":
         *   **Customization:** For highly specialized deployment workflows that deviate significantly from the Agents CLI templates (e.g., integrating with existing, complex CI/CD systems or custom infrastructure), a manual script offers greater flexibility.
         *   **Modifying Existing Deployments:** If you need to programmatically update specific aspects of an already deployed Agent Runtime instance that aren't covered by the Agents CLI's `deploy` command, a custom script is often necessary.
         *   **Simplified Projects:** For very simple, one-off deployments or internal tools that don't require a full IaC/CI/CD setup, a direct script might be quicker to set up initially.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module35-deployment-agent-runtime-lab-solution -->

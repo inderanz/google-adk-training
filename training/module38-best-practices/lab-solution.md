@@ -114,3 +114,5 @@ root_agent = Workflow(
     *   **Answer:** No. The framework only retries if it "sees" the exception. If you catch it and return a string (even an error message), the framework considers the node execution "Successful" and proceeds to the next step.
 3.  **In a production environment (like Cloud Run), why is `lru_cache` only a partial solution for performance?**
     *   **Answer:** Cloud Run is serverless and horizontal-scaling. Each instance has its own local memory. If User A hits Instance 1, the result is cached there. If User A's next request hits Instance 2, that cache is empty. For a truly production-grade system, a distributed cache (like Memorystore for Redis) is required.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module38-best-practices-lab-solution -->

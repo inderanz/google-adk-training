@@ -76,3 +76,5 @@ complex_graph = Workflow(
 - **Edges define the flow:** Chain them for sequential, branch them for parallel.
 - **`JoinNode`** is the mandatory synchronization point for parallel branches.
 - **Data Flow:** ADK 2.0 handles passing results between nodes automatically, ensuring a seamless pipeline.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module16-static-orchestration-README -->

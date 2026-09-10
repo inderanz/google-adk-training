@@ -81,3 +81,5 @@ root_agent = Workflow(
 
 3.  **How does `RemoteA2aAgent` simplify building distributed systems?**
     *   **Answer:** It abstracts the network layer. To the `Workflow` engine, `RemoteA2aAgent` is just another node. You don't have to manually write HTTP requests or handle JSON serialization; you just define the edge in the graph, and ADK handles the rest.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module21-distributed-graphs-lab-solution -->

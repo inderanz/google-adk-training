@@ -127,3 +127,5 @@ You have successfully built an agent with custom capabilities, learning to:
 *   Write well-defined Python functions with type hints and docstrings to serve as tools.
 *   Register your custom tools directly in `agent.py` without needing extra wrappers.
 *   Write instructions that effectively guide the agent on how and when to use its new tools.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module09-intro-custom-function-tools-lab-solution -->

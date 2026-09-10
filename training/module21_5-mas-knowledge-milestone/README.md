@@ -34,3 +34,5 @@ When designing a new system, ask yourself these three questions:
 - There is no "one size fits all" architecture. Most production systems use a **Hybrid** approach.
 - Always prefer the **simplest** geometry that solves the problem. Don't use a Dynamic workflow if a Static one suffices.
 - Use the **Dev UI Graph View** to validate that your code matches your mental model.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module21_5-mas-knowledge-milestone-README -->

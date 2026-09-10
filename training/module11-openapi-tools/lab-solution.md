@@ -125,3 +125,5 @@ Always state the amount, the original currency, and the converted currency clear
 
 3.  **How does the widespread adoption of the OpenAPI standard make it easier to build powerful AI agents?**
     *   **Answer:** Because almost all modern enterprise applications and SaaS platforms (like Stripe, GitHub, Salesforce) publish OpenAPI specifications, you can theoretically connect an ADK agent to *any* of them in minutes just by loading their spec file into an `OpenAPIToolset`. It bridges the gap between AI and traditional software ecosystems effortlessly.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module11-openapi-tools-lab-solution -->

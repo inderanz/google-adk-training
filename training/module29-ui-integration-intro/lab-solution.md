@@ -144,3 +144,5 @@ This file contains the complete code for the `index.html` custom chat client.
         *   **Standardization:** They enforce a standardized protocol for agent-UI communication, making integrations more robust.
         *   **Advanced Features:** They often include advanced features out-of-the-box, such as visual feedback for tool calls, context management, and support for complex conversational flows.
         *   **Official Support & Ecosystem:** They are often officially supported and come with a growing ecosystem of tools and best practices, making development faster and more reliable.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module29-ui-integration-intro-lab-solution -->

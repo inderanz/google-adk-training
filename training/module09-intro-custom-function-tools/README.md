@@ -153,3 +153,5 @@ The solution is to use **separate agents**, each with its own single tool type, 
 3.  Either a coordinating agent, or your own Python code, that calls each one in turn and combines their results.
 
 You'll learn exactly how to build these multi-agent architectures in **Module 15**. Module 12 revisits this same constraint hands-on, once you've seen `google_search` and the other built-in tools in more depth.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module09-intro-custom-function-tools-README -->

@@ -68,3 +68,5 @@ The most important part is the **Service URL**.
     *   **Answer:**
         *   **Cost Implications:** Scaling to zero is highly cost-effective for agents with infrequent traffic because you are **not billed for idle time**. When no requests are being processed, Cloud Run gracefully shuts down all instances, and you only pay for the compute resources consumed *during active request processing*. This makes it very economical for agents that are used sporadically.
         *   **Performance Implications:** The trade-off for scaling to zero is **"cold start" latency**. The very first request to a service that has scaled down to zero instances will experience a higher latency as Cloud Run needs to provision and initialize a new container instance. This can take several seconds. Subsequent requests to the active instance(s) will be fast, but if traffic remains low and instances scale down again, the cold start penalty will recur.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module32-deployment-cloud-run-lab-solution -->

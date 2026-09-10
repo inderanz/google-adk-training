@@ -51,3 +51,5 @@ This allows the agent to maintain a "structured memory" that is more reliable th
 - **`tool_context.state`** allows tools to persist data across turns.
 - Stateful tools enable agents to have a structured, programmable memory.
 - **Rule:** Never describe `tool_context` in your docstring; it's for the framework, not the LLM.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module10-advanced-function-tools-README -->

@@ -70,3 +70,5 @@ root_agent = Workflow(
 
 3.  **Why use `output_key` if data flows automatically?**
     *   **Answer:** While ADK 2.0 passes the output of one node to the next, a `JoinNode` receives multiple outputs. Using `output_key` saves individual results into the global session state, making it much easier for the `summarizer` to access specific variables like `{tech_news}` via string interpolation.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module16-static-orchestration-lab-solution -->

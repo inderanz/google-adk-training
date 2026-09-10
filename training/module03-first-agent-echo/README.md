@@ -84,3 +84,5 @@ In the upcoming lab, you will use these concepts to create, configure, and run y
 - The `instruction` is the most critical part, defining the agent's persona, goals, and rules.
 - Agents can be defined simply with YAML (`root_agent.yaml`) or programmatically with Python (`agent.py`).
 - The `uv run adk create` command scaffolds the necessary project structure for a new agent.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module03-first-agent-echo-README -->

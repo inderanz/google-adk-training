@@ -72,3 +72,5 @@ if __name__ == "__main__":
 ### Lab Summary
 
 You have now moved from testing agents in a UI to controlling them with code. This is the first step toward building real-world, scalable agentic applications.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module06-programmatic-execution-lab-solution -->

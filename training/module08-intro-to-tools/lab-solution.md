@@ -135,3 +135,5 @@ You have successfully given an agent a powerful new capability. You have learned
 *   Configure an agent to use a built-in tool like `google_search` (using both Python and YAML approaches).
 *   Write instructions that guide the agent on when to use its tools.
 *   Verify that a tool was used by inspecting the Trace View in the Dev UI.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module08-intro-to-tools-lab-solution -->

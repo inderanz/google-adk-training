@@ -67,3 +67,5 @@ Because this agent is defined in a Python file, you must delete the placeholder 
         *   **Security:** You are trusting the code within that library. A malicious update or a vulnerability in the tool could compromise your agent.
         *   **Dependency Conflicts:** As mentioned in the module theory, adding large libraries like LangChain can introduce "dependency hell," where different parts of your application require incompatible versions of the same underlying package.
         *   **Control:** You have less control over exactly how the tool works compared to a custom function you wrote yourself.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module14-third-party-tools-lab-solution -->

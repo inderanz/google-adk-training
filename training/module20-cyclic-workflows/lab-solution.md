@@ -92,3 +92,5 @@ root_agent = Workflow(
         *   **Code Debugging:** Write code -> Run tests -> If fail, provide error to refiner -> Loop until pass.
         *   **Fact Checking:** Generate claim -> Search for evidence -> If inconsistent, revise claim -> Loop.
         *   **Optimization:** Propose a solution -> Calculate cost/efficiency -> Refine solution -> Loop until target reached.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module20-cyclic-workflows-lab-solution -->

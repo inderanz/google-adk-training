@@ -125,3 +125,5 @@ if __name__ == '__main__':
 
 3.  **If you wanted to analyze a PDF document instead of an image, which `mime_type` would you use?**
     *   **Answer:** You would use `application/pdf`. The `Part` and `Blob` structure remains the same for all media types.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module07-multimodal-and-images-lab-solution -->

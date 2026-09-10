@@ -94,3 +94,5 @@ app = App(
 - **Dynamic Workflows** allow defining complex orchestration logic using standard Python code decorated with `@node`.
 - **`ctx.run_node()`** is the primary way to execute other agents or functions within a workflow.
 - Use this pattern when routing depends on complex logic, loops, or external state that cannot be represented by a simple dictionary.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module18-dynamic-orchestration-README -->

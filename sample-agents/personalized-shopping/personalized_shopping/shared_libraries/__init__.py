@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: CC-BY-NC-4.0
+# Author: Inder Chauhan (https://www.linkedin.com/in/ichauhan/)
+# Fingerprint: IC-ADK-2026-SIG-sample-agents-personalized-shopping-personalized_shopping-shared_libraries-__init__
+
 # Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

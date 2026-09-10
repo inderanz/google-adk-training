@@ -76,3 +76,5 @@ In the lab, you will build a "Visual Product Catalog Analyzer" that uses a singl
 - The `google.genai.types.Part` object is the building block for multimodal content, allowing you to combine text and image data in a single prompt.
 - Vision-capable agents can be used for a wide range of tasks, including image analysis, document understanding, and multimodal reasoning.
 - You can create custom tools to integrate with image generation services like Agent Platform Imagen.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module07-multimodal-and-images-README -->

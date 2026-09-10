@@ -93,3 +93,5 @@ You connect it by passing a registry (e.g. `GCPSkillRegistry` from `google.adk.i
 - They prevent context bloat via **Progressive Disclosure**—loading detailed instructions only when the skill is activated.
 - In ADK 2.0, you load skills from a directory using `load_skill_from_dir()`.
 - You provide skills to an Agent by bundling them inside a `SkillToolset`, which handles the activation and execution logic.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module39_5-agent-skills-README -->

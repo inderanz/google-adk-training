@@ -108,3 +108,5 @@ root_agent = Agent(
 )
 ```
 Verified live: the result is the same forecast text, but the Trace tab shows no separate `weather_checker` author entry -- the call and its result appear as a single function call/response pair inside `travel_planner`'s own turn, exactly like calling a regular tool.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module19-collaborative-teams-lab-solution -->

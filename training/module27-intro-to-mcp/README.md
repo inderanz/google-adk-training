@@ -58,3 +58,5 @@ In the lab, you will use the `Stdio` connection to run a local filesystem server
 - The ADK acts as an MCP client, using the `McpToolset` to connect to and consume tools from an MCP server.
 - **Workflow Integration:** In ADK 2.0, an `Agent` node equipped with an `McpToolset` becomes a powerful interface to external systems within your graph.
 - **Security and Sandboxing:** Launching an MCP server as a subprocess (e.g., via `StdioConnectionParams`) grants the external code operational freedom. Always **sandbox** the server to a specific directory to minimize risk.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module27-intro-to-mcp-README -->

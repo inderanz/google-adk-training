@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use or reference this courseware, please cite it as below."
+authors:
+  - family-names: "Chauhan"
+    given-names: "Inder"
+    affiliation: "Google Cloud Certified Fellow"
+    website: "https://www.linkedin.com/in/ichauhan/"
+title: "Mastering Google ADK: From First Agent to Production"
+version: 2.0.0
+date-released: 2026-09-10
+url: "https://github.com/inderanz/google-adk-training"
+repository-code: "https://github.com/inderanz/google-adk-training"
+license: "CC-BY-NC-SA-4.0"
+keywords:
+  - "Google Agent Development Kit"
+  - "ADK 2.0"
+  - "Gemini Enterprise"
+  - "Multi-Agent Systems"
+  - "AI Agents"

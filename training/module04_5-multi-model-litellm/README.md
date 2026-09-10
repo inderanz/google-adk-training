@@ -83,3 +83,5 @@ Use `LiteLlm` if you need to:
 - **The `Gemini` class** is the key to configuring retries, locations, and custom project settings.
 - **Subclassing `Gemini`** is an expert pattern for centralizing production configurations.
 - **`LiteLlm`** is the tool for maximum portability across providers.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module04_5-multi-model-litellm-README -->

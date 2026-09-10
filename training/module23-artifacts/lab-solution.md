@@ -148,3 +148,5 @@ Workflow:
         )
         ```
         You would also need to ensure your environment has the necessary Google Cloud authentication configured (e.g., via `GOOGLE_APPLICATION_CREDENTIALS` or a service account).
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module23-artifacts-lab-solution -->

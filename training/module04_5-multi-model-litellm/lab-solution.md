@@ -91,3 +91,5 @@ root_agent = Agent(
 
 3.  **In which scenario would you prefer using the native `Gemini` class over the `LiteLlm` abstraction?**
     *   **Answer:** Use the native `Gemini` class when you are building a production system on Google Cloud and need the highest performance, lowest latency, and access to Gemini-specific features (like native speech config, context caching, or advanced grounding) that might not be fully mapped or supported by the general LiteLLM abstraction.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module04_5-multi-model-litellm-lab-solution -->

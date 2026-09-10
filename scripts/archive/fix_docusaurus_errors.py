@@ -1,3 +1,7 @@
+# SPDX-License-Identifier: CC-BY-NC-4.0
+# Author: Inder Chauhan (https://www.linkedin.com/in/ichauhan/)
+# Fingerprint: IC-ADK-2026-SIG-scripts-archive-fix_docusaurus_errors
+
 import re
 
 # 1. Fix the MDX parsing error in module37 lab.md

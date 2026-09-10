@@ -60,3 +60,5 @@ This solution provides the architectural blueprints and justifications for the s
 1.  **Hybrid Approach:** Real systems often start with a static business process (Static) but then encounter "messy" data that needs Python logic (Dynamic) or external expertise (Distributed). Hybrid designs offer the best balance of control and flexibility.
 2.  **Collaborative Team Risks:** In a regulated environment, "Collaborative" agents might deviate from a strict protocol or lose the "Chain of Custody." For financial/legal tasks, **Static/Structured** graphs are preferred for auditability.
 3.  **Graph Mental Model:** Business leaders understand flowcharts and process maps. Explaining an AI system as a "Graph of Nodes" makes the ROI and process logic much clearer than just saying "it's an intelligent chat."
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module21_5-mas-knowledge-milestone-lab-solution -->

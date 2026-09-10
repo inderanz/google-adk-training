@@ -141,3 +141,5 @@ if __name__ == "__main__":
 
 3.  **`main.py` passes `findings` between the two agents as a plain string. What would you have to change if you instead wanted `formatter_agent` to be able to ask `research_agent` follow-up questions?**
     *   **Answer:** A one-way string handoff can't support a back-and-forth. You'd need `formatter_agent` to actually invoke `research_agent` as a *tool call*, not just receive its output as a static string -- for example, by wrapping `research_agent` as a sub-agent it can transfer control to and back, or by exposing a `call_research_agent(question: str)` function tool that internally runs `research_agent` and returns its answer. Either way, this pushes you from "sequential composition" into genuine multi-agent orchestration -- which is exactly what Module 15 covers next.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module12-built-in-tools-grounding-lab-solution -->

@@ -83,3 +83,5 @@ The `google_maps_grounding` tool enables agents to answer location-based queries
 - These tools run within the model's environment, making them easy to set up and scale.
 - A built-in tool like `google_search` **cannot** share an agent's `tools` list with custom function tools — that's a Gemini API restriction, confirmed by a real `400 INVALID_ARGUMENT` at runtime, not just an ADK convention.
 - To combine grounding with custom logic, use **sequential composition**: a search-only agent's output feeds into a second agent that has your custom tools, called one after another in your own code.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module12-built-in-tools-grounding-README -->

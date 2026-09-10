@@ -154,3 +154,5 @@ if __name__ == "__main__":
 
 3.  **Why inject into the Runner?**
     *   **Answer:** Separation of Concerns. The Agent should only focus on AI reasoning. The Runner handles the "dirty work" of I/O and infrastructure.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module13_5-firestore-persistence-lab-solution -->
