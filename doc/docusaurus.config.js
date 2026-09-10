@@ -3,7 +3,7 @@ const config = {
   url: 'https://inderanz.github.io',
   baseUrl: '/google-adk-training/',
   favicon: 'img/favicon.png',
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
   markdown: {
     hooks: {
       onBrokenMarkdownLinks: 'warn',

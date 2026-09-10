@@ -1,7 +1,7 @@
 # 🎓 Mastering Google ADK: From First Agent to Production 🚀
 
 [![ADK Version](https://img.shields.io/badge/ADK-v2.0-blue.svg)](https://github.com/google/adk-python)
-[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://github.com/inderanz/google-adk-training/blob/main/LICENSE)
 
 Welcome! This repository contains a comprehensive, multi-module training course for the **Google Agent Development Kit (ADK)**. Through a series of hands-on modules, you will learn the core and advanced concepts of the ADK to build, test, deploy, and observe your own AI agents.
 
