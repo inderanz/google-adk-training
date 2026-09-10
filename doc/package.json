@@ -1,0 +1,17 @@
+{
+  "name": "google-adk-training-site",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.9.2",
+    "@docusaurus/plugin-client-redirects": "^3.9.2",
+    "@docusaurus/preset-classic": "3.9.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

@@ -1,0 +1,66 @@
+---
+sidebar_position: 5
+title: "Module 5: Running and Interacting with Agents"
+---
+
+# Module 5: Running and Interacting with Agents
+
+## Theory
+
+### Bringing Your Agent to Life
+
+Creating an agent configuration is the first step, but to test and use your agent, you need to run it. The ADK provides a powerful and flexible command-line interface (CLI) that offers several ways to run your agent, each suited for different stages of the development lifecycle.
+
+Understanding these different execution modes is key to efficiently developing, debugging, and eventually deploying your agents.
+
+### 1. Interactive Development: `uv run adk web`
+
+The `uv run adk web` command is your primary tool during development. It starts a local web server that hosts the **ADK Developer UI**.
+
+**Key Features:**
+
+*   **Chat Interface:** Provides a user-friendly chat window to interact with your agent in real-time.
+*   **Trace View:** This is the most powerful feature. It gives you a detailed, step-by-step visualization of your agent's execution flow. You can see the exact prompts sent to the LLM, which tools were called with which arguments, the data returned by the tools, and any changes to the agent's internal state. This is invaluable for debugging.
+*   **Session Management:** The UI allows you to manage different conversation sessions, so you can test how your agent behaves over multiple interactions.
+*   **No Code Changes Needed:** You can test and iterate on your `root_agent.yaml` configuration without restarting the server. Simply save your changes, and the UI will use the updated configuration for the next conversation.
+
+The Dev UI is the best way to get immediate feedback and deep insight into your agent's reasoning process.
+
+### 2. Headless Interaction: `uv run adk run`
+
+The `uv run adk run` command allows you to interact with your agent directly from your terminal, without a graphical user interface.
+
+**Key Features:**
+
+*   **Command-Line Chat:** It drops you into a simple, text-based chat session with your agent.
+*   **Quick Testing:** It's a fast way to test a specific input or a simple conversation without the overhead of launching a web browser.
+*   **Scripting and Automation:** Because it runs in the terminal, `uv run adk run` can be used in automated testing scripts. You can pipe input to it and check the output to verify the agent's behavior.
+
+This mode is ideal for quick checks and for integrating agent tests into a continuous integration (CI) pipeline.
+
+### 3. Deployment and Integration: `uv run adk api_server`
+
+The `uv run adk api_server` command runs your agent as a standalone HTTP server, exposing its functionality through a RESTful API.
+
+**Key Features:**
+
+*   **API Endpoints:** It creates standard API endpoints (e.g., `/run_sse`, `/list-apps`) that allow other applications to communicate with your agent programmatically. Notably, `/run_sse` uses Server-Sent Events for real-time, streaming interactions.
+*   **Decoupled Architecture:** This is how you would typically run your agent in a production or staging environment. Your user-facing application (e.g., a web app, a mobile app) would make HTTP requests to this agent server.
+*   **Scalability:** Running the agent as an API server allows it to be containerized (e.g., with Docker) and deployed to scalable infrastructure like Cloud Run or Google Kubernetes Engine.
+
+This mode is essential for moving your agent from a local development tool to a component that can be integrated into a larger system.
+
+In the lab for this module, you will get hands-on experience with all three of these commands, giving you a complete toolkit for running and interacting with your agents.
+
+### The ADK 2.0 CLI Engine
+
+While these commands feel like magic, they are powered by the **App** and **Runner** architecture you learned about in earlier modules. 
+
+*   `uv run adk web` and `uv run adk run` instantiate an **InMemoryRunner** for fast, local development.
+*   `uv run adk api_server` provides a production-style environment where sessions and state are managed by the framework (and can be backed by Firestore, as you will see in Module 13.5).
+
+### Key Takeaways
+- `uv run adk web`: The primary tool for interactive development and debugging, featuring a chat UI and a detailed Trace View.
+- `uv run adk run`: A headless, command-line interface for quick tests and automated scripting.
+- `uv run adk api_server`: Runs the agent as a standalone HTTP server, exposing a RESTful API for integration and deployment.
+- All CLI commands leverage the core **App** and **Runner** engine of ADK 2.0.

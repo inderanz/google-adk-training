@@ -1,0 +1,97 @@
+---
+sidebar_position: 6
+title: "Module 6: Programmatic Execution: Apps and Runners"
+---
+
+# Module 6: Programmatic Execution: Apps and Runners
+
+## Theory
+
+Until now, you've used the ADK CLI (`uv run adk web`, `uv run adk run`) to interact with your agents. While great for testing, real-world applications (like a Discord bot or a web backend) need to trigger agents programmatically from within Python code.
+
+To do this, you need to understand the relationship between three core objects: the **Agent**, the **App**, and the **Runner**.
+
+### The "Three Pillars" of ADK Architecture
+
+Think of building an agentic application like setting up a smart office:
+
+#### 1. The Agent: The Intelligence
+The `Agent` (or `root_agent`) is the employee. It has instructions, a model, and (soon) tools. It's the "thinking" part of your application.
+*   **Role:** Reasoning and task execution.
+*   **Scope:** Specific to the agent's logic.
+
+#### 2. The App: The Infrastructure
+The `App` is the office building. It's a top-level container that holds the `root_agent` and manages global operational concerns.
+*   **Role:** Configuration and lifecycle management.
+*   **Key Responsibilities:** Managing global plugins, context caching, and resumability configurations. It separates operational infrastructure from the agent's logic.
+
+#### 3. The Runner: The Motor
+The `Runner` is the management system that actually makes things happen. It receives a message from a user and "runs" it through the App.
+*   **Role:** Orchestration and session management.
+*   **The Singleton Pattern:** In most applications, you create **one Runner instance** for your entire application. This single Runner is designed to handle multiple users and multiple sessions simultaneously.
+
+### Understanding Runners and Sessions
+
+A common question is: *"Where are the conversations stored?"*
+
+The Runner doesn't store data itself. It uses a **Session Service** to find or create conversation threads.
+
+*   **`InMemoryRunner`**: Automatically uses an `InMemorySessionService`. It's perfect for local development because it's fast and requires no setup, but **all data is lost** when your Python script stops.
+*   **`Runner` (Base Class)**: In production, you use the base `Runner` class and inject a persistent service, like `FirestoreSessionService` (which you will learn about in Module 13.5). This allows your agent to remember users across restarts and across different server instances.
+
+### How the Runner Isolates Users
+
+When you call a Runner method, you must provide two unique identifiers:
+1.  **`user_id`**: Identifies who is talking (e.g., "alice_123").
+2.  **`session_id`**: Identifies the specific conversation thread (e.g., "billing_dispute_001").
+
+```python
+# The Runner uses these IDs to find the correct history in its Session Service
+async for event in runner.run_async(
+    user_id="alice_123", 
+    session_id="chat_001", 
+    new_message=message
+):
+    # Process events...
+```
+
+The Runner uses these IDs to look up the correct conversation history. This ensures that Alice's conversation never leaks into Bob's, even though they are both being processed by the same Runner instance.
+
+### Minimal Programmatic Setup
+
+To run an agent from Python, your `main.py` typically follows this flow:
+
+```python
+import asyncio
+from google.adk.apps import App
+from google.adk.runners import InMemoryRunner
+from agent import root_agent # Your agent from Module 04
+
+# 1. Wrap the agent in an App
+# In ADK 2.0, 'root_agent' is a required named argument.
+app = App(name="my_support_app", root_agent=root_agent)
+
+# 2. Instantiate a Runner for that App
+# The Runner now takes the 'app' instance directly.
+runner = InMemoryRunner(app=app)
+
+async def main():
+    # 3. Execute!
+    # Tip: run_debug() is the recommended method for programmatic testing.
+    # It handles the async event stream and returns a list of Event objects.
+    events = await runner.run_debug("I have a billing problem.", user_id="user_123")
+    
+    for event in events:
+        if event.is_final_response():
+            print(f"Agent Response: {event.content.parts[0].text}")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Key Takeaways
+- **Agent**: Defines the persona and logic.
+- **App**: A container for the agent and global configurations (Plugins, Caching).
+- **Runner**: The execution engine. You typically use one Runner to serve many users.
+- **Isolation**: The ADK ensures session isolation using `user_id` and `session_id`.
+- **`run_debug()`**: A convenient method for quick programmatic testing without manually handling async event streams.
