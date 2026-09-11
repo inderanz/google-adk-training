@@ -77,4 +77,29 @@ In the lab, you will build a "Visual Product Catalog Analyzer" that uses a singl
 - Vision-capable agents can be used for a wide range of tasks, including image analysis, document understanding, and multimodal reasoning.
 - You can create custom tools to integrate with image generation services like Agent Platform Imagen.
 
+## Enterprise Lens: How this maps to real customer work
+
+This module represents a common forward-deployed engineer pattern: take a business need with visual inputs, package the modality correctly, and integrate it into an operating workflow with validation and business logic.
+
+The latest ADK guidance also highlights the broader design decision: start simple, then move to workflows when the task complexity, context needs, or orchestration requirements grow.
+
+Use the enterprise companion guide here:
+
+- [Module 07 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+This ensures the multimodal lesson connects to the broader ADK enterprise architecture story instead of staying isolated as a demo.
+
+## Official ADK / Google references
+
+Use the official Google and ADK documentation as the current source of truth for multimodal prompt design, image inputs, and model capability updates:
+
+- ADK documentation home: https://google.github.io/adk-docs/
+- ADK agents overview: https://google.github.io/adk-docs/agents/
+- Gemini API multimodal docs: https://ai.google.dev/gemini-api/docs/multimodal
+- Google AI Studio / Gemini docs: https://ai.google.dev/gemini-api/docs
+- Vertex AI multimodal guidance: https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal
+
+These references should be reviewed whenever the training content is updated for a new model version or multimodal input behavior change.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module07-multimodal-and-images-README -->

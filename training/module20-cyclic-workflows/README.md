@@ -64,4 +64,16 @@ async def refinement_workflow(ctx: Context, node_input: str):
 - **Safety First:** Always use a `max_iterations` limit to prevent infinite loops and excessive API costs.
 - **Node-to-Node passing:** The output of one iteration is manually passed as the input to the next via `ctx.run_node()`.
 
+## Official ADK / Google references
+
+Use the official Google and ADK documentation as the current source of truth for workflow orchestration, iterative execution, and runtime guidance:
+
+- ADK documentation home: https://google.github.io/adk-docs/
+- ADK workflows and orchestration docs: https://google.github.io/adk-docs/workflows/
+- ADK agent and runtime docs: https://google.github.io/adk-docs/agents/
+- Gemini API docs: https://ai.google.dev/gemini-api/docs
+- Vertex AI generative AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
+
+These references should be reviewed whenever the workflow runtime, node execution model, or resumability behavior changes.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module20-cyclic-workflows-README -->

@@ -43,56 +43,154 @@ You will use the **App and Runner** pattern you learned in Module 6 to build a P
 
 > **Note on Sessions:** When using `run_async` programmatically, you must explicitly create a session in the runner's session service before sending a message, just as you did with `curl` in Module 5.
 
-```python
-import asyncio
-import logging
-import os
-from google.adk import Agent
-from google.adk.apps import App
-from google.adk.runners import InMemoryRunner
-from google.genai import types
-from dotenv import load_dotenv
+Below is the same logic written in a teaching-friendly way. Instead of reading it as isolated lines, think of it as a small delivery pipeline:
 
-# Optional: Suppress noisy ADK/httpx logs
+1. Build the agent (the model with a job description)
+2. Create a runner and session (the traffic system and conversation memory)
+3. Turn the image into bytes inside a `types.Part`
+4. Send a multimodal message containing both text and image
+5. Read the final response from the model and print it
+
+This is the main mental model you will reuse in real ADK projects: one object holds the model, another object manages the runtime, and the message carries the business data.
+
+```python
+# ------------------------------------------------------------
+# 1) Import the libraries we need
+# ------------------------------------------------------------
+import asyncio                      # Lets us run async code (important for ADK run_async)
+import logging                      # Helps us control noisy logs from Google libraries
+import os                           # Lets us work with file paths and check whether files exist
+
+from google.adk import Agent        # The AI brain / instruction set for the app
+from google.adk.apps import App     # The app container that holds the root agent
+from google.adk.runners import InMemoryRunner  # Runs the app in memory and manages session state
+from google.genai import types      # Used to create Parts, Content, and Blob payloads for multimodal input
+from dotenv import load_dotenv       # Loads environment variables from .env
+
+# ------------------------------------------------------------
+# 2) Keep the logs clean
+# ------------------------------------------------------------
+# This is optional, but very helpful when learning.
+# Without this, ADK may print a lot of internal HTTP/debug logs that are not relevant to the app logic.
 logging.getLogger("google.adk").setLevel(logging.WARNING)
 
-# Helper function to load an image from a local file path
+# ------------------------------------------------------------
+# 3) Helper function: convert a local image file into ADK format
+# ------------------------------------------------------------
+# Think of this as a "translator".
+# The model does not understand a raw JPG file on disk directly.
+# We must read the file bytes and package them into something the model can consume.
+# `types.Part` is the message container for model input.
 def load_image_from_file(path: str) -> types.Part:
-    """Load image from file and return a types.Part object."""
+    """Read an image file from disk and convert it into a `types.Part` for Gemini/ADK."""
+
+    # Open the file in binary mode because images are not plain text.
+    # 'rb' = read-binary
     with open(path, 'rb') as f:
         image_bytes = f.read()
-    
+
+    # Choose the MIME type based on the file extension.
+    # This tells the model what kind of image it is receiving.
+    # Think of MIME type as the file's label, like "this is a JPEG image".
     mime_type = 'image/png' if path.lower().endswith('.png') else 'image/jpeg'
 
+    # Build the payload structure expected by the Google GenAI SDK.
+    # `types.Blob` holds the raw bytes and the file type.
+    # `types.Part` wraps that blob so it can be placed inside a message.
     return types.Part(
         inline_data=types.Blob(data=image_bytes, mime_type=mime_type)
     )
 
+# ------------------------------------------------------------
+# 4) Application class: organize the logic into a reusable object
+# ------------------------------------------------------------
+# This class is like a small business "workflow" object:
+# - agent = the intelligence
+# - app = the runtime container
+# - runner = the execution engine that actually sends the task to the model
 class VisualCatalogApp:
     def __init__(self):
-        # 1. Define the Intelligence
+        # A. Define the AI "brain"
+        # --------------------------------------------------------
+        # Here we define the model and the task instructions.
+        # This is a classic ADK pattern:
+        #   Agent(model=..., name=..., instruction=...)
+        # The model is the actual LLM.
+        # The instruction is the job description.
         self.agent = Agent(
             model='gemini-3.5-flash',
             name='catalog_writer',
             instruction="You are a professional product catalog writer. Analyze the image and write a compelling description."
         )
-        # 2. Build the Infrastructure
+
+        # B. Build the app container
+        # --------------------------------------------------------
+        # `App` is the wrapper that holds the root agent.
+        # In a real application, this is the place where the app is assembled.
+        # It is the "container" in which the agent lives.
         self.app = App(name="visual_catalog", root_agent=self.agent)
+
+        # C. Create the runner that executes the app
+        # --------------------------------------------------------
+        # `InMemoryRunner` is a lightweight runner for in-process execution.
+        # It gives us an easy way to send messages and receive events.
+        # For a learning example, this is much simpler than setting up a full web server.
         self.runner = InMemoryRunner(app=self.app)
 
+    # ------------------------------------------------------------
+    # 5) Main business method: analyze one product image
+    # ------------------------------------------------------------
+    # This is the key method that does the actual work.
+    # It follows the same basic pattern you will use in most ADK apps:
+    # 1) create / find a session
+    # 2) load the input data
+    # 3) produce a multimodal message
+    # 4) run the agent
+    # 5) read the final response
     async def analyze_product(self, product_id: str, image_path: str):
+        # Print a clear heading so we know what is being processed.
         print(f"\n--- Analyzing Product: {product_id} ---")
+
+        # Every conversation in ADK is associated with a user and session.
+        # This is like a conversation thread or a ticket folder.
+        # We give it a human-friendly user id and a unique session id.
         user_id = "catalog_admin"
         session_id = f"sess_{product_id}"
 
-        # TODO: 1. Create the session explicitly in the session service
-        # Hint: Use self.runner.session_service.create_session(...)
-        ...
+        # --------------------------------------------------------
+        # Step 1: Create the session explicitly
+        # --------------------------------------------------------
+        # Very important! When using `run_async` programmatically,
+        # you must create a session before sending a new message.
+        # The session stores conversation state, memory, and context.
+        # Without this, the runner has no place to keep the conversation.
+        #
+        # Analogy:
+        # A session is like opening a customer support ticket before you send a message.
+        # The ticket keeps all the details together so the support agent can see the full context.
+        self.runner.session_service.create_session(
+            app_name=self.app.name,
+            user_id=user_id,
+            session_id=session_id,
+        )
 
-        # TODO: 2. Load the image using the helper function
-        image_part = ...
+        # --------------------------------------------------------
+        # Step 2: Load the image
+        # --------------------------------------------------------
+        # We call our helper function to convert the image file into a `types.Part`.
+        # This is how we package the raw image for the model.
+        image_part = load_image_from_file(image_path)
 
-        # TODO: 3. Create the multimodal message (types.Content object)
+        # --------------------------------------------------------
+        # Step 3: Build the multimodal message
+        # --------------------------------------------------------
+        # A message in ADK is a `types.Content` object.
+        # It has a role and a list of parts.
+        # In this case, the message contains:
+        # - a text instruction from the user
+        # - an image part with the product photo
+        #
+        # This is the core multimodal pattern: combine different input types in one message.
         msg = types.Content(
             role="user",
             parts=[
@@ -101,26 +199,54 @@ class VisualCatalogApp:
             ]
         )
 
-        # TODO: 4. Run the agent using run_async
+        # --------------------------------------------------------
+        # Step 4: Send the message to the agent via the runner
+        # --------------------------------------------------------
+        # `runner.run_async(...)` is the entry point that sends the message into the app.
+        # It does the orchestration: session lookup, root agent invocation, model execution,
+        # and event streaming back to us.
+        #
+        # We iterate through the returned event stream and wait for the final answer.
         print("📸 Sending image to Gemini...")
         async for event in self.runner.run_async(
             user_id=user_id,
             session_id=session_id,
             new_message=msg
         ):
+            # `is_final_response()` tells us when the model has produced the final answer.
+            # This is important because the model may emit intermediate streaming events first.
             if event.is_final_response():
+                # In many ADK tasks, the response is in event.content.parts[0].text.
+                # We print it for the user.
                 print(f"✅ Description:\n{event.content.parts[0].text}\n")
 
+# ------------------------------------------------------------
+# 6) Entry point: run the workflow for multiple products
+# ------------------------------------------------------------
+# This function is the coordinator for the whole application.
+# It loads environment variables, creates the app object, and loops through a list of product images.
 async def main():
+    # Load environment variables from .env so settings like GOOGLE_CLOUD_PROJECT and
+    # GOOGLE_CLOUD_LOCATION are available to the Google SDK.
     load_dotenv()
+
+    # Create one application object.
+    # This object holds the agent and runner so we can reuse the workflow.
     catalog = VisualCatalogApp()
 
-    # Images are expected to be in the parent directory for this lab
+    # A list of product image pairs: (product_id, relative_path)
+    # This is a simple data structure that lets us process multiple products in one loop.
+    # In real work, this could come from a database, CSV, or API response.
     products = [
         ('HEADPHONES-01', '../headphones.jpg'),
         ('LAPTOP-02', '../laptop.jpg'),
     ]
 
+    # Loop through each product.
+    # For each one:
+    # - check whether the file exists
+    # - if yes, call analyze_product
+    # - pause briefly to avoid hammering the model too quickly
     for product_id, path in products:
         if os.path.exists(path):
             await catalog.analyze_product(product_id, path)
@@ -128,9 +254,56 @@ async def main():
         else:
             print(f"⚠️ Image not found: {path}")
 
+# ------------------------------------------------------------
+# 7) Standard Python execution pattern
+# ------------------------------------------------------------
+# `if __name__ == '__main__':` means:
+# "Only run this block when the script is executed directly as a file."
+# This is standard Python best practice and prevents code from running when imported as a module.
 if __name__ == '__main__':
+    # `asyncio.run(main())` starts the async event loop and runs the main coroutine.
+    # This is the bridge between Python's async engine and the code we wrote.
     asyncio.run(main())
 ```
+
+### Mental model: how the pieces fit together
+
+Think of this like a small product studio workflow:
+
+- `Agent` = the creative team member with a role and instructions
+- `App` = the manager that organizes the team
+- `InMemoryRunner` = the delivery system that sends tasks into the workflow
+- `Session` = the project folder that keeps the conversation context together
+- `types.Content` = the work packet containing both the human request and the image file
+- `types.Part` = the individual item inside that packet, like one text block or one image block
+
+The pattern is reusable in real code:
+
+- You define the AI behavior once
+- You create a runtime container once
+- You create a session for each conversation or workflow instance
+- You package inputs into structured messages
+- You stream final events and act on the result
+
+This is the real-world template for building AI workflows in Python and ADK: define the model, package the input, run the job, and process the output.
+
+> The key idea is not to memorize every class name. The key idea is to understand the pattern: agent + message + session + runner = a working AI workflow.
+
+---
+
+### Quick takeaway for your org
+
+When you build real AI features later, reuse this pattern:
+
+- Keep the AI instructions clear and specific
+- Keep the input payload structured and explicit
+- Use sessions for continuity and multi-turn interactions
+- Process streamed events until the final response appears
+- Keep the app logic simple and reusable as a service or workflow method
+
+This is the same reasoning you will use for real-world systems such as document analysis, product recommendation, OCR, call summarization, and customer support copilots.
+
+
 
 > **Cleanup:** Unlike other modules, this lab's project was created directly inside `module07-multimodal-and-images/` (the actual course repo folder) rather than in your separate `adk-training` scratch directory. Once you're done, delete `visual_catalog/`, `.venv/`, `pyproject.toml`, and `uv.lock` from inside this module's folder so they don't accidentally get committed to the repo.
 

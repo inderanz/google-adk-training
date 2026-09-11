@@ -121,6 +121,29 @@ In the lab for this module, you will put all these principles into practice by b
 - **Context Awareness:** Use `ToolContext` for advanced interaction with the ADK runtime.
 - **Workflow Ready:** Tools are nodes in your graph, allowing for modular and testable designs.
 
+## Enterprise Lens: Turning business logic into trustworthy agent tools
+
+This is the module where the agent becomes connected to actual business operations. The important question is not only “can the model call a Python function?” but also “is the function a safe and useful part of the enterprise workflow?”
+
+Read the companion guide for the production-oriented view:
+
+- [Module 09 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+This keeps the custom-tool lesson aligned with the broader ADK operating model: clarify the business requirement, design a precise tool contract, validate behavior, and deploy with guardrails.
+
+## Official ADK / Google references
+
+Use the official Google and ADK documentation as the current source of truth for tool contracts, schema generation, and function-calling behavior:
+
+- ADK docs home: https://google.github.io/adk-docs/
+- ADK tools documentation: https://google.github.io/adk-docs/tools/
+- ADK agent and runtime docs: https://google.github.io/adk-docs/agents/
+- Gemini API docs: https://ai.google.dev/gemini-api/docs
+- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
+
+These references should be reviewed whenever the framework updates the function-tool contract or the model/tool calling model changes.
+
 ## Limitations: Mixing Tool Types
 
 As you start building more complex agents, it's important to be aware of a current limitation regarding tool usage.

@@ -5,10 +5,12 @@ const config = {
   favicon: 'img/favicon.png',
   onBrokenLinks: 'warn',
   markdown: {
+    mermaid: true,
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },
   },
+  themes: ['@docusaurus/theme-mermaid'],
   themeConfig: {
     image: 'img/social-card.jpg',
     navbar: {

@@ -77,4 +77,17 @@ complex_graph = Workflow(
 - **`JoinNode`** is the mandatory synchronization point for parallel branches.
 - **Data Flow:** ADK 2.0 handles passing results between nodes automatically, ensuring a seamless pipeline.
 
+## Enterprise Lens: Process design is part of the AI architecture
+
+This module is not just about graph topology. It is about modeling real business operations as a reliable workflow.
+
+The practical design question is: do we need a linear process, a parallel fan-out, or a synchronized workflow that merges results before making a decision?
+
+Read the companion guide here:
+
+- [Module 16 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+This keeps static orchestration linked to the wider ADK architecture story: specialization, tools, memory, routing, and governance working together as one system.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module16-static-orchestration-README -->

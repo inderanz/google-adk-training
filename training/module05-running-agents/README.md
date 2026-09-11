@@ -48,7 +48,7 @@ The `uv run adk api_server` command runs your agent as a standalone HTTP server,
 *   **Decoupled Architecture:** This is how you would typically run your agent in a production or staging environment. Your user-facing application (e.g., a web app, a mobile app) would make HTTP requests to this agent server.
 *   **Scalability:** Running the agent as an API server allows it to be containerized (e.g., with Docker) and deployed to scalable infrastructure like Cloud Run or Google Kubernetes Engine.
 
-This mode is essential for moving your agent from a local development tool to a component that can be integrated into a larger system.
+This mode is essential because it turns the agent from a local experiment into a real service boundary. In practice, your web app, workflow engine, or internal business tool calls the agent over HTTP instead of embedding model logic directly into the same process. That is the point where the agent becomes part of a larger production system rather than a developer-only prototype.
 
 In the lab for this module, you will get hands-on experience with all three of these commands, giving you a complete toolkit for running and interacting with your agents.
 
@@ -64,5 +64,32 @@ While these commands feel like magic, they are powered by the **App** and **Runn
 - `uv run adk run`: A headless, command-line interface for quick tests and automated scripting.
 - `uv run adk api_server`: Runs the agent as a standalone HTTP server, exposing a RESTful API for integration and deployment.
 - All CLI commands leverage the core **App** and **Runner** engine of ADK 2.0.
+
+## Enterprise Lens: How this maps to real customer work
+
+This module is not just about running a local agent. It is about choosing the right execution model for the problem:
+
+- local debugging for fast iteration
+- CLI execution for validation and automation
+- API-based runtime for production integration
+
+For the larger enterprise storyline, use this companion guide:
+
+- [Module 05 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+These links connect this module to the broader ADK architecture journey instead of treating it as an isolated example.
+
+## Official ADK / Google references
+
+Use the official Google and ADK documentation as the current source of truth when updating runtime, CLI, or deployment guidance:
+
+- ADK documentation home: https://google.github.io/adk-docs/
+- ADK agent and runtime concepts: https://google.github.io/adk-docs/agents/
+- ADK workflows and execution model: https://google.github.io/adk-docs/workflows/
+- Gemini API docs: https://ai.google.dev/gemini-api/docs
+- Vertex AI generative AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
+
+These references should be checked alongside the lab when the framework evolves or when customer environments require a production-ready runtime decision.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module05-running-agents-README -->

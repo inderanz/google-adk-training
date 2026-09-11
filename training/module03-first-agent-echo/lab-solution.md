@@ -119,14 +119,25 @@ Instead of Python, you can define your agent in a YAML file. This is simpler for
 
 ### Understanding What's Happening
 
-When you send a message:
-1.  **Runner** receives your input and retrieves (or creates) your **Session**.
-2.  **App** provides the **Agent** node to the runner.
-3.  **ADK** packages your message with the agent's instructions and session history.
-4.  **Gemini LLM** generates a response.
-5.  **Runner** saves the response to the session state and returns it to you.
+To understand how ADK processes every turn, imagine a **Restaurant** where each component has a clear job:
 
-**Use the Trace tab** in the Dev UI to see this flow in detail!
+| ADK Component | Real-World Analogy | What It Does |
+|:---|:---|:---|
+| **You (User)** | 👤 **The Diner** | You type and send your message (your "order"). |
+| **Runner** | 🤵 **The Waiter** | Takes your order, finds your table's running notepad (**Session**), and coordinates everything. |
+| **App** | 📋 **The Floor Manager** | Knows the staff directory and introduces the right specialist (**Agent**) to the waiter. |
+| **ADK Framework** | 🗂️ **The Order Ticket** | Bundles your message with the agent's recipe rules (**Instructions**) and previous chat memory (**Session History**). |
+| **Gemini LLM** | 👨‍🍳 **The Master Chef (The Brain)** | Reads the complete ticket, follows the instructions ("repeat exactly"), and crafts the response. |
+| **Runner** | 🍽️ **Serving the Food** | Notes down the response in your table's running history and delivers the reply back to your screen. |
+
+#### Step-by-Step Flow:
+1.  **Runner (The Waiter)** receives your message and retrieves (or creates) your **Session** (your personal conversation notepad).
+2.  **App (The Manager)** directs the runner to the active **Agent** assigned to this task.
+3.  **ADK (The Ticket Clipper)** packages your input together with the agent's instructions and recent conversation history.
+4.  **Gemini LLM (The Chef)** generates the intelligent response.
+5.  **Runner (The Waiter)** records the reply into the session state for future context and presents it to you.
+
+**Use the Trace tab** in the Dev UI to see this exact flow visually with timings and payloads!
 
 ### Key Takeaways
 

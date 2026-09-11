@@ -51,4 +51,17 @@ In the lab for this module, you will put this into practice by integrating a pow
 
 This wraps up **Part 2: Tools & Capabilities** — your agent can now search, remember, call your own functions, and borrow tools from an entire ecosystem. In Part 3, you'll learn how to coordinate multiple specialized agents into **Multi-Agent Systems**.
 
+## Official ADK / Google references
+
+Use the official Google and ADK documentation as the current source of truth for tool interoperability and framework behavior:
+
+- ADK documentation home: https://google.github.io/adk-docs/
+- ADK tools documentation: https://google.github.io/adk-docs/tools/
+- ADK agent and runtime docs: https://google.github.io/adk-docs/agents/
+- Gemini API docs: https://ai.google.dev/gemini-api/docs
+- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
+- LangChain integrations docs: https://python.langchain.com/docs/integrations/tools/
+
+These references should be reviewed whenever the third-party tool ecosystem or ADK tool contracts evolve.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module14-third-party-tools-README -->

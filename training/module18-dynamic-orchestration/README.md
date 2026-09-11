@@ -95,4 +95,17 @@ app = App(
 - **`ctx.run_node()`** is the primary way to execute other agents or functions within a workflow.
 - Use this pattern when routing depends on complex logic, loops, or external state that cannot be represented by a simple dictionary.
 
+## Enterprise Lens: Programmable orchestration for real-world business logic
+
+This module is where the workflow becomes an executable representation of operational reasoning rather than a fixed process map.
+
+The real question is not whether the model can “route,” but whether the system can respond to conditions, recover from failures, and support the kinds of real business decisions that require flexibility.
+
+Read the companion guide here:
+
+- [Module 18 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+This keeps the dynamic orchestration lesson connected to the wider story of enterprise ADK design: structured reasoning, task decomposition, controlled execution, and operational resilience.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module18-dynamic-orchestration-README -->

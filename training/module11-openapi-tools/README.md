@@ -55,4 +55,27 @@ The ADK handles the HTTP request, query/path parameter encoding, and JSON parsin
 - Each operation's `operationId` becomes the tool's name the agent sees and calls -- it must be unique across the spec.
 - This pattern lets your agent securely and reliably communicate with any enterprise service that publishes an OpenAPI spec, and stays in sync automatically when the spec is updated.
 
+## Enterprise Lens: Connecting the agent to the existing enterprise API layer
+
+This is the module where the ADK agent becomes part of the broader enterprise system architecture. The real business question is not “can the model call an API?” but “can we connect the agent to the systems the company already trusts, without building a brittle custom adapter layer?”
+
+Read the companion guide here:
+
+- [Module 11 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+This keeps the OpenAPI lesson aligned with the larger ADK design story: connect to real systems, preserve clear contracts, and use strong guardrails around writes and external actions.
+
+## Official ADK / Google references
+
+Use the official Google and ADK documentation as the current source of truth for OpenAPI tool generation and API integration patterns:
+
+- ADK docs home: https://google.github.io/adk-docs/
+- ADK tools documentation: https://google.github.io/adk-docs/tools/
+- OpenAPI and API integration guidance in Google AI / Gemini docs: https://ai.google.dev/gemini-api/docs
+- Google Cloud API docs: https://cloud.google.com/docs
+- Vertex AI / API integration docs: https://cloud.google.com/vertex-ai/generative-ai/docs
+
+These references should be reviewed whenever the training content is updated for API contract changes or tool-generation behavior changes.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module11-openapi-tools-README -->

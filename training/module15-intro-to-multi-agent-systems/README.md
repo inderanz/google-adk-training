@@ -77,4 +77,17 @@ root_agent = Workflow(
 - **Workflow Runtime:** ADK 2.0 manages the transitions and state sharing between nodes automatically.
 - **Modularity:** Breaking a large problem into multiple nodes makes your AI application easier to test, debug, and scale.
 
+## Enterprise Lens: Specialization as a scaling strategy
+
+This module is where customer AI systems stop behaving like a single overloaded assistant and start resembling a real operating model.
+
+The practical question is not just “can we create multiple agents?” but “can we decompose the business problem into specialist roles that are easier to govern, maintain, and scale?”
+
+Read the companion guide here:
+
+- [Module 15 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+This keeps the multi-agent lesson connected to the wider ADK system design story: runtime, tools, memory, grounding, and orchestrated roles working together as one enterprise architecture.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module15-intro-to-multi-agent-systems-README -->

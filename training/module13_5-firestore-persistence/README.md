@@ -53,4 +53,15 @@ From this point on, every call to `runner.run()` or `runner.run_async()` will au
 *   **Decoupled Logic:** Your agent's "brain" (intelligence) is completely separated from its "memory" (storage technology).
 *   **Enterprise Ready:** Building custom providers is the standard way to integrate ADK into existing enterprise data ecosystems.
 
+## Enterprise Lens: Persistent memory as a platform capability
+
+This module is not just about storing session records in Firestore. It is about making memory a real enterprise capability that survives restarts, supports continuity, and aligns with the customer’s cloud architecture.
+
+Read the companion guide here:
+
+- [Module 13.5 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+This keeps the persistence lesson connected to the wider ADK story: from runtime behavior to tool use to durable memory to orchestration and production-grade operations.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module13_5-firestore-persistence-README -->

@@ -131,4 +131,28 @@ You have now mastered the three ways to run an ADK agent:
 *   `uv run adk run <agent_name>`: For quick tests and automated scripting in the terminal.
 *   `uv run adk api_server`: For running your agent as a service to be integrated with other applications.
 
+### How this fits together in real engineering work
+
+Think of the three modes as different layers of the same system:
+
+- `uv run adk web` is the workshop table where you build and debug.
+- `uv run adk run` is the quick smoke test you run before committing to a workflow.
+- `uv run adk api_server` is the production service boundary that other systems call.
+
+This is the same pattern a forward-deployed engineer follows in customer work: test locally, validate in a terminal, and only then define a service contract that other software can rely on.
+
+The important lesson in this lab is that the agent is not just a chat box. It is a runtime component that can live in different operational modes depending on the business need.
+
+## Official ADK / Google references
+
+Use the official Google and ADK documentation as the current source of truth when updating runtime, CLI, or deployment guidance:
+
+- ADK documentation home: https://google.github.io/adk-docs/
+- ADK agent and runtime concepts: https://google.github.io/adk-docs/agents/
+- ADK workflows and execution model: https://google.github.io/adk-docs/workflows/
+- Gemini API docs: https://ai.google.dev/gemini-api/docs
+- Vertex AI generative AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
+
+These references should be checked alongside the lab whenever the framework evolves or when customer environments require a production-ready runtime decision.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module05-running-agents-lab-solution -->

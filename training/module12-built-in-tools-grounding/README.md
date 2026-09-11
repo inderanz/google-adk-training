@@ -84,4 +84,29 @@ The `google_maps_grounding` tool enables agents to answer location-based queries
 - A built-in tool like `google_search` **cannot** share an agent's `tools` list with custom function tools — that's a Gemini API restriction, confirmed by a real `400 INVALID_ARGUMENT` at runtime, not just an ADK convention.
 - To combine grounding with custom logic, use **sequential composition**: a search-only agent's output feeds into a second agent that has your custom tools, called one after another in your own code.
 
+## Enterprise Lens: Grounding as a trust and relevance layer
+
+This module matters because enterprise AI becomes far more valuable when it can answer with current, relevant facts instead of relying on stale model knowledge alone.
+
+The real question is not only “can the agent search?” but “can the agent produce a grounded answer that helps a user make a better decision?”
+
+Read the companion guide here:
+
+- [Module 12 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+This keeps the grounding lesson connected to the bigger ADK story: combine fresh facts, structured business tools, and careful reasoning into a system that is more reliable and more usable in real customer environments.
+
+## Official ADK / Google references
+
+Use the official Google and ADK documentation as the current source of truth for grounding, search, and tool behavior:
+
+- ADK docs home: https://google.github.io/adk-docs/
+- ADK tools documentation: https://google.github.io/adk-docs/tools/
+- Gemini API docs: https://ai.google.dev/gemini-api/docs
+- Google Search grounding docs: https://ai.google.dev/gemini-api/docs/google-search
+- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
+
+These references should be reviewed whenever the course is updated for new grounding capabilities, search behavior, or model/tool constraints.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module12-built-in-tools-grounding-README -->

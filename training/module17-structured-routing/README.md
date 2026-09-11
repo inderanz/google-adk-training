@@ -90,4 +90,17 @@ In a deterministic `Workflow`, the output of one node is automatically passed as
 - This approach is **preferred for well-defined business processes** where you want maximum predictability and lowest latency.
 - You can mix and match: a node in a deterministic `Workflow` can itself be a dynamic `@node` workflow!
 
+## Enterprise Lens: Controlled branching for predictable business flow
+
+This module is where the workflow becomes a decision engine for a known problem domain rather than a vague free-form route.
+
+The real question is not “can the model choose any path?” but “can we control route selection so it matches explicit operational logic and business conditions?”
+
+Read the companion guide here:
+
+- [Module 17 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+This keeps the routing lesson connected to the broader ADK architecture story: specialized agents, clear process design, and controlled execution under enterprise governance.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module17-structured-routing-README -->

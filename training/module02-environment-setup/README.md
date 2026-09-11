@@ -115,6 +115,72 @@ gcloud config set project YOUR_PROJECT_ID
 
 The ADK automatically detects these credentials.
 
+### UV-Native Setup & Verification Checklist
+
+Before you write or run agent code, always confirm that the environment is healthy.
+
+#### 1. Create a project with the correct Python version
+
+```bash
+mkdir adk-training
+cd adk-training
+uv init --python 3.10
+```
+
+#### 2. Install the core ADK dependencies
+
+```bash
+uv add "google-adk>=2.1.0" python-dotenv
+```
+
+#### 3. Verify the package import works inside the project environment
+
+```bash
+uv run python -c "import google.adk; print(google.adk.__version__)"
+```
+
+Expected result: a version string prints successfully without import errors.
+
+#### 4. Verify the exact optional feature you need is installed
+
+Some ADK features are packaged as optional extras, not part of the base install. For example, LiteLLM support is not included in the base package.
+
+```bash
+uv run python -c "from google.adk.models.lite_llm import LiteLlm; print('LiteLLM OK')"
+```
+
+If this fails with an error like:
+
+```text
+ImportError: LiteLLM support requires: pip install google-adk[extensions]
+```
+
+then install the extra in the same `uv` project:
+
+```bash
+uv add "google-adk[extensions]"
+```
+
+Then verify again:
+
+```bash
+uv run python -c "from google.adk.models.lite_llm import LiteLlm; print('LiteLLM OK')"
+```
+
+> Use `uv add` when you want the dependency recorded in your `pyproject.toml`.
+> Use `uv pip install` only when you are already inside the project virtual environment and want to install a package without changing the project manifest.
+
+#### 5. Common optional extras used in this course
+
+```bash
+uv add "google-adk[extensions]"    # LiteLLM / local model adapters
+uv add "google-adk[gcp]"           # GCP / OpenTelemetry extras
+uv add "google-adk[mcp]"           # MCP support
+uv add "google-adk[a2a]"           # A2A / distributed agent features
+```
+
+If you are unsure which extra is missing, read the import error message carefully. The ADK often tells you exactly which extra to install.
+
 ### Troubleshooting Common Errors
 
 #### 1. 🛑 `404: Model 'gemini-3.5-flash' not found`
@@ -134,9 +200,53 @@ Your user or service account does not have the "Agent Platform User" role.
 This happens if you are not running the command inside the virtual environment.
 **The Fix:** Always prefix your commands with `uv run` (e.g., `uv run adk web .`).
 
+#### 4. 🛑 `ImportError: LiteLLM support requires: pip install google-adk[extensions]`
+This is the classic case of a missing optional ADK extra.
+
+**The UV-native fix:**
+
+```bash
+cd /path/to/your/adk/project
+uv add "google-adk[extensions]"
+uv run python -c "from google.adk.models.lite_llm import LiteLlm; print('LiteLLM OK')"
+```
+
+This is the correct approach because the project dependency is added to `pyproject.toml` and the environment is managed in a reproducible way.
+
+#### 5. 🛑 `ModuleNotFoundError: No module named 'opentelemetry.exporter'`
+This occurs when a feature needs the GCP/OpenTelemetry extra but it has not been installed.
+
+**The UV-native fix:**
+
+```bash
+uv add "google-adk[gcp]"
+```
+
+#### 6. 🛑 `ImportError: cannot import name 'McpToolset'` or similar MCP import errors
+These usually mean the MCP extra has not been installed in the current project environment.
+
+**The UV-native fix:**
+
+```bash
+uv add "google-adk[mcp]"
+```
+
+### Best Practice: Prefer `uv add` Over Bare `pip`
+
+In this course, we use `uv` as the standard environment manager. When adding dependencies:
+
+```bash
+uv add "google-adk>=2.1.0"
+uv add "google-adk[extensions]"
+```
+
+Avoid bare `pip install ...` commands unless you are deliberately working outside a project-managed environment. Using `pip` directly can install into the wrong interpreter and create confusing import issues.
+
 ### Key Takeaways
 - **Python 3.10+** and **google.adk >= 2.1.0** are strictly required.
 - **`uv`** is the recommended tool for managing Python projects and environments.
 - Use a **`.env`** file to manage your API key or project settings securely.
+- Missing ADK features usually mean a missing optional extra, and the fix is almost always `uv add "google-adk[<extra>]"`.
+- Always validate imports with `uv run python -c "..."` before debugging application logic.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module02-environment-setup-README -->

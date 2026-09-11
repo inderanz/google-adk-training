@@ -22,41 +22,111 @@ from google.adk.models import Gemini
 from google.adk.models.lite_llm import LiteLlm
 from google.genai import Client, types
 
+# ---------------------------------------------------------------------------
+# Teaching-oriented comments: This file demonstrates a production-ready pattern
+# for selecting and configuring LLM backends while preserving a stable
+# structured-output contract for downstream code. Read the comments as a
+# narrative: why each piece exists, and how to adapt it when requirements
+# change in plain English.
+# ---------------------------------------------------------------------------
+
 # Structured output schema (carried over from Module 4)
+# Analogy: Think of this schema as the "interface" or API contract between
+# the agent and the rest of your system. The agent must always return JSON
+# that matches this shape so downstream code can depend on it deterministically.
 class SupportAnalysis(BaseModel):
+    # category: which bucket the ticket belongs to
     category: str
+    # sentiment: simple polarity label for quick prioritization
     sentiment: str
+    # summary: a one-sentence human-readable explanation
     summary: str
 
-# Step 1: Define the ResilientGemini subclass
+
+# ------------------
+# Resilient model subclass
+# ------------------
+# Why subclass? In production you often need to centralize cross-cutting
+# concerns (retries, regions, credentials). Subclassing keeps those details
+# in one place so all agents share the same safe defaults.
 class ResilientGemini(Gemini):
-    """
-    Expert pattern: Subclass Gemini to centralize production configurations
-    like project, location, and advanced retry logic.
-    """
+        """
+        Production-ready Gemini subclass.
+
+        Teaching notes:
+        - Centralizes client construction so you don't forget retry policies.
+        - Use environment variables to keep secrets/config out of source code.
+        - Use `cached_property` to build the client once per agent instance and reuse it.
+
+            What `cached_property` does (plain English): the first time the
+            `api_client` attribute is accessed the method runs and its return
+            value is stored on the instance. Subsequent accesses return the
+            stored (cached) object instead of rebuilding it.
+
+            Benefits:
+                - avoids repeated expensive setup (authentication handshakes,
+                    TLS negotiation, or constructing heavy SDK objects), which
+                    reduces latency and resource use.
+                - keeps a single, consistent client instance per agent, which
+                    simplifies connection pooling and observability.
+
+            When to use:
+                - for idempotent, long-lived resources such as HTTP clients,
+                    database connectors, or SDK wrappers that are safe to reuse.
+
+            When not to use / caveats:
+                - avoid when the resource must refresh often (rotating credentials,
+                    per-request differing config) — in those cases use a factory
+                    or explicit refresh logic instead.
+                - `cached_property` caches on a per-instance basis; if you need a
+                    global singleton across processes, use a different pattern.
+        """
+
     @cached_property
     def api_client(self) -> Client:
+        # Build the low-level Gemini/GenAI client with production defaults.
+        # If a future requirement needs a different region or extra headers,
+        # change it here once instead of everywhere in the repo.
         return Client(
             project=os.environ.get("GOOGLE_CLOUD_PROJECT"),
             location="us-central1",
             http_options=types.HttpOptions(
                 retry_options=types.HttpRetryOptions(
-                    max_delay=10, # Max seconds to wait between retries
-                    exp_base=2.0,  # Base for exponential backoff
-                    jitter=0.5,    # Jitter to prevent thundering herd
+                    # Max seconds to wait between retry attempts
+                    max_delay=10,
+                    # Exponential base for backoff (2 = doubles each retry)
+                    exp_base=2.0,
+                    # Jitter reduces simultaneous retry storms (thundering herd)
+                    jitter=0.5,
                 )
             ),
         )
 
-# Step 2: Implement the model selection logic
-# This allows developers to toggle between cloud and local models via env vars.
+
+# ------------------
+# Model selection logic (environment-driven)
+# ------------------
+# Plain-English requirement this satisfies:
+# "I want to run this locally for development (fast loop), but use
+#  the cloud model in production without changing code." 
+# The implementation below flips between a local lightweight LLM and the
+# production Gemini client using `USE_LOCAL_MODEL` env var.
 if os.getenv("USE_LOCAL_MODEL") == "1":
-    # Use LiteLLM abstraction for local development with Ollama
+    # Local dev: use the LiteLLM adapter (e.g., Ollama or other local runner)
+    # Benefit: fast offline iteration and reproducible behavior for demos.
     model_to_use = LiteLlm(model="ollama_chat/mistral")
 else:
-    # Use the professional, native Gemini subclass for production
+    # Production: use the resilient Gemini subclass for real traffic
     model_to_use = ResilientGemini(model="gemini-3.5-flash")
 
+
+# ------------------
+# Agent definition (keeps behavior and output contract stable)
+# ------------------
+# Key design point: `output_schema` and `output_key` are part of the agent
+# contract, not the model. This decouples how you *validate* outputs (schema)
+# from where the model runs (local vs cloud). That separation makes the code
+# easier to reason about and test.
 root_agent = Agent(
     name="support_analyzer_agent",
     model=model_to_use,
@@ -67,11 +137,25 @@ root_agent = Agent(
       2. Analyze the sentiment of the message ("positive", "negative", or "neutral").
       3. Write a concise, 1-sentence summary of the user's issue.
 
-      You MUST respond only with a JSON object matching the requested schema. Do not try to solve their problem.
+      IMPORTANT: Respond ONLY with a JSON object matching the requested schema (SupportAnalysis).
+      This JSON will be validated and saved to session state at `output_key`.
     """,
-    output_schema=SupportAnalysis,  # Keep the Module 4 structured-output contract
-    output_key="last_ticket_analysis",  # Automatically save the JSON to session state
+    # This enforces the structured-output contract — treat it as the agent's API.
+    output_schema=SupportAnalysis,
+    # Where to persist the validated result in session state for downstream use
+    output_key="last_ticket_analysis",
 )
+
+# ---------------------------------------------------------------------------
+# Teaching examples (how to adapt when given plain-English requirements)
+# ---------------------------------------------------------------------------
+# - If the customer asks "run analyses using eu-region models", change
+#   `location` in ResilientGemini.api_client or add a runtime flag.
+# - If you need richer sentiment (score + label), extend `SupportAnalysis`
+#   with a `score: float` field and update instruction accordingly.
+# - To add tool calls (e.g., lookup user account), register safe tools on
+#   the agent and keep tool effects deterministic and auditable.
+# ---------------------------------------------------------------------------
 ```
 
 ### Key Takeaways Explained

@@ -52,4 +52,34 @@ This allows the agent to maintain a "structured memory" that is more reliable th
 - Stateful tools enable agents to have a structured, programmable memory.
 - **Rule:** Never describe `tool_context` in your docstring; it's for the framework, not the LLM.
 
+## Enterprise Lens: Memory as an operating layer
+
+This module is not just about storing values; it is about designing a dependable operational context for the agent.
+
+In customer work, the real question is not “can we remember the last message?” but rather:
+
+- what state should persist,
+- what state is too sensitive to store,
+- how do we keep the memory current,
+- and how do we use that memory to improve reliability without creating stale or unsafe decisions?
+
+Read the companion guide here:
+
+- [Module 10 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+This keeps the memory lesson tied to the larger enterprise architecture story and the forward-deployed engineering model.
+
+## Official ADK / Google references
+
+Use the official Google and ADK documentation as the current source of truth for memory, session state, and tool-context changes:
+
+- ADK documentation home: https://google.github.io/adk-docs/
+- ADK sessions and state guidance: https://google.github.io/adk-docs/sessions/
+- ADK tools documentation: https://google.github.io/adk-docs/tools/
+- Gemini API docs: https://ai.google.dev/gemini-api/docs
+- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
+
+These references should be reviewed when updating stateful tool patterns or validating future ADK memory and runtime behavior.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module10-advanced-function-tools-README -->

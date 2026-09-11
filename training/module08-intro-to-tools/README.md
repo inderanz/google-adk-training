@@ -52,4 +52,29 @@ In the following modules, you will get hands-on experience with these different 
 - The process of an agent deciding to use a tool is called Function Calling.
 - The ADK supports three main types of tools: Built-in Tools (like `google_search`), Custom Function Tools (your own Python code), and Third-Party Tools (from libraries like LangChain).
 
+## Enterprise Lens: How this maps to real customer work
+
+This is the point where the agent becomes a business operator rather than just a conversational interface. In customer work, the real question is not simply whether the model can call a tool, but whether the tool layer is safe, deterministic, and aligned with enterprise requirements.
+
+The current Google ADK guidance emphasizes that production agents increasingly rely on tool integrations, workflow orchestration, and structured execution beyond a single prompt loop.
+
+Use the enterprise companion guide here:
+
+- [Module 08 Enterprise Playbook](./enterprise-playbook.md)
+- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+
+This keeps the tooling lesson connected to the larger architecture story and the forward-deployed engineering model.
+
+## Official ADK / Google references
+
+Use the official Google and ADK documentation as the current source of truth for tooling, grounding, and function-calling guidance:
+
+- ADK docs home: https://google.github.io/adk-docs/
+- ADK tools documentation: https://google.github.io/adk-docs/tools/
+- Gemini API docs: https://ai.google.dev/gemini-api/docs
+- Google Search grounding docs: https://ai.google.dev/gemini-api/docs/google-search
+- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
+
+These references should be checked whenever new tool behavior, grounding capabilities, or function-calling changes are introduced by the platform.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module08-intro-to-tools-README -->
