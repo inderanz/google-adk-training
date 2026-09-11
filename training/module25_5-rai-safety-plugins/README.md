@@ -21,6 +21,13 @@ The gold standard for AI safety is the **Fail-Closed** architecture. In this mod
 
 ADK 2.0 plugins are perfect for this because they have access to the full `Event` object and can modify the context of the interaction.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.plugins import BasePlugin
 from google.adk.events import Event
@@ -50,3 +57,13 @@ class SafetyGuardrailPlugin(BasePlugin):
 - **Separation of Expertise**: The team managing safety policies can update the plugin without needing to understand the internal prompts of every agent.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module25_5-rai-safety-plugins-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

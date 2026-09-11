@@ -160,3 +160,13 @@ These references should be used as the current source of truth for tool interope
 
 - [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
 - [Module 14 README](./README.md)
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

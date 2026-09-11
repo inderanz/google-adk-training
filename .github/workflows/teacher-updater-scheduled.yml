@@ -1,0 +1,79 @@
+name: Teacher Updater Refresh
+
+on:
+  schedule:
+    - cron: "0 3 1,15 * *"
+  workflow_dispatch:
+    inputs:
+      apply_updates:
+        description: "Apply module refreshes and commit the result"
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  refresh-training-modules:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: doc/package-lock.json
+
+      - name: Run teacher-updater across modules
+        run: |
+          python3 scripts/run_teacher_updater_suite.py \
+            --path training \
+            --apply \
+            --annotate \
+            --refs \
+            --summary-path .github/teacher-updater/weekly-change-notes.md
+
+      - name: Install docs dependencies
+        working-directory: doc
+        run: npm ci
+
+      - name: Build Docusaurus site
+        working-directory: doc
+        run: npm run build
+
+      - name: Confirm build output exists
+        run: |
+          test -f doc/build/index.html
+          test -d doc/build
+
+      - name: Create PR with refreshed training docs
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: chore/teacher-updater-refresh
+          base: main
+          commit-message: "docs: refresh training modules with teacher-updater"
+          title: "Teacher-updater refresh for training modules"
+          body: |
+            ## Summary
+            This scheduled refresh runs the instructor-style teacher updater across the training modules, adds version-aware teaching notes and official references, and verifies the Docusaurus site still builds.
+
+            ## Validation
+            - Teacher updater run across all modules
+            - Docusaurus build completed successfully
+            - Site output checked for generated `index.html`
+
+            ## Notes
+            This PR is generated automatically every two weeks, or manually when triggered from GitHub Actions.
+          delete-branch: true

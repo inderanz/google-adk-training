@@ -26,6 +26,13 @@ A Workflow in ADK 2.0 is defined by two things:
 #### Static Edges (Sequential)
 The simplest edge is a tuple `("NodeA", "NodeB")`, which means "after NodeA finishes, run NodeB".
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk import Workflow
 
@@ -44,6 +51,13 @@ You can use a **dictionary as the target of an edge** to route to different node
 
 A plain `Agent` never sets `ctx.route` on its own, even with a Pydantic `output_schema` — so the source of a Router Edge needs to be a small `@node` function that runs the classifier and then sets the route from its result:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk import Workflow, Context
 from google.adk.workflow import node
@@ -104,3 +118,13 @@ Read the companion guide here:
 This keeps the routing lesson connected to the broader ADK architecture story: specialized agents, clear process design, and controlled execution under enterprise governance.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module17-structured-routing-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

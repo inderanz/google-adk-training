@@ -42,3 +42,13 @@ When a major ADK or Google AI capability changes, update the relevant playbook s
 4. Re-run the docs build to validate the site remains healthy.
 
 This keeps the repo aligned with the official product direction while preserving a training-friendly enterprise interpretation layer.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

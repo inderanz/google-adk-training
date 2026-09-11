@@ -49,3 +49,13 @@ This file contains the recommended solutions and reasoning for the scenario-base
     *   **Answer:** A new compliance requirement like PCI would heavily influence the deployment choice. While platforms like GKE and Cloud Run can be made PCI compliant, the burden of implementing and maintaining all necessary controls (e.g., encryption, access controls, audit trails, network segmentation) falls heavily on the development team. If an existing managed platform like Agent Runtime (or a specialized PCI-compliant service) were certified for the specific compliance standard, it would be the simplest choice as the compliance is built-in. In the absence of a certified managed platform, the decision would also depend on whether the agent itself handles sensitive data; a common pattern is to delegate responsibility for sensitive data to a separate, already-compliant service.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module31-production-deployment-strategies-lab-solution -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

@@ -31,6 +31,13 @@ In this lab, you will build a distributed multi-agent system. You will create a 
 
 **Exercise:** Navigate into the `research_specialist` directory. Open `agent.py` and implement the specialist agent and expose it as an A2A server.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # In research_specialist/agent.py (Starter Code)
 from google.adk import Agent
@@ -51,6 +58,13 @@ root_agent = Agent(...)
 
 **Exercise:** Navigate into the `a2a_orchestrator` directory. Open `agent.py` and implement the orchestrator using a **Workflow** and a **RemoteA2aAgent**.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # In a2a_orchestrator/agent.py (Starter Code)
 from google.adk import Agent, Workflow
@@ -114,3 +128,13 @@ Looking for the solution? Here's a hint (Base64 decode me):
 </div>
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module21-distributed-graphs-lab -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

@@ -168,3 +168,13 @@ In the next modules, you will learn how to give your agents more sophisticated i
 - **Using the "Trace" tab:** The Trace tab shows a hierarchical, span-based view of the agent invocation (e.g. `invoke_agent`, `call_llm`, and — when tools are involved — `execute_tool` spans), each with timing/latency information. You can drill into any span to see its inputs and outputs, such as the exact prompt sent to the LLM or a tool's arguments and return value. This is invaluable for debugging more complex agents: it lets you see exactly how long each step took, in what order steps executed, and where in the pipeline a model might be behaving unexpectedly or a tool call might be failing.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module03-first-agent-echo-lab-solution -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

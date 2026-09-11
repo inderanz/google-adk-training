@@ -45,6 +45,13 @@ ADK ships two ready-made plugins, built entirely from the callbacks above, that 
 *   **`ReflectAndRetryModelPlugin`** (`before_model_callback`/`after_model_callback`): catches malformed model responses (like a broken function call), injects reflection guidance, and retries the model call automatically.
 *   **`ReflectAndRetryToolPlugin`** (`before_tool_callback`/`after_tool_callback`): does the same for tools that return an error *response* (not a Python exception) — e.g. a tool that replies with `{"status": "error"}`.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.apps.app import App
 from google.adk.plugins import ReflectAndRetryModelPlugin, ReflectAndRetryToolPlugin
@@ -72,3 +79,13 @@ These two plugins *recover* from errors. If you only need to be *notified* of an
 This closes out **Part 4: Production Readiness** — your agent now has memory, artifacts, evaluation, observability, and guardrails. In Part 5, you'll connect it to external systems and real user interfaces, starting with the **Model Context Protocol (MCP)** — and callbacks like these become even more important once your agent is talking to tools and services outside your own codebase.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module26-callbacks-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

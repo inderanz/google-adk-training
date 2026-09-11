@@ -20,6 +20,13 @@ To build a programmable orchestrator in ADK 2.0, you follow these principles:
 2.  **Create an orchestrator function:** Decorate it with `@node(rerun_on_resume=True)`.
 3.  **Use `ctx.run_node()`:** This method is the "heartbeat" of ADK 2.0. It executes a node and returns its output directly to your code.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk import Agent, Workflow, Context
 from google.adk.workflow import node
@@ -58,6 +65,13 @@ root_agent = Workflow(
 
 You've built `@node`-based workflows that a parent graph orchestrates. ADK also lets a plain `Agent` call a `@node` directly as a tool — just list it in `tools=[...]`, no wrapper needed (ADK wraps it in an internal `NodeTool` automatically). Combined with `RequestInput`, a node-as-tool can even pause mid-call for human approval and resume on the next turn:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from typing import Generator
 from google.adk import Agent, Context
@@ -109,3 +123,13 @@ Read the companion guide here:
 This keeps the dynamic orchestration lesson connected to the wider story of enterprise ADK design: structured reasoning, task decomposition, controlled execution, and operational resilience.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module18-dynamic-orchestration-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

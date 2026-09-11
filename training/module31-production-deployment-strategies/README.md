@@ -53,3 +53,13 @@ A key design philosophy of the ADK is to leverage the security features of the u
 - **Cloud Run Limitations & Migration:** While ideal for MVPs, Cloud Run's potential downsides include cold start latency and limited network control. A migration to GKE should be considered when the system evolves into a complex microservices architecture requiring private networking, critical performance that cannot tolerate cold starts, or specialized hardware like GPUs.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module31-production-deployment-strategies-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

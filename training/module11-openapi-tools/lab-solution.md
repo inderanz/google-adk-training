@@ -13,6 +13,13 @@ This file contains the complete, working code for the **Global Market Analyst** 
 
 Here is the fully implemented `agent.py` file. Notice how the `/latest` path is defined in the `FRANKFURTER_SPEC` dictionary and how we initialize the `OpenAPIToolset`.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # agent.py
 import json
@@ -127,3 +134,13 @@ Always state the amount, the original currency, and the converted currency clear
     *   **Answer:** Because almost all modern enterprise applications and SaaS platforms (like Stripe, GitHub, Salesforce) publish OpenAPI specifications, you can theoretically connect an ADK agent to *any* of them in minutes just by loading their spec file into an `OpenAPIToolset`. It bridges the gap between AI and traditional software ecosystems effortlessly.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module11-openapi-tools-lab-solution -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

@@ -19,6 +19,13 @@ Think of A2A as the bridge that connects multiple independent graphs into a sing
 2.  **The Agent Card**: Every A2A service exposes a "business card" at `/.well-known/agent-card.json`. This card describes the node's capabilities, description, and API endpoint so other graphs can discover it.
 3.  **The Proxy Node (`RemoteA2aAgent`)**: To use a remote agent in your local graph, you use the `RemoteA2aAgent` class. This acts as a "Proxy Node"—to your local `Workflow`, it looks like a regular node, but behind the scenes, it routes all calls over the network via A2A.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk import Workflow
 from google.adk.agents.remote_a2a_agent import RemoteA2aAgent
@@ -63,3 +70,13 @@ ADK 2.0 also ships an improved `A2aAgentExecutor` implementation that fixes know
 - **Latency awareness**: Remote nodes involve network calls; use them for heavy tasks (like complex research) where the network overhead is negligible compared to the processing time.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module21-distributed-graphs-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

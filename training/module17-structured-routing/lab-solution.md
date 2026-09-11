@@ -11,6 +11,13 @@ This file contains the complete code for the `agent.py` script using the ADK 2.0
 
 ### `market_analyst/agent.py`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from __future__ import annotations
 from pydantic import BaseModel
@@ -89,3 +96,13 @@ root_agent = Workflow(
     *   **Answer:** The scope of the hand-written code. In this lab, exactly one `@node` function exists, and its only job is to run the classifier and set `ctx.route` — the *routing itself* (which specialist runs next) is still declared in the `Workflow`'s `edges`, visible at a glance and shown in the Dev UI's Graph View. In a full Dynamic Workflow (Module 18), the orchestrator node contains the `if`/`else` routing logic itself, so the destination of a branch is only knowable by reading the Python code, not by looking at a graph. This pattern is a middle ground: you pay the small one-time cost of a `@node` wrapper to get an LLM classification into `ctx.route`, but the actual multi-way branching stays declarative.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module17-structured-routing-lab-solution -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

@@ -32,6 +32,13 @@ Any class that inherits from `BaseSessionService` and implements its core method
 
 The ADK uses **Dependency Injection** at the `Runner` level. When you instantiate a `Runner`, you don't have to use the default `InMemoryRunner`. Instead, you can provide your own custom session service instance.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # Custom implementation (which we will build in this lab)
 custom_service = FirestoreSessionService(project_id="my-project")
@@ -65,3 +72,13 @@ Read the companion guide here:
 This keeps the persistence lesson connected to the wider ADK story: from runtime behavior to tool use to durable memory to orchestration and production-grade operations.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module13_5-firestore-persistence-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

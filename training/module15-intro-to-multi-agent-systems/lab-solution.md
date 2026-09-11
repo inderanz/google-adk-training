@@ -15,6 +15,13 @@ Here is a more fleshed-out version of the agent designs as they would be impleme
 
 #### `greeting_system/agent.py` (The Router and Workflow)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk import Agent, Workflow
 from . import spanish_greeter_agent
@@ -46,6 +53,13 @@ root_agent = Workflow(
 
 #### `greeting_system/spanish_greeter_agent.py` (The Specialist Node)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk import Agent
 
@@ -77,3 +91,13 @@ Provide a single, warm greeting and then stop.
     *   For a related question -- Agent Transfer vs. a fully **Deterministic Workflow** (extracting a routing key with no LLM reasoning at all) -- see the pattern-comparison table in Module 21.5: Agent Transfer suits natural language where the "key" isn't obvious and the LLM needs to understand intent, while a Deterministic Workflow (Module 16) is faster and more reliable when you can extract a clear key (like a language code) without an LLM reasoning step.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module15-intro-to-multi-agent-systems-lab-solution -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

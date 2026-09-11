@@ -146,3 +146,13 @@ This file contains the complete code for the `index.html` custom chat client.
         *   **Official Support & Ecosystem:** They are often officially supported and come with a growing ecosystem of tools and best practices, making development faster and more reliable.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module29-ui-integration-intro-lab-solution -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

@@ -72,3 +72,13 @@ We looked for a supported fix in `google-adk==2.8.0` and didn't find one for thi
 - **Known limitation — `AgentTool` resets remote A2A context every call:** preferences saved via the orchestrator do *not* currently survive across separate orchestrator turns, because `AgentTool` creates and discards a fresh session on every invocation, which breaks `RemoteA2aAgent`'s mechanism for resuming the same remote conversation. Direct calls to `personalization_agent` are unaffected. See "Known Limitation" above for the full explanation and what we checked for a fix.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module37-advanced-personalized-shopping-agent-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

@@ -70,3 +70,13 @@ The most important part is the **Service URL**.
         *   **Performance Implications:** The trade-off for scaling to zero is **"cold start" latency**. The very first request to a service that has scaled down to zero instances will experience a higher latency as Cloud Run needs to provision and initialize a new container instance. This can take several seconds. Subsequent requests to the active instance(s) will be fast, but if traffic remains low and instances scale down again, the cold start penalty will recur.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module32-deployment-cloud-run-lab-solution -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

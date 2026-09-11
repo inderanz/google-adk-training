@@ -67,3 +67,13 @@ While the ADK provides the `uv run adk deploy gke` command to automate some of t
 - **GKE vs. Cloud Run Trade-off:** The primary trade-off between GKE and Cloud Run is **Control vs. Complexity**. GKE offers maximum control over nodes, networking, and hardware (like GPUs) but comes with higher operational complexity and slower deployment times. Cloud Run offers simplicity, rapid deployment, and a cost-effective pay-per-use model but provides less control. GKE is the right choice when the need for granular control outweighs the benefits of serverless simplicity.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module33-deployment-gke-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

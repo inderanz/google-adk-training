@@ -44,3 +44,13 @@ The Agents CLI streamlines the path to production into a few simple commands:
 - **Advantages of Accelerated Deployment:** The Accelerated Deployment method is superior for production as it automates the creation of infrastructure as code (IaC) with Terraform and establishes a simple, repeatable deployment process. This provides a reproducible, auditable, and consistent deployment, incorporating best practices from the start, whereas the Standard Deployment is manual and better suited for learning the underlying SDK mechanics.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module35-deployment-agent-runtime-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

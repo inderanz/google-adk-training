@@ -11,6 +11,13 @@ This file contains the complete code for the `stateless_cart_server.py` and the 
 
 ### `cloud_mcp_server/stateless_cart_server.py`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # Filename: stateless_cart_server.py
 import json
@@ -70,6 +77,13 @@ app = mcp.streamable_http_app()
 
 ### `cloud_mcp_server/agent.py`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # Filename: agent.py
 from google.adk import Agent
@@ -111,3 +125,13 @@ root_agent = Agent(
     *   **Answer:** This separation of concerns is a key benefit of the MCP architecture because it decouples the client (the ADK agent using `MCPToolset`) from the server's internal implementation details. The agent only needs to know the server's URL and the tool's schema (its name, description, and input arguments). It doesn't care whether the server stores state in memory, a file, Redis, or a database. This allows the server's backend to be changed or upgraded (e.g., migrating from file-based state to Redis) without requiring any changes or redeployment of the client agent, promoting modular maintenance, independent evolution, and system robustness.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module34-deploying-mcp-server-cloud-run-lab-solution -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

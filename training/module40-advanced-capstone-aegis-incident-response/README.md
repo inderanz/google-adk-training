@@ -15,6 +15,13 @@ To solve this, you will implement an advanced, distributed multi-agent system ca
 
 **A note on scope:** this capstone runs entirely on your local machine — no GCP project or billing required. Model Armor, Vertex AI Search (RAG), the GCS upload, and the AgentOps telemetry export are represented with **simplified, simulated implementations**, clearly marked as such in the code. What's real and fully functional is the part this capstone is actually testing: three independent ADK agents cooperating correctly over A2A, backed by a real MCP server and real AgentOps callback hooks. The diagram below shows the target production architecture this design is modeled on; see "Going Further" at the end for how to wire the simulated pieces up to the real services.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 graph TD
     User([SOC Analyst - Gemini Enterprise UI]) <--> Orchestrator[Aegis Orchestrator Agent<br/>Agent Runtime]
@@ -102,3 +109,13 @@ Every simulated piece in this lab is a drop-in replacement point:
 *   **Agent Skills for the playbooks:** `search_remediation_playbooks` is currently a plain function returning a fixed string. Module 39.5's Skills pattern (`SkillToolset` + `load_skill_from_dir`) is arguably a better fit than a hand-written RAG query for this: bundle each CIS/NIST playbook as its own Skill, with the remediation steps living in the Skill's `references/` folder, loaded via Progressive Disclosure only when the Mitigation Agent actually needs that specific playbook instead of always in context.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module40-advanced-capstone-aegis-incident-response-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

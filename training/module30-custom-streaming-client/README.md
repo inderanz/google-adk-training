@@ -68,3 +68,13 @@ In the lab for this module, you'll implement the pieces of this flow that are sp
 - **Handling Audio Playback:** Unlike a compressed audio file, raw PCM has no container format to decode — you can't hand it to `audioContext.decodeAudioData()`. Instead, you manually convert the 16-bit samples to normalized `Float32` values, copy them into an `AudioBuffer` via `copyToChannel`, and schedule an `AudioBufferSourceNode` to start exactly when the previous chunk ends — that scheduling is what keeps consecutive chunks sounding like one continuous voice instead of overlapping or gapping.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module30-custom-streaming-client-README -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+
