@@ -30,6 +30,13 @@ In ADK 1.x, you often had to prompt your sub-agents to "hand back control." In A
 - **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
 - **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
 <!-- TEACHER_NOTE_END -->
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk import Agent
 
@@ -64,6 +71,13 @@ The framework automatically injects tools like `request_task_<agent_name>` into 
 
 ADK 2.0 gives you a second, often clearer way to get call-and-return behavior with any agent, local or remote: **`AgentTool`**. It wraps another agent as a normal entry in a `tools=[...]` list. The calling agent invokes it like any other function tool, gets a result back, and *stays in control* -- free to call another `AgentTool`, or the same one again, before composing a final answer. Unlike a hand-off, it shows up in the trace as an explicit tool call, not an implicit transfer -- and you don't have to configure `mode`, or implement a `finish_task` protocol on the remote side, at all.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 <!-- TEACHER_NOTE_START -->
 **Teacher's note (ADK instructor view):**
 - **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
@@ -135,11 +149,12 @@ Picture a shopping assistant that must both check a user's saved preferences *an
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module19-collaborative-teams-README -->
 ---
 
+
 ## Official References
 
 - Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
+- Gemini API (multimodal): https://ai.google.dev/gemini-api/docs
 - Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+- Vertex AI generative guidance: https://cloud.google.com/vertex-ai/generative-ai
+- Cloud Vision and OCR: https://cloud.google.com/vision
 

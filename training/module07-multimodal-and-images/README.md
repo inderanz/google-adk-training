@@ -38,6 +38,13 @@ To send an image to an agent programmatically, you package it into a list and ru
 - **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
 - **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
 <!-- TEACHER_NOTE_END -->
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk import Agent
 from google.adk.apps import App
@@ -97,6 +104,41 @@ Use the enterprise companion guide here:
 
 This ensures the multimodal lesson connects to the broader ADK enterprise architecture story instead of staying isolated as a demo.
 
+## Concept Diagram (Basic → Advanced)
+
+The diagram below shows a high-level flow from raw user input (text and images) through preprocessing, multimodal fusion, model selection, post-processing and production delivery. Use it to explain the mental model to learners before diving into code.
+
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
+```mermaid
+flowchart LR
+    A["User Input (text, image, file)"] --> B["Preprocessing (normalize, resize, OCR)"]
+    B --> C{Is image present?}
+    C -- Yes --> D["Image Encoder (feature extraction)"]
+    C -- No --> E["Text Encoder (tokenization)"]
+    D --> F["Multimodal Fusion (concatenate / cross-attention)"]
+    E --> F
+    F --> G["Model Selection (Gemini / Local LLM / Ensemble)"]
+    G --> H["Post-processing (OCR cleanup, NER, summarization)"]
+    H --> I["Agent Action (tool call, DB write, UI response)"]
+    I --> J["Operational Concerns (monitoring, safety, cost)"]
+```
+
+How to read this diagram:
+
+- Start at **User Input**: can be text-only, image-only, or multimodal.
+- **Preprocessing** prepares data for the model (image transforms, OCR for text extraction, tokenization for text).
+- **Encoders** extract modality-specific features; fusion combines them for reasoning.
+- **Model selection** chooses a model that supports the required modalities and SLOs (Gemini for multimodal, a local model for offline/dev, or an ensemble).
+- **Post-processing** translates model outputs into structured results (entities, summaries, or actions).
+- **Agent Action** executes the chosen workflow (call tools, store results, return user-facing content).
+- **Operational concerns** cover safety, cost, latency, and observability for production systems.
+
 ## Official ADK / Google references
 
 Use the official Google and ADK documentation as the current source of truth for multimodal prompt design, image inputs, and model capability updates:
@@ -112,11 +154,12 @@ These references should be reviewed whenever the training content is updated for
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module07-multimodal-and-images-README -->
 ---
 
+
 ## Official References
 
 - Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
+- Gemini API (multimodal): https://ai.google.dev/gemini-api/docs
 - Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+- Vertex AI generative guidance: https://cloud.google.com/vertex-ai/generative-ai
+- Cloud Vision and OCR: https://cloud.google.com/vision
 

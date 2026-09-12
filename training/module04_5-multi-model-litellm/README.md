@@ -20,6 +20,13 @@ The simplest way. Ideal for learning and quick tests.
 - **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
 - **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
 <!-- TEACHER_NOTE_END -->
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 agent = Agent(model="gemini-3.5-flash", ...)
 ```
@@ -29,6 +36,13 @@ By importing `Gemini` from `google.adk.models`, you gain access to the model's u
 
 In production, LLM APIs can occasionally time out or return rate-limit errors (429). The `Gemini` class allows you to define a retry policy so the agent doesn't just crash when a request fails.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 <!-- TEACHER_NOTE_START -->
 **Teacher's note (ADK instructor view):**
 - **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
@@ -55,6 +69,13 @@ For large projects, you often want to centralize configurations like the Google 
 
 This allows you to lock in production settings (like forcing the `global` location or adding "Jitter" to retries to prevent server hammering) in a single reusable class.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 <!-- TEACHER_NOTE_START -->
 **Teacher's note (ADK instructor view):**
 - **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
@@ -108,11 +129,12 @@ Use `LiteLlm` if you need to:
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module04_5-multi-model-litellm-README -->
 ---
 
+
 ## Official References
 
 - Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
+- Gemini API (multimodal): https://ai.google.dev/gemini-api/docs
 - Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+- Vertex AI generative guidance: https://cloud.google.com/vertex-ai/generative-ai
+- Cloud Vision and OCR: https://cloud.google.com/vision
 

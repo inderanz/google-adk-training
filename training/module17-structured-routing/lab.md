@@ -39,6 +39,13 @@ Open `agent.py`. We will create three main components:
 - **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
 - **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
 <!-- TEACHER_NOTE_END -->
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from __future__ import annotations
 from pydantic import BaseModel
@@ -87,6 +94,13 @@ You need to:
 1.  Connect `"START"` to `classify_and_route` (not `classifier` directly -- it's the wrapper that sets `ctx.route`).
 2.  Create a **Router Dictionary** that connects `classify_and_route` to the three specialist agents based on the route it set.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 <!-- TEACHER_NOTE_START -->
 **Teacher's note (ADK instructor view):**
 - **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.

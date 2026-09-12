@@ -85,11 +85,12 @@ You can implement HITL in the ADK using a `before_tool_callback`. This callback 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module34-deploying-mcp-server-cloud-run-README -->
 ---
 
+
 ## Official References
 
 - Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
+- Gemini API (multimodal): https://ai.google.dev/gemini-api/docs
 - Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+- Vertex AI generative guidance: https://cloud.google.com/vertex-ai/generative-ai
+- Cloud Vision and OCR: https://cloud.google.com/vision
 
