@@ -19,7 +19,7 @@ A comprehensive observability strategy is built on four pillars, all of which ca
 
 *   **Traces**: Follow a request's entire journey through a distributed system.
 *   **Metrics**: Collect quantitative data (e.g., latency, error rates, token counts).
-*   **Logs**: Record detailed, structured information about specific events.
+*   **Logs**: Record detailed, structured information about specific events (e.g., using Cloud Logging via the callback pattern).
 *   **Events**: Represent the discrete state changes and actions within the agent.
 
 ### The ADK Plugin System
@@ -92,6 +92,11 @@ maybe_set_otel_providers(otel_hooks_to_setup=[otel_hooks])
 # 3. Your App now automatically sends telemetry!
 app = App(name="production_agent", root_agent=my_agent)
 ```
+
+### Hands-On Labs
+
+*   **Part 1: Observability System with Plugins**: Build custom plugins for metrics collection, consecutive-error alerting, and latency profiling.
+*   **Part 2: Cloud Logging with Callbacks**: Implement structured Google Cloud Logging using ADK query and model response callbacks in a Geo Validator agent.
 
 ### Key Takeaways
 - **Standardized Pillars**: Use OTel for Traces, Metrics, and Logs.

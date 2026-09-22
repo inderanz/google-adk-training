@@ -143,6 +143,67 @@ from google.adk.telemetry.setup import maybe_set_otel_providers
     In the Dev UI, open the **Trace** tab. Notice how ADK 2.0 provides detailed information about each event, which is exactly what gets sent to Cloud Trace.
 
 
+### Lab Part 2: Monitoring Agent Interactions with Cloud Logging (geo_validator)
+
+**Exercise:** In this part, we will add Cloud Logging to the `geo_validator` agent to track queries sent to the model and the responses received. This fulfills the Logs pillar of observability.
+
+1.  **Create the Logging Callbacks:**
+    Create a file named `callback_logging.py` in your project to handle the Cloud Logging setup.
+
+    ```python
+    # In callback_logging.py
+    import logging
+
+    # TODO: In a real GCP environment, uncomment the following to use Cloud Logging
+    # import google.cloud.logging
+    # client = google.cloud.logging.Client()
+    # client.setup_logging()
+
+    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+    logger = logging.getLogger("CloudLogging")
+
+    def log_query_to_model(prompt_text: str):
+        """Callback to log the query to Cloud Logging."""
+        # TODO: Log the prompt_text using logger.info
+        pass
+
+    def log_model_response(response_text: str):
+        """Callback to log the model's response to Cloud Logging."""
+        # TODO: Log the response_text using logger.info
+        pass
+    ```
+
+2.  **Integrate with the Agent:**
+    Open `agent.py` and hook these callbacks into the Agent using a plugin.
+
+    ```python
+    # In agent.py
+    from google.adk import Agent
+    from google.adk.apps import App
+    from google.adk.plugins import BasePlugin
+    from callback_logging import log_query_to_model, log_model_response
+
+    # TODO: Define validate_location tool
+
+    class LoggingPlugin(BasePlugin):
+        """A plugin that logs queries and responses using Cloud Logging callbacks."""
+        def __init__(self, name: str = 'logging_plugin'):
+            super().__init__(name)
+
+        async def on_agent_prompt_callback(self, *, agent, prompt, **kwargs):
+            # TODO: Call log_query_to_model with the prompt
+            pass
+
+        async def on_agent_response_callback(self, *, agent, response, **kwargs):
+            # TODO: Call log_model_response with the response
+            pass
+
+    # TODO: Create geo_validator Agent and App, passing the LoggingPlugin
+    ```
+
+3.  **Run and Verify:**
+    Test the `geo_validator` and verify that queries and responses are correctly logged to the console (simulating Cloud Logging).
+
 ### Having Trouble?
 If you get stuck, you can find the complete, working code in the `lab-solution.md` file.
 
