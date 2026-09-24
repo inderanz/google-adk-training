@@ -137,12 +137,12 @@ graph TD
 
 | Match Strategy | Mathematical / Algorithmic Definition | Permitted Tolerances | Target Enterprise Use Case |
 |---|---|---|---|
-| **1. `exact_match`** | $\text{Actual} == \text{Expected}$ in names, arguments, and sequence. | Zero tolerance. Any extra or missing tool fails the test. | Financial fund transfers, medical dosage calculation, database writes. |
-| **2. `in_order_match`** | Expected tools must appear in strict relative chronological sequence: $t_1 \prec t_2 \prec t_3$. | Auxiliary / non-critical tools may be interleaved between expected tools. | Workflows where compliance ordering matters (e.g. KYC check before transaction), but diagnostic lookups are allowed. |
-| **3. `any_order_match`** | $\forall t \in \text{Expected}, t \in \text{Actual}$. | Sequence does not matter; extra tools are allowed. | Parallel information gathering (e.g., retrieving customer weather, news, and stock quote concurrently). |
-| **4. `precision`** | $\text{Precision} = \frac{\|\text{Actual} \cap \text{Expected}\|}{\|\text{Actual}\|}$ | Penalizes extraneous or unapproved tool calls. Drops below 1.0 if unauthorized tools run. | Zero-Trust DevSecOps; infrastructure mutation agents where rogue actions are strictly prohibited. |
-| **5. `recall`** | $\text{Recall} = \frac{\|\text{Actual} \cap \text{Expected}\|}{\|\text{Expected}\|}$ | Penalizes omitting mandatory tools. Does not penalize extra diagnostic tools. | Comprehensive audit and compliance reporting where no required data source can be skipped. |
-| **6. `single_tool_use`** | $\exists t \in \text{Expected} : t \in \text{Actual}$ | Evaluates whether a specific critical tool was called at least once. | Benchmarking 1-hop tool selection accuracy from a large tool registry (e.g. 40+ candidate tools). |
+| **1. `exact_match`** | Actual must exactly equal Expected in names, arguments, and sequence. | Zero tolerance. Any extra or missing tool fails the test. | Financial fund transfers, medical dosage calculation, database writes. |
+| **2. `in_order_match`** | Expected tools must appear in the correct relative chronological sequence, while allowing extra non-critical tools between them. | Auxiliary / non-critical tools may be interleaved between expected tools. | Workflows where compliance ordering matters (e.g. KYC check before transaction), but diagnostic lookups are allowed. |
+| **3. `any_order_match`** | Every expected tool must appear in Actual, regardless of ordering. | Sequence does not matter; extra tools are allowed. | Parallel information gathering (e.g., retrieving customer weather, news, and stock quote concurrently). |
+| **4. `precision`** | Precision = count(Actual ∩ Expected) / count(Actual). | Penalizes extraneous or unapproved tool calls. Drops below 1.0 if unauthorized tools run. | Zero-Trust DevSecOps; infrastructure mutation agents where rogue actions are strictly prohibited. |
+| **5. `recall`** | Recall = count(Actual ∩ Expected) / count(Expected). | Penalizes omitting mandatory tools. Does not penalize extra diagnostic tools. | Comprehensive audit and compliance reporting where no required data source can be skipped. |
+| **6. `single_tool_use`** | Checks whether a required critical tool appears at least once in Actual. | Evaluates whether a specific critical tool was called at least once. | Benchmarking 1-hop tool selection accuracy from a large tool registry (e.g. 40+ candidate tools). |
 
 ---
 
@@ -608,7 +608,7 @@ However, if the agent decides that calling the read-only `export_security_logs` 
 - **D.** Trajectory Strategy: Any-Order Match with a threshold of `0.8`.
 
 > **Correct Answer: B**  
-> **Architectural Rationale:** $\text{Precision} = \frac{|\text{Actual} \cap \text{Expected}|}{|\text{Actual}|}$. Setting Precision to 1.0 guarantees that 100% of the tools the agent executed were members of the approved expected set. Invoking any unapproved tool drops precision below 1.0 and fails the gate. In contrast, Recall only checks if expected tools were called, and would allow unapproved tools to execute without penalty.
+> **Architectural Rationale:** Precision = count(Actual ∩ Expected) / count(Actual). Setting Precision to 1.0 guarantees that 100% of the tools the agent executed were members of the approved expected set. Invoking any unapproved tool drops precision below 1.0 and fails the gate. In contrast, Recall only checks if expected tools were called, and would allow unapproved tools to execute without penalty.
 
 ---
 

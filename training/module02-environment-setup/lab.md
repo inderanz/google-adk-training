@@ -58,8 +58,11 @@ Create a file named `.env` in your `adk-training` directory. This file will secu
     ```
     GOOGLE_GENAI_USE_VERTEXAI="1"
     GOOGLE_CLOUD_PROJECT="your-gcp-project-id"
+    GOOGLE_CLOUD_QUOTA_PROJECT="your-gcp-project-id"
     GOOGLE_CLOUD_LOCATION="global"
     ```
+
+> **💡 Real-World Tip for ADC Quota Warnings:** When authenticating via end-user credentials (`gcloud auth application-default login`), Google Cloud requires `GOOGLE_CLOUD_QUOTA_PROJECT` to know which project's quota to bill against. If omitted, Google Cloud emits an advisory warning.
 
 > **Note on `adk create` and `.env` variables:** Later modules use `uv run adk create <name>` to scaffold a project. That command is an **interactive wizard** — it will prompt you for choices like the model, backend, GCP project, and region, so don't be surprised when it asks questions instead of just running silently. Also, the `.env` file it auto-generates may show `GOOGLE_GENAI_USE_ENTERPRISE=1` instead of the `GOOGLE_GENAI_USE_VERTEXAI=1` used in this lab's examples. Both variables are real and fully supported — they are functionally equivalent ways of telling the ADK to use Vertex AI/Agent Platform. If you see `GOOGLE_GENAI_USE_ENTERPRISE=1` in a generated `.env` file, that's fine; there's no need to "fix" it to match the `GOOGLE_GENAI_USE_VERTEXAI=1` shown elsewhere in the docs.
 
@@ -67,20 +70,6 @@ Create a file named `.env` in your `adk-training` directory. This file will secu
 
 Create a file named `verify_setup.py` and add the following content:
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```python
 # verify_setup.py - Environment verification script for Google ADK 2.0
 
@@ -88,6 +77,8 @@ Create a file named `verify_setup.py` and add the following content:
 import asyncio
 # os provides access to operating system dependent functionality and environment variables.
 import os
+# warnings enables managing runtime warning messages emitted by Python or third-party libraries.
+import warnings
 # load_dotenv reads key-value pairs from a local .env file and sets them as environment variables (e.g., API keys).
 from dotenv import load_dotenv
 # Agent is the core building block representing an intelligent worker configured with instructions, a model, and tools.
@@ -97,11 +88,29 @@ from google.adk.apps import App
 # InMemoryRunner executes agent apps locally in-memory for testing, debugging, and development.
 from google.adk.runners import InMemoryRunner
 
+# Pedagogical Note for Learners:
+# Automatic Function Calling (AFC) advisory: Under-the-hood, the google-genai SDK emits an advisory warning
+# when generate_content is called with default AFC settings in a single-turn verification script.
+# In production CLI/verification utilities, we silence non-actionable upstream SDK warnings.
+warnings.filterwarnings(
+    "ignore",
+    message="Direct use of automatic function calling.*",
+    category=UserWarning,
+)
+
 # Define the asynchronous entry point for our verification logic
 async def main():
     # Load environment variables from .env file so the Google SDK can discover GOOGLE_API_KEY or GCP settings
     load_dotenv()
-    
+
+
+    # Pedagogical Note for Enterprise Authentication (ADC):
+    # When using Application Default Credentials (ADC) with gcloud, Google Cloud requires a quota project
+    # so Vertex AI knows which billing account/quota to charge. If GOOGLE_CLOUD_PROJECT is set but
+    # GOOGLE_CLOUD_QUOTA_PROJECT is not, we automatically align them to avoid 429 quota warnings.
+    if os.getenv("GOOGLE_CLOUD_PROJECT") and not os.getenv("GOOGLE_CLOUD_QUOTA_PROJECT"):
+        os.environ["GOOGLE_CLOUD_QUOTA_PROJECT"] = os.environ["GOOGLE_CLOUD_PROJECT"]
+
     # Print status message indicating start of verification checks
     print("🔍 Testing ADK 2.0 Environment...")
 
@@ -115,6 +124,7 @@ async def main():
             model="gemini-3.5-flash",
             # System prompt directing the agent's behavior and required response
             instruction="Respond with: 'ADK 2.0 is Ready!'"
+            instruction="Respond with: 'ADK 2.0 is Ready!'",
         )
 
         # Step 2: Package the agent into an App instance as the root agent
@@ -126,7 +136,8 @@ async def main():
         # Step 4: Run a single turn using run_debug, sending a test prompt with a session user identifier
         print("🚀 Connecting to LLM...")
         events = await runner.run_debug("Hello!", user_id="test_user")
-        
+
+
         # Flag to track whether the expected final response event was received from the agent
         ready = False
         # Iterate over all execution events generated during the run turn
@@ -137,7 +148,8 @@ async def main():
                 print(f"✅ Agent Response: {event.content.parts[0].text}")
                 # Set the flag to True indicating successful interaction with the model
                 ready = True
-        
+
+
         # Check completion flag and output final verification status
         if ready:
             # Confirms all credentials, ADK packages, and LLM connectivity are functioning properly
@@ -164,20 +176,6 @@ if __name__ == "__main__":
 
 Execute the script using `uv run`. This command ensures that your script runs within the virtual environment that `uv` created, without you needing to manually activate it!
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 uv run python verify_setup.py
 ```

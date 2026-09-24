@@ -6,6 +6,11 @@ const config = {
   onBrokenLinks: 'warn',
   markdown: {
     mermaid: true,
+    preprocessor({fileContent}) {
+      // Docusaurus MDX v2/v3 treats raw HTML comments <!-- ... --> as JSX syntax errors.
+      // Automatically convert them to safe MDX comments {/* ... */} across all docs.
+      return fileContent.replace(/<!--([\s\S]*?)-->/g, '{/*$1*/}');
+    },
     hooks: {
       onBrokenMarkdownLinks: 'warn',
     },

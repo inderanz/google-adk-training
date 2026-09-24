@@ -13,7 +13,7 @@ Before diving into building agents, it's crucial to set up a proper development 
 
 ### Python 3.10+ and ADK 2.0 Requirements
 
-The ADK uses modern Python features like advanced type hints and improved asynchronous handling. 
+The ADK uses modern Python features like advanced type hints and improved asynchronous handling.
 
 *   **Python Requirement:** Strictly **3.10 or higher**.
 *   **ADK Requirement:** This course is built for **google.adk >= 2.1.0**, which introduces the **Workflow Graph Runtime**. Older versions (1.x) are not compatible with the advanced orchestration patterns taught in this course.
@@ -108,26 +108,13 @@ The quickest way to get started is by using an API key from **Google AI Studio**
 
 For production, use **Application Default Credentials (ADC)** via the **Google Cloud CLI (gcloud)**.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 gcloud auth application-default login
 gcloud config set project YOUR_PROJECT_ID
+gcloud auth application-default set-quota-project YOUR_PROJECT_ID
 ```
 
-The ADK automatically detects these credentials.
+The ADK automatically detects these credentials. Setting the quota project ensures Vertex AI knows which Google Cloud project to bill and check quotas against, preventing `429 Quota Exceeded` warnings.
 
 ### UV-Native Setup & Verification Checklist
 
@@ -135,20 +122,6 @@ Before you write or run agent code, always confirm that the environment is healt
 
 #### 1. Create a project with the correct Python version
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 mkdir adk-training
 cd adk-training
@@ -157,64 +130,105 @@ uv init --python 3.10
 
 #### 2. Install the core ADK dependencies
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 uv add "google-adk>=2.1.0" python-dotenv
 ```
 
 #### 3. Verify the package import works inside the project environment
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 uv run python -c "import google.adk; print(google.adk.__version__)"
 ```
 
-Expected result: a version string prints successfully without import errors.
+Expected result: a version string prints successfully without import errors (e.g., `2.9.2`).
+
+---
+
+### 🎓 Deep Dive: Deconstructing Verification Commands & How to Troubleshoot Without Memorizing Syntax
+
+When you are new to Python or modern tooling, strings like `-c` or double underscores (`__version__`) can feel unfamiliar. Here is the mental model of how this works and how you can discover what you need even when you don't know the exact syntax.
+
+#### 1. Deconstructing the Verification Command
+
+Let's break down: `uv run python -c "import google.adk; print(google.adk.__version__)"`
+
+*   **`uv run`**:
+    Tells `uv`: *"Execute the following command inside my project's virtual environment (`.venv`), where all my project dependencies are isolated."* Without `uv run`, running `python` might invoke your operating system's default global Python, which will fail to find `google.adk`.
+*   **`python -c "..."`**:
+    The `-c` flag stands for **command** (inline code execution). Instead of creating a temporary `.py` script on disk, Python executes whatever code string is placed between the quotes directly.
+*   **`import google.adk; print(google.adk.__version__)`**:
+    *   `import google.adk` loads the installed package into memory.
+    *   `;` separates two Python statements on a single line.
+    *   `google.adk.__version__` accesses a special package-level attribute. In Python conventions, attributes surrounded by double underscores are called **dunder** attributes (*double underscore*). Most well-behaved Python packages expose their installed version string via `__version__`.
+
+---
+
+#### 2. Four Ways to Troubleshoot & Inspect (From Basic to Advanced)
+
+What if you don't know the syntax, forget the `__version__` name, or run into an error? Use these four techniques:
+
+##### Technique A: Use `uv` Directly (Zero Python Syntax Needed)
+You don't actually need to write Python code just to check what is installed in your project:
+```bash
+# View a graphical dependency tree with exact versions installed
+uv tree
+
+# Or filter installed packages directly
+uv pip list | grep google-adk
+```
+
+##### Technique B: The Interactive Python REPL (The Beginner's Sandbox)
+Instead of juggling bash quotes and one-liner semicolons with `-c`, open an interactive Python session inside your project:
+```bash
+uv run python
+```
+You will enter Python's interactive prompt (`>>>`). Now you can experiment line by line:
+```python
+>>> import google.adk
+>>> google.adk.__version__
+'2.9.2'
+>>> exit()
+```
+*Advantage:* If `import google.adk` fails, the error appears immediately with a clear traceback pointing to the problem.
+
+##### Technique C: Python's Built-in Inspection Tools (`dir()` and `help()`)
+What if a package doesn't provide `__version__`, or you don't know what functions/classes exist inside `google.adk`? Inside the interactive REPL (`uv run python`):
+
+1.  **`dir(google.adk)`** — *"Show me everything inside this object"*:
+    ```python
+    >>> import google.adk
+    >>> dir(google.adk)
+    ```
+    This prints a full list of all exposed modules, classes (like `Agent`, `Runner`), and attributes.
+2.  **`help(google.adk)`** — *"Show me the built-in documentation"*:
+    ```python
+    >>> help(google.adk)
+    ```
+    (Press `q` to exit the help viewer).
+
+##### Technique D: Standard Metadata Inspection (`importlib.metadata`)
+In modern Python (Python 3.8+), Python includes a standard library module named `importlib.metadata` that can inspect any package's distribution metadata directly by its PyPI distribution name:
+```bash
+uv run python -c "import importlib.metadata; print(importlib.metadata.version('google-adk'))"
+```
+
+---
+
+#### 3. Diagnostic Cheat Sheet for Common Beginner Errors
+
+| Symptom / Error | Diagnosis Command | What It Tells You |
+| :--- | :--- | :--- |
+| **`ModuleNotFoundError: No module named 'google'`** | `uv pip list` | Package was not installed into `.venv`, or you forgot `uv run`. |
+| **"Am I using the right Python interpreter?"** | `uv run which python` | Confirms path points to `.venv/bin/python`, not `/usr/bin/python3`. |
+| **"What version of packages do I have?"** | `uv tree` | Shows a full dependency tree and installed versions. |
+| **"Does my code syntax actually work?"** | `uv run python` | Interactive REPL (`>>>`) lets you test code line by line. |
+
+---
 
 #### 4. Verify the exact optional feature you need is installed
 
 Some ADK features are packaged as optional extras, not part of the base install. For example, LiteLLM support is not included in the base package.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 uv run python -c "from google.adk.models.lite_llm import LiteLlm; print('LiteLLM OK')"
 ```
@@ -227,40 +241,12 @@ ImportError: LiteLLM support requires: pip install google-adk[extensions]
 
 then install the extra in the same `uv` project:
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 uv add "google-adk[extensions]"
 ```
 
 Then verify again:
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 uv run python -c "from google.adk.models.lite_llm import LiteLlm; print('LiteLLM OK')"
 ```
@@ -270,20 +256,6 @@ uv run python -c "from google.adk.models.lite_llm import LiteLlm; print('LiteLLM
 
 #### 5. Common optional extras used in this course
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 uv add "google-adk[extensions]"    # LiteLLM / local model adapters
 uv add "google-adk[gcp]"           # GCP / OpenTelemetry extras
@@ -317,20 +289,6 @@ This is the classic case of a missing optional ADK extra.
 
 **The UV-native fix:**
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 cd /path/to/your/adk/project
 uv add "google-adk[extensions]"
@@ -344,20 +302,6 @@ This occurs when a feature needs the GCP/OpenTelemetry extra but it has not been
 
 **The UV-native fix:**
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 uv add "google-adk[gcp]"
 ```
@@ -367,20 +311,6 @@ These usually mean the MCP extra has not been installed in the current project e
 
 **The UV-native fix:**
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 uv add "google-adk[mcp]"
 ```
@@ -389,20 +319,6 @@ uv add "google-adk[mcp]"
 
 In this course, we use `uv` as the standard environment manager. When adding dependencies:
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```bash
 uv add "google-adk>=2.1.0"
 uv add "google-adk[extensions]"

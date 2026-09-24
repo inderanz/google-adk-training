@@ -13,20 +13,7 @@ In this lab, you learned how to transition from simple string-based model select
 
 Here is the complete code implementing the resilient subclass and the multi-model fallback logic, built on top of the `SupportAnalysis` schema from Module 4:
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
+
 ```python
 import os
 from functools import cached_property
@@ -122,16 +109,39 @@ class ResilientGemini(Gemini):
 # ------------------
 # Plain-English requirement this satisfies:
 # "I want to run this locally for development (fast loop), but use
-#  the cloud model in production without changing code." 
+#  the cloud model in production without changing code."
 # The implementation below flips between a local lightweight LLM and the
 # production Gemini client using `USE_LOCAL_MODEL` env var.
+# "I want to run this against a local inference stack (e.g. MLX-LM, LM Studio,
+#  vLLM, or Ollama) on my machine for zero-cost, private offline development,
+#  and automatically use production Gemini in cloud deployments without code changes."
 if os.getenv("USE_LOCAL_MODEL") == "1":
     # Local dev: use the LiteLLM adapter (e.g., Ollama or other local runner)
     # Benefit: fast offline iteration and reproducible behavior for demos.
     model_to_use = LiteLlm(model="ollama_chat/mistral")
+    # Local inference stack via LiteLLM adapter:
+    # 1. Prefix 'openai/' instructs LiteLLM to speak OpenAI wire protocol.
+    # 2. 'api_base' points to your local server (default: http://127.0.0.1:8000/v1).
+    # 3. 'api_key' satisfies client validation for local unauthenticated endpoints.
+    # 4. 'extra_body' passes provider-specific flags (e.g., disable thinking tokens).
+    local_url = os.getenv("LOCAL_MODEL_URL", "http://127.0.0.1:8000/v1")
+    local_model = os.getenv("LOCAL_MODEL_NAME", "default_model")
+
+    model_to_use = LiteLlm(
+        model=f"openai/{local_model}",
+        api_base=local_url,
+        api_key="local-only",
+        timeout=90,
+        extra_body={
+            "top_k": 20,
+            "chat_template_kwargs": {"enable_thinking": False},
+        },
+    )
 else:
     # Production: use the resilient Gemini subclass for real traffic
     model_to_use = ResilientGemini(model="gemini-3.5-flash")
+    # Production: use the resilient Gemini subclass for real cloud traffic
+    model_to_use = ResilientGemini(model=os.getenv("GEMINI_MODEL", "gemini-2.5-flash"))
 
 
 # ------------------
@@ -177,7 +187,55 @@ root_agent = Agent(
 1.  **Centralization via Subclassing:** By creating `ResilientGemini`, you avoid repeating complex `HttpRetryOptions` for every agent in your codebase. If you need to change the region from `us-central1` to `global`, you only update it in one place.
 2.  **The Thundering Herd Problem:** By adding `jitter=0.5`, you ensure that if multiple agent requests fail at the same time, they won't all retry at the exact same millisecond, which helps prevent overwhelming your API backend.
 3.  **Environment-Driven Architecture:** Using `os.getenv("USE_LOCAL_MODEL")` makes your code highly portable. You can run it on your laptop using Ollama and then deploy it to the cloud without changing a single line of code—only the environment variables change.
+3.  **Environment-Driven Architecture:** Using `os.getenv("USE_LOCAL_MODEL")` makes your code completely portable. You can run it locally against an OpenAI-compatible inference server (such as Apple-native MLX-LM, vLLM, LM Studio, or Ollama) for zero-cost, private offline development, and deploy it to Google Cloud with `ResilientGemini` in production without changing any code.
 4.  **Model Configuration Is Orthogonal to Output Structure:** Notice that `output_schema` and `output_key` are set on the `Agent` itself, not on the model. This is why swapping `model_to_use` between `ResilientGemini` and `LiteLlm` has no effect on the structured-output behavior you built in Module 4 -- the agent still validates and stores the `SupportAnalysis` JSON in `last_ticket_analysis` regardless of which model backend answers the request.
+
+---
+
+### Practical Guide: Running Against a Local Inference Stack
+
+If you or your team members run models locally (e.g., Apple Silicon MLX-LM, LM Studio, vLLM, or Ollama), here is the exact setup:
+
+#### 1. Verify Your Local Inference Server
+Confirm your local OpenAI-compatible server is active and serving models (default port `8000` for MLX-LM/vLLM, `1234` for LM Studio, `11434` for Ollama):
+```bash
+# Check available models
+curl -s http://127.0.0.1:8000/v1/models
+
+# Smoke test chat completion
+curl -s -X POST http://127.0.0.1:8000/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "default_model",
+    "messages": [{"role": "user", "content": "Reply with exactly: MLX ready"}],
+    "temperature": 0,
+    "max_tokens": 20
+  }'
+```
+
+#### 2. Why the LiteLLM Configuration Looks Like This
+```python
+model_to_use = LiteLlm(
+    model="openai/default_model",           # 'openai/' prefix instructs LiteLLM to speak OpenAI HTTP protocol
+    api_base="http://127.0.0.1:8000/v1",     # Redirects calls from api.openai.com to your local loopback server
+    api_key="local-only",                   # Satisfies client token checks (local servers do not authenticate)
+    timeout=90,                             # Allows sufficient headroom for local GPU/Unified Memory prefill
+    extra_body={
+        "top_k": 20,
+        "chat_template_kwargs": {"enable_thinking": False},  # Disables reasoning tokens for direct JSON responses
+    },
+)
+```
+
+#### 3. Execution
+Set the environment variables to activate local mode:
+```bash
+# Run with local inference:
+USE_LOCAL_MODEL=1 \
+LOCAL_MODEL_URL="http://127.0.0.1:8000/v1" \
+LOCAL_MODEL_NAME="default_model" \
+python -m support_analyzer.agent
+```
 
 ### Self-Reflection Answers
 

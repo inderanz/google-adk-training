@@ -8,7 +8,7 @@ import Setup from '../_setup-snippet.mdx';
 # Lab 3 Challenge: Build and Run the "Echo" Agent
 
 ## Goal
-Your task is to create, configure, and run a simple "Echo" agent using the ADK. 
+Your task is to create, configure, and run a simple "Echo" agent using the ADK.
 
 **The Challenge:** Unlike a standard chatbot, this agent must act like a **parrot**. It should never answer questions or provide information; it must only repeat the user's input exactly as it was received.
 
@@ -38,20 +38,6 @@ Your task is to create, configure, and run a simple "Echo" agent using the ADK.
 ### Python Approach (Primary)
 Modify your `agent.py` file to look like the following, filling in the `TODO` sections.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk import Agent
 
