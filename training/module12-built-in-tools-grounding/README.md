@@ -3,149 +3,226 @@ sidebar_position: 12
 title: "Module 12: Built-in Tools and Grounding"
 ---
 
-# Module 12: Built-in Tools and Grounding
+# Module 12: Built-in Tools and Enterprise Grounding
 
-## Theory
+## 🧭 Executive Overview & The Grounding Imperative
 
-### Why Built-in Tools Matter
+In production AI applications, a large language model's greatest operational vulnerability is its **static knowledge cutoff**. Left ungrounded, an LLM generates responses based exclusively on weights frozen during pre-training. When an enterprise analyst asks about real-time market developments, a corporate borrower's recent lawsuits, breaking regulatory changes, or current inventory pricing, an ungrounded model will either plead ignorance or, worse, **confidently hallucinate plausible fiction**.
 
-Traditional AI models have a knowledge cutoff date—they don't know about recent events, current news, or real-time information. Built-in tools solve this by allowing models to **ground** their responses in current web data. This process of retrieving external information to enhance the LLM's generation is the foundation of **Retrieval Augmented Generation (RAG)** systems.
+**Grounding** is the architectural practice of connecting an LLM to external, verifiable sources of truth before synthesizing a response.
 
-**Key Advantages**:
-*   **Current Information:** Access to up-to-date web content.
-*   **No Local Execution:** Tools run inside the model's environment (managed by Google), requiring no local code execution or infrastructure from you.
-*   **Automatic Integration:** The LLM seamlessly incorporates the search results into its final response, often providing citations.
-*   **Production Ready:** These tools are used by real-world, enterprise applications for grounding.
+In this module, you will learn the complete theory of **Google ADK 2.0 Built-in Tools and Enterprise Grounding**, progressing systematically from foundational mental models to advanced multi-agent composition and regulatory-grade citation lineage.
 
-**Important:** Built-in tools are a feature of Gemini 2.0 and newer models and will raise errors with older versions.
-
-### `google_search`: Web Grounding
-
-The `google_search` tool is a built-in capability that allows a Gemini 2.0+ model to search the web to find information. When you add this tool to your agent, the model can autonomously decide to use it when a user's query requires current information.
-
-In the modern ADK, using web grounding by itself is incredibly simple — just import it and add it to `tools`:
-
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-```python
-from google.adk import Agent
-from google.adk.tools import google_search
-
-agent = Agent(
-    name="grounded_agent",
-    model="gemini-3.5-flash",
-    instruction="Search the web to answer the user's question.",
-    tools=[google_search],
-)
-```
-
-As Module 9 covered, `google_search` **cannot** be listed alongside your own custom function tools in that same `tools` list — that's a restriction from the Gemini API itself (not the ADK), and it constructs fine in Python but fails the moment the model actually runs: `400 INVALID_ARGUMENT: Multiple tools are supported only when they are all search tools.`
-
-### Combining Grounding with Custom Logic
-
-So how do you use `google_search` *and* your own custom processing together? Since they can't share one agent, the answer is **sequential composition**: run a search-only agent, then feed its output into a second agent that has your custom tools.
-
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-```python
-from google.adk import Agent
-from google.adk.tools import google_search
-
-def my_custom_tool(item_id: str) -> dict:
-    """Looks up internal warehouse data."""
-    return {"status": "success", "stock": 42}
-
-# Agent 1: only the built-in tool
-research_agent = Agent(
-    name="research_agent",
-    model="gemini-3.5-flash",
-    instruction="Search the web to answer the user's question.",
-    tools=[google_search],
-)
-
-# Agent 2: only your custom tool(s)
-warehouse_agent = Agent(
-    name="warehouse_agent",
-    model="gemini-3.5-flash",
-    instruction="Use my_custom_tool to check warehouse stock for the item you're given.",
-    tools=[my_custom_tool],
-)
-```
-
-You then call `research_agent` first, take its final text output, and pass it as input to `warehouse_agent` — two separate `Runner`/`run_async` calls in your own Python code, not a single agent juggling both tool types. This is exactly the workaround Module 9 introduced; the lab below builds it hands-on.
-
-### Looking Ahead: Managed Agents (Preview)
-
-ADK 2.4.0 introduces `ManagedAgent`, a way to plug Google's own first-party, server-hosted agents (like the Antigravity agent) directly into your ADK flow — no sandbox to provision, no client-side tool declarations, just an `agent_id` and a `GEMINI_API_KEY`. It implements the same `BaseAgent` contract you've been using, so it drops into a workflow like any other agent. The trade-off: you get powerful built-in capabilities (web search, server-side code execution) but lose the fine-grained control you have with `LlmAgent`. It's still Preview, so treat it as a preview of where ADK is headed rather than a pattern to build on yet. As of v2.6.0, `ManagedAgent` also accepts an `instruction` parameter (forwarded as `system_instruction`), so you're not limited to the backend's default behavior.
-
-### `google_maps_grounding`: Location-Based Queries
-
-The `google_maps_grounding` tool enables agents to answer location-based queries, such as finding nearby places, getting directions, or understanding geographic context. This tool is currently only available when using the **Vertex AI API**.
-
-### Key Takeaways
-- Built-in tools like `google_search` allow agents to access real-time information from the web, overcoming the LLM's knowledge cutoff.
-- These tools run within the model's environment, making them easy to set up and scale.
-- A built-in tool like `google_search` **cannot** share an agent's `tools` list with custom function tools — that's a Gemini API restriction, confirmed by a real `400 INVALID_ARGUMENT` at runtime, not just an ADK convention.
-- To combine grounding with custom logic, use **sequential composition**: a search-only agent's output feeds into a second agent that has your custom tools, called one after another in your own code.
-
-## Enterprise Lens: Grounding as a trust and relevance layer
-
-This module matters because enterprise AI becomes far more valuable when it can answer with current, relevant facts instead of relying on stale model knowledge alone.
-
-The real question is not only “can the agent search?” but “can the agent produce a grounded answer that helps a user make a better decision?”
-
-Read the companion guide here:
-
-- [Module 12 Enterprise Playbook](./enterprise-playbook.md)
-- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
-
-This keeps the grounding lesson connected to the bigger ADK story: combine fresh facts, structured business tools, and careful reasoning into a system that is more reliable and more usable in real customer environments.
-
-## Official ADK / Google references
-
-Use the official Google and ADK documentation as the current source of truth for grounding, search, and tool behavior:
-
-- ADK docs home: https://google.github.io/adk-docs/
-- ADK tools documentation: https://google.github.io/adk-docs/tools/
-- Gemini API docs: https://ai.google.dev/gemini-api/docs
-- Google Search grounding docs: https://ai.google.dev/gemini-api/docs/google-search
-- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
-
-These references should be reviewed whenever the course is updated for new grounding capabilities, search behavior, or model/tool constraints.
-
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module12-built-in-tools-grounding-README -->
 ---
 
+## 📚 Level 1: Mental Model & Fundamentals (Beginner)
 
-## Official References
+### What is Grounding?
+Grounding transforms an LLM from a closed-box next-token predictor into an **open-world intelligence system**. When grounding is active, the model:
+1. Analyzes the user's prompt to detect factual information gaps.
+2. Formulates targeted search queries autonomously.
+3. Ingests retrieved authoritative facts into its working context.
+4. Generates a response strictly rooted in those verified sources, accompanied by structured citation metadata.
 
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Gemini API (multimodal): https://ai.google.dev/gemini-api/docs
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Vertex AI generative guidance: https://cloud.google.com/vertex-ai/generative-ai
-- Cloud Vision and OCR: https://cloud.google.com/vision
+```mermaid
+flowchart LR
+    User["User Query"] --> LLM["Gemini 2.5 Flash"]
+    LLM --> Check{"Information<br/>Gap?"}
+    Check -- "No" --> Direct["Generate Response"]
+    Check -- "Yes" --> Search["Built-in google_search"]
+    Search --> Google["Google Web Index"]
+    Google --> Facts["Ranked Sources & Snippets"]
+    Facts --> LLM
+    LLM --> Grounded["Grounded Response + Citations"]
+```
 
+### Built-in Tools vs. Custom Code
+Prior to modern agentic frameworks, developers wrote complex Python scripts using web scraping libraries (`BeautifulSoup`, `Playwright`, `Selenium`) or custom search engine API wrappers.
+
+In Google ADK 2.0, **built-in tools** eliminate this operational burden:
+
+| Feature | Legacy Custom Scraping / Search Wrappers | ADK 2.0 Built-in Tools (`google_search`) |
+|---|---|---|
+| **Execution Environment** | Client-side Python runtime or container. | **Server-side** inside Google's managed model infrastructure. |
+| **Maintenance & Fragility** | High: HTML layout shifts, captcha blockers, and bot bans. | **Zero:** Maintained and scaled natively by Google. |
+| **Decision Autonomy** | Hardcoded logic determines when to trigger search. | **Autonomous:** Model decides *if* and *when* search is needed based on query semantics. |
+| **Token Efficiency** | Poor: Raw HTML dumps bloat the LLM context window. | **Optimal:** Pre-ranked, clean snippets and citation metadata are injected directly. |
+
+### Minimal Grounded Agent
+Implementing web grounding in ADK 2.0 requires only importing `google_search` and passing it to the `Agent`:
+
+```python
+from google.adk import Agent
+from google.adk.tools import google_search
+
+# Minimal Web-Grounded Agent
+grounded_agent = Agent(
+    name="market_intelligence_agent",
+    model="gemini-2.5-flash",
+    instruction="Search the web to provide timely, factual answers to user inquiries.",
+    tools=[google_search],
+)
+```
+
+> [!IMPORTANT]
+> Built-in tools are supported on **Gemini 2.0 and newer models** (`gemini-2.5-flash`, `gemini-2.5-pro`). Older models or deprecated model strings will raise configuration errors.
+
+---
+
+## ⚙️ Level 2: Under the Hood & The Coexistence Constraint (Intermediate)
+
+### How `google_search` Executes
+When an agent equipped with `google_search` receives a prompt:
+1. **Dynamic Tool Calling:** The model evaluates whether the user's request requires facts beyond its knowledge cutoff or domain certainty.
+2. **Internal Query Generation:** The model generates one or more search queries optimized for Google's index (e.g., `"Acme Corp environmental EPA fines 2026"`).
+3. **Retrieval & Ingestion:** Google Search executes the queries, ranks the results, and passes structured snippets back to Gemini.
+4. **Attribution & Metadata:** Gemini produces the final prose along with **Grounding Metadata**, which includes:
+   - `web_search_queries`: The exact queries executed by the model.
+   - `grounding_chunks`: Text segments extracted from retrieved web pages.
+   - `grounding_supports`: Granular mappings connecting specific response sentences to source URIs.
+
+---
+
+### ⚠️ The Coexistence Constraint: `400 INVALID_ARGUMENT`
+
+A common mistake made by developers is attempting to place `google_search` and custom Python functions inside the same agent's `tools` list:
+
+```python
+# ❌ THIS WILL FAIL AT RUNTIME!
+from google.adk import Agent
+from google.adk.tools import google_search
+
+
+def query_internal_database(client_id: str) -> dict:
+    """Look up internal customer records."""
+    return {"client_id": client_id, "status": "active"}
+
+
+broken_agent = Agent(
+    name="hybrid_agent",
+    model="gemini-2.5-flash",
+    instruction="Search the web and check internal database.",
+    tools=[google_search, query_internal_database],  # ❌ PROHIBITED!
+)
+```
+
+While the Python interpreter will construct this `Agent` object without error, **the first model execution will fail immediately**:
+
+```text
+400 INVALID_ARGUMENT: Multiple tools are supported only when they are all search tools.
+```
+
+#### Why Does This Constraint Exist?
+This is a fundamental architecture boundary in the **underlying Gemini API** (not a limitation of the ADK framework). Google Search grounding uses a specialized server-side execution pipeline that is separate from the client-side function-calling protocol. The Gemini API engine does not currently support combining both tool execution channels within a single model generation turn.
+
+---
+
+## 🏛️ Level 3: Advanced Architecture — Sequential Multi-Agent Composition
+
+To combine the live power of `google_search` with enterprise custom business logic (e.g., Pydantic calculators, internal database queries, or compliance policy engines), Google Forward-Deployed Engineers use **Sequential Multi-Agent Composition**.
+
+### The Two-Tier Agent Architecture
+Instead of forcing one agent to juggle incompatible tool types, we decouple the workflow into two specialized agent nodes:
+
+1. **Tier 1: Grounding Specialist (`SearchSpecialist`):**
+   - Configured with `tools=[google_search]`.
+   - Dedicated exclusively to finding current, factual web evidence.
+2. **Tier 2: Business Logic & Compliance Analyst (`RiskAnalyst`):**
+   - Configured with **Typed Pydantic Custom Tools** (e.g., `evaluate_adverse_risk`, `extract_sanction_citations`).
+   - Ingests the findings from Tier 1, validates data structures, applies internal policy rules, and formats auditable reports.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User as Risk Officer
+    participant Runner as ADK Orchestrator / Runner
+    participant Agent1 as AdverseMediaAgent (Gemini + google_search)
+    participant Agent2 as RiskAnalystAgent (Gemini + Pydantic Tools)
+    participant Tools as Custom Risk Scoring Tools (Python)
+
+    User->>Runner: "Screen Acme Corp for adverse news & lawsuits"
+
+    Note over Runner,Agent1: Tier 1: Web Grounding Specialist
+    Runner->>Agent1: Inquire recent litigation and sanctions
+    Agent1->>Agent1: Execute google_search("Acme Corp litigation fraud")
+    Agent1-->>Runner: Return grounded research findings + citations
+
+    Note over Runner,Agent2: Tier 2: Business Logic & Scoring
+    Runner->>Agent2: Pass grounded findings + company metadata
+    Agent2->>Tools: Invoke classify_adverse_findings(findings)
+    Tools-->>Agent2: Return AdverseFindingReport(severity="HIGH", citations=[...])
+    Agent2-->>Runner: Synthesize final Adverse Media Risk Briefing
+    Runner-->>User: Present audit-compliant briefing with verifiable URLs
+```
+
+### Typed Inter-Agent Data Contracts
+In enterprise production, data passed between agents must never be unstructured free-form text. We enforce **Typed Pydantic Schemas** to govern the transition:
+
+```python
+from typing import List
+from pydantic import BaseModel, Field
+
+
+class AdverseFinding(BaseModel):
+    """Structured risk signal extracted from grounded search results."""
+
+    headline: str = Field(description="Summary of adverse event or lawsuit")
+    source_domain: str = Field(
+        description="Verifiable publisher domain from grounding metadata"
+    )
+    risk_category: str = Field(
+        description="LITIGATION, FRAUD, SANCTIONS, REGULATORY, or ESG"
+    )
+    severity: str = Field(description="CRITICAL, ELEVATED, or LOW")
+
+
+class AdverseMediaReport(BaseModel):
+    """Consolidated due diligence assessment for Credit Committee."""
+
+    company_name: str
+    overall_risk_level: str
+    findings: List[AdverseFinding]
+    is_eligible_for_lending: bool
+    compliance_officer_review_required: bool
+```
+
+---
+
+## 🌐 Level 4: The Three Enterprise Grounding Modalities
+
+Depending on the customer's data topology, a Google FDE selects from **three distinct grounding modalities**:
+
+| Grounding Modality | Google Service / Tool | Data Source | Primary Enterprise Use Cases | Environment Availability |
+|---|---|---|---|---|
+| **1. Public Web Grounding** | `google_search` | Real-time global web index | Adverse media screening, competitor tracking, market news, breaking regulatory alerts. | Gemini Developer API & Vertex AI |
+| **2. Geospatial Grounding** | `google_maps_grounding` | Google Maps Platform database | Physical branch verification, collateral site audits, logistics routing, territory analysis. | **Vertex AI Only** |
+| **3. Private Enterprise Grounding** | Vertex AI Search / Datastores | Private company repositories (PDFs, Confluence, BigQuery, Cloud Storage) | Internal policy manuals, proprietary underwriting guidelines, HR benefit handbooks, customer contracts. | **Vertex AI Only** |
+
+### Comparison: Public Grounding vs. Private Enterprise RAG
+* **Use `google_search`** when the question requires facts that exist in the public domain (e.g., *"Did the SEC file charges against Company X yesterday?"*).
+* **Use Vertex AI Search (Datastores)** when the question requires proprietary enterprise knowledge not accessible to public search engines (e.g., *"What is our bank's internal single-borrower exposure limit for commercial real estate?"*).
+* **Combine both** in multi-agent workflows to synthesize external market intelligence with internal policy documents.
+
+---
+
+## 🛡️ Level 5: Regulatory Compliance & Citation Lineage (Fed SR 11-7)
+
+Under **Federal Reserve Supervisory Letter SR 11-7 (Model Risk Management)** and OCC compliance rules, financial institutions cannot base credit or underwriting decisions on ungrounded or opaque AI generations.
+
+### The Auditability Requirement
+Every automated finding must possess a **defensible lineage**:
+1. **Source Attribution:** The AI must cite the originating domain (e.g., `sec.gov`, `reuters.com`, `federalreserve.gov`).
+2. **Verifiable Linkage:** The exact article URL must be preserved so compliance officers can verify the claim in one click.
+3. **Temporal Validity:** Search findings must record the timestamp of the retrieval turn to prove when the adverse check was conducted.
+
+By deploying `google_search` within a sequential multi-agent pipeline, enterprises achieve both **autonomous research capabilities** and **uncompromising regulatory auditability**.
+
+---
+
+## 📚 Official References
+
+- Google ADK Grounding Documentation: https://google.github.io/adk-docs/tools/
+- Google GenAI Grounding Guide: https://ai.google.dev/gemini-api/docs/google-search
+- Vertex AI Search & Grounding: https://cloud.google.com/vertex-ai/generative-ai/docs/grounding/overview
+- Federal Reserve SR 11-7 (Model Risk Management): https://www.federalreserve.gov/supervisionreg/srletters/sr1107.htm
+- Google GenAI Python SDK: https://googleapis.github.io/python-genai/

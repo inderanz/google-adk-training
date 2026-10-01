@@ -9,7 +9,7 @@ This page is the master map for turning the ADK training modules into a practica
 
 ## Why this exists
 
-In real customer work, requirements are rarely crisp. A stakeholder may say: 
+In real customer work, requirements are rarely crisp. A stakeholder may say:
 
 - "Help us automate support"
 - "Make our agents understand images"
@@ -51,6 +51,7 @@ The enterprise playbooks tie these together so that an agent, engineer, or assis
 | [Module 09](./module09-intro-custom-function-tools/README.md) | Custom tools | Enterprise task automation | Module 10 and 11 |
 | [Module 10](./module10-advanced-function-tools/README.md) | Advanced tools | Robust tool orchestration | Modules 11-15 |
 | [Module 11](./module11-openapi-tools/README.md) | API integration | External systems integration | Modules 12-18 |
+| [Module 11.5](./module11_5-enterprise-credit-underwriting/README.md) | Commercial Credit Triage | OpenAPI Milestone: Underwriting & Drawdowns | Modules 12-18 |
 | [Module 12](./module12-built-in-tools-grounding/README.md) | Grounding and retrieval | Knowledge-backed agents | Modules 18-24 |
 | [Module 13](./module13_5-firestore-persistence/README.md) | Persistence | Enterprise memory and state | Modules 17-22 |
 | [Module 15](./module15-intro-to-multi-agent-systems/README.md) | Multi-agent systems | Distributed reasoning | Modules 16-21 |
@@ -129,6 +130,41 @@ Use this sequence when designing a customer solution:
 7. Validate with examples and real evaluation.
 8. Instrument and deploy with production guardrails.
 
+---
+
+## ⚡ The Skill-Driven FDE Development Workflow
+
+Writing hundreds of lines of manual HTTP wrappers or prompting LLMs blindly without grounding leads to brittle architectures, hallucinated APIs, and security holes.
+
+In production Google deployments, Forward-Deployed Engineers follow the **Skill-Driven FDE Workflow**:
+
+```mermaid
+flowchart LR
+    A["1. Scaffold & Ground<br/>(adk-skill + adk CLI)"] --> B["2. Spec-Driven Synthesis<br/>(OpenAPI / BaseModel)"]
+    B --> C["3. Empirical Validation<br/>(Interactive CLI / Eval)"]
+    C --> D["4. Production Lifecycle<br/>(Deploy / Trace / Registry)"]
+```
+
+### 1. Scaffold & Ground
+- Run `bash .agent/skills/adk-skill/scripts/update_docs.sh` to fetch Google's latest official documentation (`llms-full.txt`).
+- Scaffold projects using `uv run adk create <project_name>`.
+
+### 2. Spec-Driven Tool Synthesis
+- **Zero-Adapter REST Integration:** Feed enterprise OpenAPI 3.0 specs directly into `OpenAPIToolset(spec_str=..., spec_str_type="json")` or `OpenAPIToolset.from_file(...)`.
+- **Typed Custom Tools:** Define return models using Pydantic `BaseModel` and extract identity securely from `tool_context.user_id`.
+
+### 3. Empirical Verification (Zero Trust)
+- Test interactively with `uv run adk run .`.
+- Perform automated student reviews using `adk-student-evaluator`.
+
+### 4. Production Lifecycle
+- Deploy via `google-agents-cli-deploy` to Cloud Run, Agent Runtime, or GKE.
+- Run automated trajectory benchmarks via `google-agents-cli-eval`.
+
+Refer to the complete skill definition at [adk-enterprise-fde-workflow](file:///.agent/skills/adk-enterprise-fde-workflow/SKILL.md) for full instructions and Antigravity prompt templates.
+
+---
+
 ## In short
 
 This roadmap is designed so that a coding agent, forward-deployed engineer, or training participant can follow one connected storyline instead of viewing the modules as isolated labs.
@@ -152,6 +188,7 @@ to:
 - [Module 09 Enterprise Playbook](./module09-intro-custom-function-tools/enterprise-playbook.md)
 - [Module 10 Enterprise Playbook](./module10-advanced-function-tools/enterprise-playbook.md)
 - [Module 11 Enterprise Playbook](./module11-openapi-tools/enterprise-playbook.md)
+- [Module 11.5 Enterprise Playbook](./module11_5-enterprise-credit-underwriting/enterprise-playbook.md)
 - [Module 12 Enterprise Playbook](./module12-built-in-tools-grounding/enterprise-playbook.md)
 - [Module 13.5 Enterprise Playbook](./module13_5-firestore-persistence/enterprise-playbook.md)
 - [Module 15 Enterprise Playbook](./module15-intro-to-multi-agent-systems/enterprise-playbook.md)

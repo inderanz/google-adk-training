@@ -11,6 +11,36 @@ title: "Module 22: State and Memory - Persistent Agent Context"
 
 Welcome to **Part 4: Production Readiness**. You've spent Part 3 learning to orchestrate multiple agents into real systems -- now it's time to make those systems production-ready, starting with the most basic requirement of all: an agent that actually remembers things.
 
+### 🎓 Curriculum Bridge: Connecting Module 13.5 to Module 22
+
+If you completed [**Module 13.5: Custom Persistence with Firestore**](../module13_5-firestore-persistence/README.md), you already know how to solve **Active Session Durability** by writing a custom `BaseSessionService` on Cloud Firestore.
+
+Here in Module 22, we complete the enterprise memory architecture by moving from **per-session durability** to **cross-session cognitive intelligence**:
+
+```mermaid
+flowchart TD
+    subgraph M13_5["Module 13.5: Active Session Durability (The Ledger)"]
+        Sess["BaseSessionService<br/>(FirestoreSessionService)"]
+        Sess -->|"Sub-10ms writes"| Active["Active Session Execution Loop<br/>• Survives container restarts<br/>• Enforces Fed SR 11-7 event audit log<br/>• Holds exact mutable state: balance=\$8.8M"]
+    end
+
+    subgraph M22["Module 22: Scoped State & Cognitive Memory (The Brain)"]
+        Scopes["State Scopes<br/>(user:, app:, temp:)"]
+        Rewind["Session Rewind<br/>(invocation_id rollback)"]
+        MB["BaseMemoryService<br/>(VertexAiMemoryBankService)"]
+        Active -.->|"add_session_to_memory()"| MB
+        MB -->|"search_memory()"| LongTerm["Cross-Session Semantic Recall<br/>• Recalls preferences across 8 months<br/>• Consolidates qualitative facts<br/>• Powered by vector embeddings"]
+    end
+```
+
+| Memory Dimension | **Module 13.5: Active Session Persistence** | **Module 22: State & Memory Stack** |
+|---|---|---|
+| **ADK Framework Contract** | `google.adk.sessions.base_session_service.BaseSessionService` | `google.adk.memory.base_memory_service.BaseMemoryService` + Scoped State |
+| **Injected Slot** | `Runner(session_service=...)` | `Runner(memory_service=...)` |
+| **Storage Role** | **The Active Ledger:** Exact, mutable key-value state and immutable chronological event logs. | **The Cognitive Archive:** Semantic fact extraction, user scoping (`user:`), and cross-session recall. |
+| **Time Horizon** | Active session lifespan (hours to 14-day origination). | Multi-year customer relationship history across separate sessions. |
+| **Data Nature** | Deterministic numbers, exact calculations, Fedwire IDs. | Qualitative preferences, conversation summaries, semantic topics. |
+
 A key feature that elevates a simple chatbot to a capable assistant is **memory**. The ADK provides a robust system for managing two different kinds of memory: short-term **State** and long-term **Memory**.
 
 ### Session State (`session.state`)

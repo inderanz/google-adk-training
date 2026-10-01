@@ -28,20 +28,7 @@ This will teach you the canonical way to execute an agent as part of a larger Py
 ### Python Skeleton (`main.py`)
 Complete the `main.py` script by following the comments.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
+
 ```python
 import asyncio
 import logging
@@ -68,10 +55,10 @@ runner = ...
 async def main():
     print("--- User A (Alice) ---")
     # --- Step 3: Run for Alice ---
-    # TODO: Use the runner's debug method to send Alice's billing issue: 
+    # TODO: Use the runner's debug method to send Alice's billing issue:
     # "I was overcharged $50". Don't forget the user_id!
     events_a = ...
-    
+
     # --- Step 4: Process Events ---
     # TODO: Loop through events_a and find the final response.
     # Hint: use event.is_final_response()
