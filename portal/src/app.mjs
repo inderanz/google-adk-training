@@ -171,7 +171,7 @@ export function createApp(site, dependencies = {}) {
     if (path===BASE.slice(0,-1)) return redirect(BASE,308);
     if (!path.startsWith(BASE) || /%2f|%5c|%00|\\/i.test(path)) fail(404,'Page not found');
     const method=request.method;
-    const publicFiles=new Set(['portal.css','ui.js','tracker.js','tracking-core.js']);
+    const publicFiles=new Set(['portal.css','lesson.css','ui.js','tracker.js','tracking-core.js']);
     const publicName=path.slice(`${BASE}portal/`.length);
     if (path.startsWith(`${BASE}portal/`) && publicFiles.has(publicName)) {
       if (!['GET','HEAD'].includes(method)) fail(405,'Method not allowed');

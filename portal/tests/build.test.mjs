@@ -18,6 +18,8 @@ test('generated manifest covers real course HTML and stays within free asset lim
   const site=JSON.parse(readFileSync(new URL('../generated/site.json',import.meta.url),'utf8'));
   assert.ok(site.modules.length>=40);
   assert.ok(site.modules.some(m=>m.id==='module13_5-firestore-persistence'));
+  const order=site.modules.map(m=>Number(m.id.match(/^module(\d+(?:_\d+)?)/)[1].replace('_','.')));
+  assert.deepEqual(order,[...order].sort((a,b)=>a-b),'decimal modules must follow their parent module');
   for(const module of site.modules)for(const page of module.pages)assert.ok(site.pages[page.path],`Noncanonical catalogue link: ${page.path}`);
   for(const [url,p]of Object.entries(site.pages)){
     assert.ok(site.assets[url],`Missing ${url}`);

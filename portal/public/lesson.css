@@ -1,0 +1,283 @@
+/* Portal-only reading layout. Public GitHub Pages styling is unaffected. */
+html:root {
+  --ifm-color-primary: #1967d2;
+  --ifm-color-primary-dark: #155abd;
+  --ifm-color-primary-darker: #1254b3;
+  --ifm-color-primary-darkest: #0b4192;
+  --ifm-color-primary-light: #3079dc;
+  --ifm-color-primary-lighter: #4488e2;
+  --ifm-color-primary-lightest: #6ca3ed;
+  --ifm-font-family-base: Roboto,"Segoe UI",Arial,sans-serif;
+  --ifm-heading-font-family: var(--ifm-font-family-base);
+  --ifm-heading-font-weight: 550;
+  --ifm-navbar-height: 4.25rem;
+  --ifm-background-color: #fff;
+  --ifm-navbar-background-color: #fff;
+  --ifm-container-width: 1360px;
+  --ifm-container-width-xl: 1480px;
+  --ifm-line-height-base: 1.75;
+  --ifm-font-size-base: 16px;
+  --ifm-heading-line-height: 1.3;
+  --ifm-code-font-size: 87%;
+  --doc-sidebar-width: 285px;
+}
+html[data-theme=dark] {
+  --ifm-color-primary: #a8c7fa;
+  --ifm-color-primary-dark: #8ab4f8;
+  --ifm-color-primary-light: #c2d7fa;
+  --ifm-background-color: #16191e;
+  --ifm-navbar-background-color: #1c2026;
+  --ifm-background-surface-color: #22262c;
+}
+body {
+  overflow-wrap: anywhere;
+}
+.navbar {
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  box-shadow: none;
+}
+html .navbar__title,html .navbar__brand {
+  font-family: var(--ifm-font-family-base);
+  font-size: 1rem;
+  font-weight: 550;
+}
+.navbar__brand {
+  min-width: 0;
+}
+.navbar__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.navbar__items {
+  min-width: 0;
+}
+.navbar__logo {
+  flex-shrink: 0;
+}
+.menu__link {
+  font-size: .85rem;
+  line-height: 1.5;
+  border-radius: 6px;
+}
+.menu__list-item {
+  margin-top: 4px;
+}
+.theme-doc-sidebar-container {
+  background: var(--ifm-background-color);
+}
+.theme-doc-markdown {
+  max-width: 100%;
+  font-size: 1rem;
+}
+.theme-doc-markdown h1 {
+  font-size: clamp(1.8rem,3vw,2.65rem);
+  letter-spacing: -.8px;
+}
+.theme-doc-markdown h2 {
+  font-size: clamp(1.35rem,2.2vw,1.85rem);
+  letter-spacing: -.3px;
+  margin-top: 2.5rem;
+}
+.theme-doc-markdown h3 {
+  font-size: 1.2rem;
+}
+.theme-doc-markdown p,.theme-doc-markdown li {
+  overflow-wrap: anywhere;
+}
+.theme-doc-markdown img,.theme-doc-markdown video {
+  max-width: 100%;
+  height: auto;
+}
+.theme-doc-markdown iframe {
+  max-width: 100%;
+}
+.theme-doc-markdown table {
+  display: block;
+  max-width: 100%;
+  width: max-content;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  font-size: .88rem;
+}
+.theme-doc-markdown table th,.theme-doc-markdown table td {
+  min-width: 90px;
+}
+.theme-doc-markdown pre {
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+  overscroll-behavior-x: contain;
+}
+.theme-doc-markdown pre code {
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+.theme-code-block {
+  max-width: 100%;
+  min-width: 0;
+}
+.theme-doc-markdown details {
+  min-width: 0;
+}
+.theme-doc-markdown .mermaid,.theme-doc-markdown .docusaurus-mermaid-container {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.theme-doc-markdown svg[id^=mermaid] {
+  max-width: 100%;
+  height: auto;
+}
+.pagination-nav__link {
+  min-width: 0;
+  border-radius: 10px;
+}
+.pagination-nav__label {
+  overflow-wrap: anywhere;
+}
+.theme-doc-footer,.theme-doc-breadcrumbs {
+  min-width: 0;
+}
+.row>.col {
+  min-width: 0;
+}
+.table-of-contents {
+  font-size: .76rem;
+}
+.footer {
+  font-size: .85rem;
+}
+.portal-account-bar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 10px 26px;
+  background: #eaf1fb;
+  border-bottom: 1px solid #d3e3fd;
+  color: #3c4043;
+  font: 400 .75rem/1.6 Roboto,"Segoe UI",Arial,sans-serif;
+  flex-wrap: wrap;
+}
+.portal-account-bar span {
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.portal-account-bar a {
+  color: #1967d2;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+}
+.portal-account-bar button {
+  margin-left: auto;
+  background: #fff;
+  border: 1px solid #bdcbe0;
+  color: #1967d2;
+  border-radius: 20px;
+  padding: 7px 15px;
+  min-height: 36px;
+  cursor: pointer;
+  font: 500 .75rem/1.5 Roboto,"Segoe UI",Arial,sans-serif;
+}
+.portal-account-bar button:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 3px;
+}
+.portal-account-bar a:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 3px;
+}
+[data-theme=dark] .portal-account-bar {
+  background: #242e3e;
+  border-color: #3e506b;
+  color: #d1d9e8;
+}
+[data-theme=dark] .portal-account-bar a {
+  color: #a8c7fa;
+}
+[data-theme=dark] .portal-account-bar button {
+  background: #1c2026;
+  color: #a8c7fa;
+  border-color: #5b6a80;
+}
+@media(min-width:997px) {
+  .theme-doc-markdown {
+    padding: 8px 8px 24px;
+  }
+  .container:has(.theme-doc-markdown) {
+    padding-top: 30px!important;
+  }
+}
+@media(max-width:996px) {
+  .navbar__inner {
+    gap: 8px;
+  }
+  .theme-doc-markdown {
+    font-size: .95rem;
+  }
+  .theme-doc-markdown pre {
+    font-size: .8rem;
+  }
+  .theme-doc-markdown table {
+    font-size: .8rem;
+  }
+  .theme-doc-markdown blockquote {
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .portal-account-bar {
+    padding: 9px 16px;
+    gap: 10px 16px;
+  }
+}
+@media(max-width:480px) {
+  .navbar__title {
+    font-size: .86rem;
+  }
+  .navbar__logo {
+    display: none;
+  }
+  .navbar__brand {
+    margin-right: 0;
+  }
+  .theme-doc-markdown h1 {
+    font-size: 1.7rem;
+  }
+  .theme-doc-markdown h2 {
+    font-size: 1.35rem;
+  }
+  .theme-doc-markdown h3 {
+    font-size: 1.13rem;
+  }
+  .theme-doc-markdown ul,.theme-doc-markdown ol {
+    padding-left: 1.4rem;
+  }
+  .theme-doc-markdown blockquote {
+    padding-left: 12px;
+  }
+  .pagination-nav {
+    gap: 10px;
+  }
+  .pagination-nav__link {
+    padding: 12px;
+  }
+  .pagination-nav__label {
+    font-size: .83rem;
+  }
+  .portal-account-bar>span {
+    flex-basis: 100%;
+    font-size: .7rem;
+  }
+  .portal-account-bar a,.portal-account-bar button {
+    min-height: 40px;
+  }
+  .theme-doc-markdown table td,.theme-doc-markdown table th {
+    padding: 9px;
+  }
+}
+@media(prefers-reduced-motion:reduce) {
+  html {
+    scroll-behavior: auto!important;
+  }
+}

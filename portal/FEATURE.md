@@ -24,3 +24,19 @@ retention, migration behavior, two build profiles, and local Worker execution.
 Live OAuth, edge CPU, account quotas, and staging/production validation require
 the owner's deployment configuration; no production activation is implicit in
 local implementation.
+
+## Programme positioning
+
+The public page presents Enterprise AI Agent Engineering: learning to turn
+business requirements into agent solutions with Google ADK and Gemini Enterprise
+Agent Platform. It retains the Google-inspired visual theme and GyanHQ identity.
+
+The first delivery stage includes learning outcomes, five expandable curriculum
+stages, an illustrative credit-review scenario, prerequisites, instructor
+attribution, and FAQs. Course development and simulated integrations are
+identified explicitly. The overview is authored public copy, not an extraction
+of locked lessons or solutions. Existing manual approval remains required.
+
+Later stages remain planned: explicit access requests and pending states, a
+curated public sample lesson, and a defined paid programme with checkout. The
+current page does not promise prices, certification, or access on sign-in alone.
