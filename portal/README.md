@@ -2,8 +2,8 @@
 
 Separate Cloudflare Worker + D1 deployment of the existing Docusaurus course.
 No Firebase. The original public site and course source remain available.
-Portal code is on `feature/gyanhq-training-portal`, branched from
-`feature/training-updates-final`.
+The initial portal and training updates were merged into `main` in PR #1.
+The responsive interface update is on `feature/portal-cloud-ui`.
 
 ## Local development
 
@@ -26,6 +26,24 @@ browser tests seed sessions only in their own in-memory database, never in the
 deployed Worker. `npm run test:browser` runs against this disposable test server.
 Install Chrome locally or install Playwright Chromium with `npx playwright install chromium`.
 Set `PLAYWRIGHT_CHANNEL=chromium` when using Playwright's bundled Chromium.
+
+The portal uses a Google Cloud-inspired light interface with GyanHQ branding.
+Signed-in visitors get a workspace shortcut; catalogue search and availability
+filters do not change access permissions. The portal-only lesson stylesheet
+keeps tables and code scrollable within the reading column and preserves the
+existing public site's theme.
+
+Browser checks cover the landing page, catalogue, administration, lessons, and
+diagrams at 320, 390, 768, 1024, 1440, and 1920 pixels. To also inspect every
+generated course page for overflow at phone and laptop widths, run:
+
+```sh
+FULL_RESPONSIVE=1 npm run test:browser
+```
+
+Screenshots are written to `portal/generated/browser/` (gitignored). After
+rebuilding while Wrangler is running, restart `npm run dev` so its static-asset
+manifest picks up the complete new build.
 
 Builds copy current `training/` and root overview documents into
 `portal/generated/training/`; they never rewrite teaching source. The selected

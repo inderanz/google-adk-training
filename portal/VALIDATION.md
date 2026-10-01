@@ -8,7 +8,8 @@ Feature branch: `feature/gyanhq-training-portal`, based on
 | Check | Result |
 |---|---|
 | Node/SQLite security and behavior tests | 27 passing |
-| Chrome portal browser checks | 20 passing |
+| Chrome portal browser checks after the interface redesign | 57 passing, including the full-course responsive audit |
+| Responsive course-page audit | 166 pages at both 390px and 1366px; no horizontal overflow |
 | Real local Cloudflare Worker + D1 + static assets | 8 passing |
 | Commercial underwriting and OpenAPI normalizer tests | 10 passing |
 | Learner Python source syntax | Pass |
@@ -28,6 +29,20 @@ revocation. Google token tests verify actual RSA signatures and rejection of
 invalid issuer/audience/nonce/expiry/email-verification claims. The browser tests
 seed synthetic accounts only in a disposable database; they do not bypass Google
 authentication in the deployed Worker.
+
+## Responsive interface update
+
+The Google Cloud-inspired GyanHQ interface is on `feature/portal-cloud-ui`,
+branched from `main` after PR #1 merged. Landing, catalogue, administration,
+lessons, and Mermaid pages were checked at 320, 390, 768, 1024, 1440, and 1920
+pixels. Every generated course page was also visited at 390px and 1366px.
+Screenshots were reviewed for the account card, catalogue, lesson typography,
+and mobile administration. Wide tables and code scroll within their containers.
+
+Both build profiles, the 27 portal tests, and the 8 real local Worker checks
+passed again. Browser checks cover the signed-in workspace shortcut, decimal
+module search, availability filters, release search, and portal lesson theme.
+The current local preview and both portal stylesheets return HTTP 200.
 
 ## Concurrent course editing
 

@@ -54,9 +54,9 @@ try {
   if (response.ok) {
     user=await response.json();
     const bar=document.createElement('div');
-    bar.style.cssText='padding:8px 16px;background:#152137;color:#fff;display:flex;gap:16px;align-items:center;flex-wrap:wrap';
+    bar.className='portal-account-bar';bar.setAttribute('aria-label','Your training account');
     const label=document.createElement('span'); label.textContent=user.email;
-    const link=document.createElement('a'); link.href=`${base}learn/`;link.textContent='Course catalogue';link.style.color='#8edbff';
+    const link=document.createElement('a'); link.href=`${base}learn/`;link.textContent='Course catalogue';
     const logout=document.createElement('button');logout.textContent='Sign out';logout.className='button button--secondary button--sm';
     logout.onclick=async()=>{
       const result=await fetch(`${base}auth/logout`,{method:'POST',headers:{'X-CSRF-Token':user.csrf}});

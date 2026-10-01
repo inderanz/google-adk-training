@@ -54,7 +54,9 @@ module.exports = function portalPlugin(context) {
       }]};
     },
     injectHtmlTags() {
-      return {postBodyTags: [
+      return {headTags: [
+        {tagName: 'link', attributes: {rel: 'stylesheet', href: `${BASE}portal/lesson.css`}},
+      ], postBodyTags: [
         {tagName: 'script', attributes: {src: `${BASE}portal/tracker.js`, type: 'module'}},
       ]};
     },
@@ -75,7 +77,8 @@ module.exports = function portalPlugin(context) {
         modules.push({id: doc.policy.module, title: doc.title, path: doc.path,
           pages: docs.filter(d => d.policy?.module === doc.policy.module).map(d => ({path: d.path, title: d.title, solution: d.policy.solution}))});
       }
-      modules.sort((a,b) => a.id.localeCompare(b.id, undefined, {numeric: true}));
+      const moduleNumber = id => Number(id.match(/^module(\d+(?:_\d+)?)/)?.[1]?.replace('_', '.') || 0);
+      modules.sort((a,b) => moduleNumber(a.id) - moduleNumber(b.id) || a.id.localeCompare(b.id));
       const assets = {};
       for (const file of await files(outDir)) {
         if (/\.map$|(^|\/)(sitemap|search-index)|docusaurus-debug/.test(file)) throw new Error(`Unexpected sensitive artifact: ${file}`);

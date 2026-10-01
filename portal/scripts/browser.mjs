@@ -51,11 +51,36 @@ try{
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto(origin+base);
   check(await page.getByRole('link',{name:'Sign in with Google'}).isVisible(),'public sign-in page');
+  const widths=[320,390,768,1024,1440,1920];
+  const responsive=async(target,label)=>{
+    for(const width of widths){
+      await target.setViewportSize({width,height:900});
+      await target.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+      const fits=await target.evaluate(()=>document.documentElement.scrollWidth<=innerWidth);
+      if(!fits){
+        await target.screenshot({path:path.join(artifacts,`${label}-${width}-overflow.png`),fullPage:true});
+        console.log(await target.evaluate(()=>[...document.querySelectorAll('body *')].filter(e=>e.getBoundingClientRect().right>innerWidth+1).map(e=>({tag:e.tagName,className:e.className,right:e.getBoundingClientRect().right})).slice(0,20)));
+      }
+      check(fits,`${label} fits ${width}px`);
+      if([390,1440].includes(width)){
+        await target.evaluate(()=>scrollTo({top:0,behavior:'instant'}));
+        await target.screenshot({path:path.join(artifacts,`${label}-${width}.png`),fullPage:false});
+      }
+    }
+  };
+  await responsive(page,'landing');
+  await page.setViewportSize({width:1440,height:1000});
   await context.addCookies([{name:'gyanhq_training_session',value:tokens.owner,url:origin+base,httpOnly:true,sameSite:'Lax'}]);
+  await page.reload();
+  await page.getByRole('link',{name:'Open your workspace'}).waitFor();
+  check(await page.getByRole('link',{name:'Sign in with Google'}).count()===0,'signed-in landing offers workspace instead of login');
   await page.goto(origin+base+'admin/');
   await page.getByText('learner@gmail.com',{exact:true}).first().waitFor();
   check(await page.locator('#releases section').count()===site.modules.length,'all modules shown in admin');
   check(await page.locator('#releases input:checked').count()===0,'everything starts locked');
+  await page.locator('#release-search').fill('firestore');
+  check(await page.locator('#releases section:visible').count()===1,'admin module search');
+  await page.locator('#release-search').fill('');
   await page.locator('#approve input').fill('new@gmail.com');await page.getByRole('button',{name:'Approve email',exact:true}).click();
   await page.locator('#users').getByText('new@gmail.com',{exact:true}).waitFor();check(true,'manual learner approval UI');
   const selected=site.modules.find(m=>m.id==='module13_5-firestore-persistence');
@@ -67,6 +92,16 @@ try{
   await learnerContext.addCookies([{name:'gyanhq_training_session',value:tokens.learner,url:origin+base,httpOnly:true,sameSite:'Lax'}]);
   const learner=await learnerContext.newPage();learner.on('pageerror',error=>errors.push(error.message));
   await learner.goto(origin+base+'learn/');await learner.locator('#catalog article').first().waitFor();
+  await learner.getByRole('button',{name:'Available',exact:true}).click();
+  check(await learner.locator('#catalog article').count()===1,'availability filter shows only released modules');
+  await learner.getByRole('button',{name:'All modules',exact:true}).click();
+  await learner.locator('#module-search').fill('13.5');
+  check(await learner.locator('#catalog article').count()===1,'decimal module number search');
+  await learner.locator('#module-search').fill('no-such-module-xyz');
+  check(await learner.locator('#catalog-empty').isVisible(),'catalogue has a search empty state');
+  await learner.locator('#module-search').fill('');
+  await responsive(learner,'catalogue');
+  await learner.setViewportSize({width:390,height:844});
   check(await learner.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile catalogue fits viewport');
   const learnerCard=learner.locator('#catalog article').filter({has:learner.getByRole('heading',{name:new RegExp(selected.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'))})});
   check(await learnerCard.getByText(/not released/).count()>0,'solutions remain visibly locked');
@@ -78,12 +113,17 @@ try{
   await learner.getByRole('button',{name:'Sign out',exact:true}).first().waitFor();
   await learner.waitForTimeout(2500);
   check(await learner.locator('pre').count()>0,'course code blocks preserved');
+  check(await learner.evaluate(()=>getComputedStyle(document.documentElement).getPropertyValue('--ifm-color-primary').trim()==='#1967d2'),'portal lesson theme overrides the public theme');
+  await responsive(learner,'lesson');
+  await learner.setViewportSize({width:390,height:844});
   // Module 4 contains diagrams in both the committed and edited curricula.
   const diagramModule=site.modules.find(m=>m.id==='module04-agent-deep-dive');
   db.sqlite.prepare('INSERT OR REPLACE INTO releases VALUES(?,?,?,?)').run(diagramModule.id,1,0,Date.now());
   await learner.goto(origin+diagramModule.path);
   const mermaid=learner.locator('svg[id^="mermaid"], .docusaurus-mermaid-container svg, .mermaid svg');
   await mermaid.first().waitFor({timeout:30000});check(await mermaid.count()>0,'Mermaid diagrams render');
+  await responsive(learner,'diagrams');
+  await learner.setViewportSize({width:390,height:844});
   check(await learner.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile lesson fits viewport');
   await learner.screenshot({path:path.join(artifacts,'lesson-mobile.png'),fullPage:false});
   check(db.sqlite.prepare('SELECT COUNT(*) n FROM visits').get().n>=1,'learner visit recorded');
@@ -94,12 +134,30 @@ try{
   check((await learner.request.get(origin+protectedSolution.path)).status()===200,'solution release takes effect');
   await page.locator('#report-filters input[name=email]').fill('learner@gmail.com');await page.getByRole('button',{name:'View report',exact:true}).click();
   await page.locator('#reports').getByText('learner@gmail.com',{exact:true}).first().waitFor();check(true,'admin learner report');
+  await responsive(page,'administration');
+  await page.setViewportSize({width:1440,height:1000});
   const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'Export CSV'}).click();const download=await downloadEvent;await download.saveAs(path.join(artifacts,'activity.csv'));check(true,'CSV download');
   const userRow=page.locator('#users tr').filter({has:page.getByText('learner@gmail.com',{exact:true})});
   await userRow.getByRole('button',{name:'Revoke',exact:true}).click();await page.getByRole('status').filter({hasText:'Access updated'}).waitFor();
   check((await learner.request.get(origin+selected.path)).status()===401,'revocation invalidates browser session');
   await page.setViewportSize({width:390,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile admin fits viewport');
   await page.screenshot({path:path.join(artifacts,'admin-mobile.png'),fullPage:false});
+  if(process.env.FULL_RESPONSIVE==='1'){
+    const audit=await context.newPage(),issues=[];
+    for(const width of [390,1366]){
+      await audit.setViewportSize({width,height:900});
+      let visited=0;
+      for(const route of Object.keys(site.pages)){
+        await audit.goto(origin+route,{waitUntil:'networkidle'});
+        const overflow=await audit.evaluate(()=>document.documentElement.scrollWidth>innerWidth);
+        if(overflow)issues.push({route,width});
+        if(++visited%25===0)console.log(`Responsive audit: ${visited}/${Object.keys(site.pages).length} pages at ${width}px`);
+      }
+    }
+    console.log(JSON.stringify({coursePagesAudited:Object.keys(site.pages).length,issues}));
+    check(issues.length===0,'all course pages fit phone and laptop viewports');
+    await audit.close();
+  }
   check(errors.length===0,`no browser runtime errors: ${errors.join('; ')}`);
   console.log(JSON.stringify({passed:checks.length,checks,artifacts},null,2));
 }finally{await browser?.close();await new Promise(resolve=>server.close(resolve));db.sqlite.close();}
