@@ -1,0 +1,35 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "gyanhq-training",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2026-09-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": { "directory": "./dist", "binding": "ASSETS", "run_worker_first": true, "html_handling": "none" },
+  "triggers": { "crons": ["20 3 * * *"] },
+  "env": {
+    "local": {
+      "name": "gyanhq-training-local",
+      "vars": { "ORIGIN": "http://localhost:8787", "ADMIN_EMAIL": "admin@example.com", "LOCAL_DEV": "true" },
+      "d1_databases": [{ "binding": "DB", "database_name": "gyanhq-training-local", "database_id": "00000000-0000-0000-0000-000000000001", "migrations_dir": "migrations" }]
+    },
+    "staging": {
+      "name": "gyanhq-training-staging",
+      "workers_dev": true,
+      "preview_urls": false,
+      "vars": { "ORIGIN": "https://gyanhq-training-staging.REPLACE.workers.dev", "ADMIN_EMAIL": "REPLACE" },
+      "d1_databases": [{ "binding": "DB", "database_name": "gyanhq-training-staging", "database_id": "REPLACE_WITH_STAGING_DATABASE_ID", "migrations_dir": "migrations" }]
+    },
+    "production": {
+      "name": "gyanhq-training",
+      "workers_dev": false,
+      "preview_urls": false,
+      "vars": { "ORIGIN": "https://gyanhq.com", "ADMIN_EMAIL": "REPLACE" },
+      "routes": [
+        { "pattern": "gyanhq.com/adk-training", "zone_name": "gyanhq.com" },
+        { "pattern": "gyanhq.com/adk-training/*", "zone_name": "gyanhq.com" }
+      ],
+      "d1_databases": [{ "binding": "DB", "database_name": "gyanhq-training", "database_id": "REPLACE_WITH_PRODUCTION_DATABASE_ID", "migrations_dir": "migrations" }]
+    }
+  }
+}

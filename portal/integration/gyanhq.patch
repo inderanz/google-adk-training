@@ -1,0 +1,82 @@
+diff --git a/navigation.js b/navigation.js
+index d0752f0..3c81de7 100644
+--- a/navigation.js
++++ b/navigation.js
+@@ -4,6 +4,13 @@
+   var nav = header && header.querySelector('.main-nav');
+   var container = header && header.querySelector('.nav-container');
+   if (!header || !nav || !container) return;
++  if (!nav.querySelector('a[href="/adk-training/"]')) {
++    var training = document.createElement('a');
++    training.className = 'nav-link';
++    training.href = '/adk-training/';
++    training.textContent = 'ADK Training';
++    nav.insertBefore(training, nav.querySelector('.dropdown'));
++  }
+   nav.id = 'site-navigation';
+   nav.setAttribute('aria-label', 'Main navigation');
+   var toggle = document.createElement('button');
+diff --git a/privacy.html b/privacy.html
+index 200b66a..5c2222a 100644
+--- a/privacy.html
++++ b/privacy.html
+@@ -99,7 +99,7 @@
+   <main id="start" tabindex="-1">
+     <section class="legal-page">
+       <h1>Privacy Policy</h1>
+-      <p>Last updated: September 2026</p>
++      <p>Last updated: October 2026</p>
+       
+       <h2>1. Information We Collect</h2>
+       <p>When you apply for the GyanHQ Super 30 program, we collect the following personal information to evaluate your application:</p>
+@@ -117,6 +117,11 @@
+       <h2>3. Data Retention</h2>
+       <p>We retain your application information for as long as necessary to process your application and manage the Super 30 cohort. If you have opted in to receive updates, we will keep your contact details to notify you about future cohorts and GyanHQ news.</p>
+ 
++      <h2>ADK Training Portal</h2>
++      <p>When you sign in to the ADK training portal with Google, we receive your Google account identifier, verified email address, and display name. Your instructor manually approves access and controls when modules and solutions become available. We use an essential session cookie to keep you signed in for up to 12 hours.</p>
++      <p>For approved learners, the portal records pages visited, visit times, last activity, and estimated active time. Active-time tracking pauses when the page is hidden or unfocused, or after five minutes without interaction. It does not record keystroke contents or screen recordings, and it is not proof that a page was read. The instructor can view and export these reports to support teaching.</p>
++      <p>Portal records are stored separately in Cloudflare D1. Activity and administrative audit records are retained for 90 days and removed by scheduled cleanup. Access approval and account records remain until they are removed; revoking access does not automatically delete the learner's retained activity. Contact Inder using the details below to request deletion. Existing public GitHub resources remain independently accessible and are not included in portal activity reports.</p>
++
+       <h2>4. Non-Sale of Data</h2>
+       <p><strong>We do not and will never sell your personal information.</strong> Your data is used exclusively by GyanHQ for the purposes of evaluating applications and administering the program.</p>
+ 
+diff --git a/specs/features/active/adk-training-portal-integration.md b/specs/features/active/adk-training-portal-integration.md
+new file mode 100644
+index 0000000..9965b8c
+--- /dev/null
++++ b/specs/features/active/adk-training-portal-integration.md
+@@ -0,0 +1,33 @@
++---
++Status: SPEC-APPROVED
++Feature: ADK training portal integration
++Approval: User explicitly requested implementation of the agreed portal plan.
++---
++
++# ADK training portal integration
++
++Add an ADK Training link to shared site navigation, pointing to
++`https://gyanhq.com/adk-training/`, and describe the portal's identity/session
++and learner-activity processing in the existing privacy page.
++
++The training repository owns the separate Worker, D1 database, authentication,
++manual approval, module/solution release controls, and 90-day activity reports.
++The GyanHQ marketing site keeps its vanilla HTML/CSS/JS architecture. Its
++registration and blog APIs, KV bindings, email setup, and deployment remain
++unchanged. No build dependency or new backend is added to this repository.
++
++## Acceptance
++
++- The shared navigation link works on desktop and mobile without overflow.
++- Existing registration dialog, program pages, and blog catalogue remain usable.
++- Privacy text explains Google identity, the essential 12-hour session cookie,
++  page visits/estimated active time, five-minute idle cutoff, 90-day retention,
++  administrator reporting/export, and deletion contact.
++- Keep this patch off production until the training Worker's staging checks and
++  narrowly scoped production routing are ready. Rollback reverses this patch.
++
++## Validation
++
++17 existing registration backend tests pass. 50 browser checks pass across the
++home, program, instructor, blogs, and privacy pages at 390/900/1440px, including
++navigation, registration-dialog, blog-reader, and privacy-notice checks.

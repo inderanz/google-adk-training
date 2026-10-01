@@ -1,0 +1,49 @@
+name: Validate training portal
+
+on:
+  pull_request:
+    paths: ['portal/**', 'doc/**', 'training/**', '.github/workflows/portal.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+      PLAYWRIGHT_CHANNEL: chromium
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: |
+            doc/package-lock.json
+            portal/package-lock.json
+      - run: npm ci --prefix doc
+      - run: npm ci --prefix portal
+      - run: npm run build --prefix portal
+      - run: npm test --prefix portal
+      - run: npm run test:worker --prefix portal
+      - run: npm run test:capacity --prefix portal
+      - run: npx playwright install --with-deps chromium
+        working-directory: portal
+      - run: npm run test:browser --prefix portal
+      - name: Check public build compatibility
+        run: |
+          cp README.md timetable-*.md variant-*.md CONTRIBUTING.md training/
+          sed -i 's|(./training/|(./|g' training/README.md training/timetable-*.md training/variant-*.md training/CONTRIBUTING.md
+          npm run build --prefix doc
+      - name: Package Worker without deployment
+        run: npm run check --prefix portal
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: portal-validation
+          path: |
+            portal/generated/browser/
+            portal/generated/capacity.json
