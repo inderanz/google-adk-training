@@ -32,6 +32,13 @@ authentication in the deployed Worker.
 
 ## Responsive interface update
 
+The subsequent enterprise-positioning update passed all 56 standard browser
+checks and all 27 portal tests. A separate check against the running localhost
+preview verified the new page title, keyboard-operated curriculum accordion,
+Google login destination, and fully expanded curriculum/FAQ layouts at all six
+viewport widths. This update changes public copy, styling, and the signed-in
+footer shortcut; the earlier full-course audit below remains the course evidence.
+
 The Google Cloud-inspired GyanHQ interface is on `feature/portal-cloud-ui`,
 branched from `main` after PR #1 merged. Landing, catalogue, administration,
 lessons, and Mermaid pages were checked at 320, 390, 768, 1024, 1440, and 1920

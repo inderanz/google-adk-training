@@ -88,6 +88,7 @@
     if($('entry-action')){
       $('entry-action').href=base+'learn/';$('entry-action').classList.add('signed-in');
       $('entry-label').textContent='Open your workspace';
+      if($('workspace-cta'))$('workspace-cta').href=base+'learn/';
       $('signin-title').textContent='Welcome back';
       $('signin-description').textContent='Your course is ready when you are. Browse your modules and pick up where you left off.';
       $('access-note').textContent=`Signed in as ${me.email}`;
