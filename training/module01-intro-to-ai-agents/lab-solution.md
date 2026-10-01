@@ -9,6 +9,21 @@ title: "Lab Solution"
 
 This solution provides a summary of the key resources you should have explored during the lab.
 
+---
+
+### 💡 FDE & Instructor Hint: Steering AI Assistants (Antigravity)
+
+When exploring the ADK ecosystem or asking **Antigravity** to explain ADK architectural components, use this **Module 01 Master Steering Prompt**:
+
+> **Master Antigravity Steering Prompt Template (Module 01 - ADK Architecture):**
+> *"You are an expert Google ADK 2.0 Forward-Deployed Engineer. Explain the Google Agent Development Kit (ADK) architecture and project setup following ADK 2.0 standards:*
+> 1. *Focus on the ADK 2.0 component model: `Agent` nodes, `Runner` execution engine, `SessionService` state isolation, and `ArtifactService` file storage.*
+> 2. *Emphasize that ADK 2.0 uses asynchronous event streams via `runner.run_async(...)` yielding `Event` objects.*
+> 3. *Reference official Google ADK documentation links (https://google.github.io/adk-docs/) and modern `google.adk` imports.*
+> 4. *Avoid legacy 1.x concepts like `.candidates` or manual HTTP wrappers."*
+
+---
+
 ### 1. Official Documentation
 
 The primary source for all information related to the Google Agent Development Kit.

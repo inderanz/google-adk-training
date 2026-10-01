@@ -249,6 +249,128 @@ While the Dev UI is great for creating and running evaluations interactively, yo
       Tests passed: 1
       Tests failed: 0
     ```
+
+### Step 9: The Unit Test File Approach (*.test.json)
+
+While the Dev UI creates a multi-case `*.evalset.json` file, during active daily development you will often want fast, lightweight **unit tests** for a single interaction. For this, ADK supports the **Test File approach** using individual files ending with `.test.json`.
+
+1. **Create a `tests` directory** in `calculator_agent`:
+   ```shell
+   mkdir -p tests
+   ```
+
+2. **Create `tests/addition.test.json`**:
+   The framework only checks for the `.test.json` suffix (the preceding filename can be anything you choose). Create the file with the following contents:
+
+   ```json
+   {
+     "description": "Fast unit test for calculator addition tool and response",
+     "session": {
+       "turns": [
+         {
+           "query": "What is 10 plus 5?",
+           "expected_tool_use": [
+             {
+               "tool_name": "add",
+               "args": { "a": 10, "b": 5 }
+             }
+           ],
+           "reference": "The sum of 10 and 5 is 15."
+         }
+       ]
+     }
+   }
+   ```
+
+3. **Run the unit test from the command line:**
+   ```shell
+   PYTHONPATH=. uv run adk eval . tests/addition.test.json
+   ```
+
+4. **Observe the scoring in the output:**
+   - **`tool_trajectory_avg_score`**: Compares actual tool usage against `expected_tool_use`. Matches receive 1, mismatches 0. The default pass threshold is `1.0` (requiring 100% exact trajectory match).
+   - **`response_match_score`**: Uses the **ROUGE** metric to compute similarity between the agent's actual generated response and the `reference` field. The default threshold is `0.8`, allowing a 20% margin for natural language variation.
+
+---
+
+### Step 10: Programmatic Evaluation with pytest & AgentEvaluator
+
+To integrate agent evaluation into an automated CI/CD pipeline (e.g. GitHub Actions, Google Cloud Build), you can invoke the ADK evaluation framework directly from Python using `pytest`.
+
+1. **Create an initial session state file** (`tests/initial_state.json`):
+   ADK allows you to pre-populate session state before the test runs:
+   ```json
+   {
+     "user_id": "test_engineer",
+     "precision": "standard"
+   }
+   ```
+
+2. **Create `tests/test_agent_evaluation.py`**:
+   ```python
+   import os
+   import pytest
+   from google.adk.evaluation.evaluator import AgentEvaluator
+   from google.adk.evaluation.eval_metrics import EvalStatus
+
+   def test_calculator_evalset():
+       """Runs automated evaluation on calculator_tests.evalset.json using AgentEvaluator."""
+       evaluator = AgentEvaluator()
+
+       # Run evaluation against the agent directory and evalset file
+       eval_result = evaluator.evaluate(
+           agent_module_path=".",
+           eval_file_path="calculator_tests.evalset.json",
+           initial_session_state_file="tests/initial_state.json",
+           tool_trajectory_avg_score=1.0,
+           response_match_score=0.8,
+       )
+
+       # Assert that the evaluation passed
+       assert eval_result.overall_eval_status == EvalStatus.PASSED, (
+           f"Agent evaluation failed with status: {eval_result.overall_eval_status}, "
+           f"score: {eval_result.overall_score}"
+       )
+
+   def test_calculator_single_test_file():
+       """Runs automated evaluation on a single .test.json unit test file."""
+       evaluator = AgentEvaluator()
+
+       eval_result = evaluator.evaluate(
+           agent_module_path=".",
+           eval_file_path="tests/addition.test.json",
+           tool_trajectory_avg_score=1.0,
+           response_match_score=0.8,
+       )
+
+       assert eval_result.overall_eval_status == EvalStatus.PASSED
+   ```
+
+3. **Run your evaluation suite with pytest:**
+   ```shell
+   PYTHONPATH=. uv run pytest tests/test_agent_evaluation.py -v
+   ```
+   You will see standard pytest output indicating passing test cases!
+
+---
+
+### Step 11: Enabling Cloud Tracing (AF_TRACE_TO_CLOUD=1)
+
+In production and testing environments, you can enable distributed cloud tracing to inspect the exact execution latency of each turn, LLM call, and tool execution.
+
+1. **Open your `.env` file** in `calculator_agent/`:
+   ```shell
+   echo "AF_TRACE_TO_CLOUD=1" >> .env
+   ```
+
+2. **Re-run the evaluation:**
+   ```shell
+   PYTHONPATH=. uv run adk eval . tests/addition.test.json
+   ```
+   When `AF_TRACE_TO_CLOUD=1` is present, ADK automatically exports OpenTelemetry spans to Google Cloud Trace, allowing you to view detailed flame graphs of the agent's trajectory.
+
+---
+
 ### Bonus: Writing a Custom Metric (Optional)
 
 > **Heads up:** the three Bonus/Extra Challenge sections below (Custom Metric, Dynamic User Simulation, Locust load testing) are each substantially denser than the core lab -- each introduces new API surface (`EvalConfig`, `ConversationScenarios`, Locust) on its own. Treat Steps 1-8 as the complete lab, and budget extra time separately if you plan to work through the bonus sections too.

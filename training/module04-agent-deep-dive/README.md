@@ -17,20 +17,7 @@ Building an effective `Agent` requires a clear understanding of its core configu
 
 ### A simple mental model: what the Agent actually is
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
+
 ```mermaid
 flowchart TD
     U[User request] --> A[Agent]
@@ -58,20 +45,6 @@ A helpful way to think about it:
 
 ### The request lifecycle inside one agent
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```mermaid
 sequenceDiagram
     participant User
@@ -94,7 +67,120 @@ sequenceDiagram
 
 This is the core pattern of agent behavior: the agent does not just “guess once.” It reads context, reasons, may call tools, and then produces a final answer in the right format.
 
-### Defining the Agent's Identity
+### Defining the Agent: `Agent` vs `LlmAgent` Under the Hood
+
+When working with Google ADK in Python, you will often see both of these import styles in codebases:
+
+```python
+from google.adk import Agent
+
+# vs
+from google.adk.agents.llm_agent import LlmAgent
+```
+
+Both run identically. But as an agent architect, it is critical to understand what is happening under the hood.
+
+#### 1. What is the Difference?
+In short: **There is zero functional difference at runtime. `Agent` is simply an "alias" (shortcut) for `LlmAgent`.**
+
+Here is what is happening under the hood:
+
+```
+Internal File: google/adk/agents/llm_agent.py
+   └── class LlmAgent(...)            <-- The real, actual class!
+
+Top-Level File: google/adk/__init__.py
+   └── from google.adk.agents.llm_agent import LlmAgent as Agent   <-- The friendly shortcut
+```
+
+Because `google.adk` creates that alias in its `__init__.py`, when you ask Python:
+
+```python
+>>> import google.adk
+>>> help(google.adk.Agent)
+```
+
+Python inspects the real object behind that name and tells you:
+> *“Help on class LlmAgent in module google.adk.agents.llm_agent”*
+
+---
+
+#### 2. Why Did Google ADK Do This? (The Facade Pattern)
+
+This is a well-known Python design pattern called the **Facade Pattern** (or "Curated Public API"):
+
+1. **For 95% of Users (Beginners & Everyday Devs):**
+   You don't want to type long nested paths:
+   ```python
+   # ❌ Cumbersome and hard to remember
+   from google.adk.agents.llm_agent import LlmAgent
+   ```
+   Google exposes the most common class right at the front door:
+   ```python
+   # ✅ Clean, elegant, easy to read
+   from google.adk import Agent
+   ```
+
+2. **For Advanced Architecture (Multi-Agent Systems & Framework Extenders):**
+   Internally, ADK supports multiple kinds of agents:
+   *   **`LlmAgent`**: An agent driven by an LLM (Gemini, Claude, GPT, etc.).
+   *   **`WorkflowAgent`**: An agent driven strictly by a code/graph state machine without an LLM reasoning loop.
+   *   **`CustomAgent`**: Custom agents inheriting directly from `BaseAgent`.
+
+   By naming the class `LlmAgent` internally, the ADK team keeps their architecture clean, modular, and extensible. But since 99% of agents built today are LLM-based, they aliased `LlmAgent` $\rightarrow$ `Agent` as the default!
+
+---
+
+#### 3. Deconstructing that Massive `help(LlmAgent)` Signature
+
+When you run `help(google.adk.Agent)`, Python prints dozens of parameters in the constructor. Don't let it intimidate you!
+
+Every single parameter in that constructor falls into one of **5 Logical Buckets**:
+
+```
+                       ┌───────────────────────────────┐
+                       │           LlmAgent            │
+                       └───────────────┬───────────────┘
+          ┌──────────────┬─────────────┼──────────────┬──────────────┐
+          ▼              ▼             ▼              ▼              ▼
+     [1. Identity]  [2. Brain]    [3. Tools]    [4. Schemas]   [5. Callbacks]
+      name           model         tools         input_schema   before_agent
+      description    instruction   planner       output_schema  after_agent
+                     config        code_executor state_schema   before_tool
+```
+
+*   **Bucket 1: Identity (Who am I?)**
+    *   `name`: Unique ID of the agent (e.g., `"customer_support"`).
+    *   `description`: What this agent does (other agents read this when deciding whether to delegate work to it).
+*   **Bucket 2: The Brain & Reasoning (How do I think?)**
+    *   `model`: The LLM foundation (e.g. `"gemini-3.5-flash"`).
+    *   `instruction`: The system prompt / persona that shapes behavior.
+    *   `generate_content_config`: Generation hyperparameters (`temperature`, `top_p`, `max_output_tokens`).
+    *   `planner`: Optional planning engine (e.g. ReAct / Plan-and-Solve).
+*   **Bucket 3: Capabilities & Hands (What can I do?)**
+    *   `tools`: Python functions, API tools, or MCP toolsets the agent can execute.
+    *   `code_executor`: Allows the agent to run Python code in a sandbox (e.g. `GkeCodeExecutor`).
+*   **Bucket 4: Enterprise Contracts (Data validation with Pydantic)**
+    *   `input_schema`: Forces input data into a typed Pydantic model before the agent runs.
+    *   `output_schema`: Forces the LLM to reply with structured JSON conforming to a schema.
+    *   `state_schema`: Types the variables stored in session memory.
+*   **Bucket 5: Enterprise Governance & Lifecycle (Callbacks)**
+    *   `before_model_callback` / `after_model_callback`: Inspect, sanitize, or log requests and responses (great for PII masking or prompt injection defense).
+    *   `before_tool_callback` / `after_tool_callback`: Audit, permit, or alter tool calls before they execute (human-in-the-loop authorization).
+    *   `on_tool_error_callback`: Graceful error recovery if an external API goes down.
+
+---
+
+#### 🧠 Mental Model & Rule of Thumb
+
+| Import Style | When to use it |
+| :--- | :--- |
+| **`from google.adk import Agent`** | **Recommended Standard**. Clean, concise, and future-proof. Use this in 99% of your scripts. |
+| **`from google.adk.agents import LlmAgent`** | **Advanced / Explicit Architecture**. Use when building complex multi-agent systems with different types of agents (e.g. mixing `LlmAgent` and `WorkflowAgent`) and wanting absolute clarity in your codebase. |
+
+---
+
+### Core Agent Identity Parameters
 
 Every `Agent` has a few basic identity parameters:
 
@@ -136,7 +222,7 @@ Crafting good instructions is a skill often called "prompt engineering." Here ar
         name="support_classifier",
         model="gemini-3.5-flash",
         instruction="""
-          You are a customer support triage agent. 
+          You are a customer support triage agent.
           Your purpose is to read the user's message and categorize it into one of three departments: "billing", "technical", or "general".
           You must also determine the urgency as "high" or "low".
           Do not try to solve the user's problem; only respond with the categorization and urgency.
@@ -146,17 +232,17 @@ Crafting good instructions is a skill often called "prompt engineering." Here ar
 
           Example User Input: "How do I reset my password?"
           Example Agent Output: Category: technical, Urgency: low
-          
+
           Example User Input: "What are your business hours?"
           Example Agent Output: Category: general, Urgency: low
-        """
+        """,
     )
     ```
 
     **YAML Alternative (`root_agent.yaml`):**
     ```yaml
     instruction: |
-      You are a customer support triage agent. 
+      You are a customer support triage agent.
       Your purpose is to read the user's message and categorize it into one of three departments: "billing", "technical", or "general".
       You must also determine the urgency as "high" or "low".
       Do not try to solve the user's problem; only respond with the categorization and urgency.
@@ -166,7 +252,7 @@ Crafting good instructions is a skill often called "prompt engineering." Here ar
 
       Example User Input: "How do I reset my password?"
       Example Agent Output: Category: technical, Urgency: low
-      
+
       Example User Input: "What are your business hours?"
       Example Agent Output: Category: general, Urgency: low
     ```
@@ -176,203 +262,196 @@ In the lab for this module, you will practice this skill by building a structure
 
 ### Advanced Configuration: Structured Output & State
 
-In many production scenarios, you don't just want a text response; you need **structured data**. ADK 2.0 provides two powerful parameters for this:
+In enterprise and production AI engineering, getting a free-form string back from an LLM is rarely enough. Downstream microservices, SQL databases, customer portals, and workflow state machines cannot reliably parse sentences like *"Sure, the user seems happy with a score around 0.8"*. They require **typed, validated, machine-readable JSON**.
 
-#### 1. Enforcing JSON with `output_schema`
-You can pass a Pydantic model to the `output_schema` parameter. This forces the LLM to respond *only* with a JSON object that matches that schema.
+Furthermore, multi-agent systems require a way for Agent A to write data into memory so Agent B can consume it later without custom spaghetti code.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
+ADK 2.0 provides two foundational parameters in `LlmAgent` for this exact architecture:
+1. **`output_schema`**: Forces the LLM to output strictly formatted JSON conforming to a Pydantic model.
+2. **`output_key`**: Automatically stores the generated result into session state (`ctx.session.state[key]`).
+
+---
+
+#### 🔍 Driving the Code from `help(google.adk.Agent)`
+
+As an engineer or instructor, you don't need to guess how these work. Look at their exact definitions directly from the Python terminal:
+
 ```python
-from pydantic import BaseModel
+>>> import google.adk
+>>> # Check where schemas and state belong in the constructor:
+>>> help(google.adk.Agent)
+```
+
+In the constructor, you will find:
+*   `output_schema: Union[dict[Any, Any], type, google.genai.types.Schema, ..., NoneType] = None`
+*   `output_key: Optional[str] = None`
+*   `state_schema: type[pydantic.main.BaseModel] | None = None`
+
+Notice how ADK accepts standard Python types, Pydantic `BaseModel`, or raw schemas for `output_schema`, and a simple `str` for `output_key`.
+
+---
+
+#### 1. Enforcing JSON with `output_schema` (The Quality Gate)
+
+Passing a Pydantic model to `output_schema` configures the underlying Gemini model to use **Constrained Decoding (Structured Outputs)**. The LLM does not merely "try" to write JSON; its output token probability distribution is mathematically restricted so it is impossible to emit invalid JSON or extra conversational chatter.
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        STRUCTURED OUTPUT FLOW                          │
+│                                                                        │
+│   User Prompt: "The service was fast, but the price is too high."      │
+│         │                                                              │
+│         ▼                                                              │
+│   ┌───────────┐      Constrained Decoding      ┌──────────────────┐    │
+│   │ Gemini    │ ─────────────────────────────▶ │ Raw JSON Payload │    │
+│   │ 3.5 Flash │    (No preamble, No markdown)  └────────┬─────────┘    │
+│   └───────────┘                                         │              │
+│                                                         ▼              │
+│                                               ┌───────────────────┐    │
+│                                               │ Pydantic Quality  │    │
+│                                               │ Gate Validation   │    │
+│                                               └─────────┬─────────┘    │
+│                                                         │              │
+│                                    ┌────────────────────┴───────────┐  │
+│                                    ▼                                ▼  │
+│                            [Valid Object]                    [Validation Error]
+│                     SentimentOutput(sentiment="mixed",      Auto-rejected before
+│                                     confidence=0.88)        hitting application!
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+##### Code Example:
+```python
 from google.adk import Agent
+from pydantic import BaseModel, Field
 
+
+# Step 1: Define your enterprise data contract using Pydantic
 class SentimentOutput(BaseModel):
-    sentiment: str
-    confidence: float
+    sentiment: str = Field(
+        description="Overall sentiment category: positive, negative, or mixed"
+    )
+    confidence: float = Field(
+        ge=0.0, le=1.0, description="Confidence score between 0.0 and 1.0"
+    )
 
+
+# Step 2: Bind the contract to output_schema
 analyzer_agent = Agent(
     name="sentiment_analyzer",
     model="gemini-3.5-flash",
-    instruction="Analyze the sentiment of the user's message.",
-    output_schema=SentimentOutput # Force JSON output
+    instruction="Analyze the sentiment of the user's message accurately.",
+    output_schema=SentimentOutput,  # 🎯 Enforces strict JSON matching SentimentOutput
 )
 ```
 
-Why this matters so much in agentic systems: an LLM is extremely powerful at generating text, but it is not naturally a strict data pipeline. It may produce a sentence, a list, or a slightly different format than you expect. `output_schema` gives you a contract that says: “This is the exact shape of the result I want.”
+##### Why this is critical for Production:
+1. **Zero Regex / Parsing Code**: You never have to write brittle regex or string splitting (`response.split(":")`) to parse LLM answers.
+2. **Deterministic Downstream APIs**: You can immediately call `db.insert(result.model_dump())` or send the JSON to an event bus (e.g. Google Cloud Pub/Sub, Kafka).
+3. **Tools + Schema Coexistence**: In ADK 2.0, an agent can still call tools during its multi-step thinking process; the `output_schema` is only applied when emitting its final answer to the user or downstream workflow.
 
-Think of it like this:
+---
 
-- A normal LLM response is like a human giving a free-form answer in a conversation.
-- A Pydantic model is like a strict intake form or a well-defined API contract.
-- The model must fill in the fields in the exact format you expect.
+#### 2. Passing Data Across Agents with `output_key`
 
-This is extremely important in real-world AI agents because agents often feed data to other systems: databases, APIs, workflows, dashboards, automation pipelines, or even other agents. If your agent says something vague like “This is positive, maybe neutral,” your downstream code may break or make the wrong decision. With `output_schema`, you convert messy AI output into reliable, typed Python objects.
+In real enterprise systems, an AI application is almost never a single isolated agent. It is a **pipeline** or a **collaborative team**.
 
-A good mental model is: 
+`output_key` solves the data handoff challenge: it instructs the ADK runtime to take the validated final response and automatically write it into the shared session state dictionary (`ctx.session.state[output_key]`).
 
-> “The LLM generates a candidate answer, and Pydantic acts as a quality gate before the answer becomes usable by the rest of the system.”
-
-In other words, the agent can be creative, but the final output is still governed by a strict contract.
-
-For Python developers, Pydantic is one of the most important libraries in modern AI and backend engineering because it does both of these jobs at once:
-
-1. It validates data types and required fields.
-2. It turns raw data into clean Python objects you can work with in code.
-
-Example:
-
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-```python
-from pydantic import BaseModel
-
-class ResumeSummary(BaseModel):
-    skills: list[str]
-    experience_years: int
-    seniority: str
-
-summary = ResumeSummary(
-    skills=["python", "agents", "google-adk"],
-    experience_years=4,
-    seniority="mid"
-)
+```
+┌───────────────────────────────────────────────────────────────────────────────┐
+│                    CROSS-AGENT STATE SHARING WITH output_key                  │
+│                                                                               │
+│  User: "My account was locked after 3 failed password attempts!"              │
+│      │                                                                        │
+│      ▼                                                                        │
+│  ┌───────────────────────────────┐                                            │
+│  │   Triage Agent                │                                            │
+│  │   output_key="ticket_info"    │                                            │
+│  └───────────────┬───────────────┘                                            │
+│                  │                                                            │
+│                  │ Writes structured JSON directly into Session Memory        │
+│                  ▼                                                            │
+│  ┌─────────────────────────────────────────────────────────────────────────┐  │
+│  │               ADK Shared Session State (`ctx.session.state`)            │  │
+│  │                                                                         │  │
+│  │   "ticket_info": {                                                      │  │
+│  │       "category": "security",                                           │  │
+│  │       "urgency": "critical",                                            │  │
+│  │       "customer_id": "cust_9821"                                        │  │
+│  │   }                                                                     │  │
+│  └─────────────────────────────────────────────────────────────────────────┘  │
+│                  ▲                                                            │
+│                  │ Reads directly from Session Memory                         │
+│                  │                                                            │
+│  ┌───────────────┴───────────────┐                                            │
+│  │   Security Specialist Agent   │                                            │
+│  │   Reads: state['ticket_info'] │                                            │
+│  │   Action: Unlocks account & sends 2FA SMS                                  │
+│  └───────────────────────────────┘                                            │
+└───────────────────────────────────────────────────────────────────────────────┘
 ```
 
-If someone passes incorrect data, Pydantic will raise an error instead of letting bad data silently flow through the app. That is a huge advantage in agentic systems, where output quality matters more than “it sounded right.”
+---
 
-This becomes even more powerful when combined with ADK agents. Instead of trusting the model to “format it correctly,” you define the structure in advance, and the model is asked to produce output that matches it. This is one of the foundational patterns for building reliable agent workflows, especially when your agent is doing:
+#### 3. Combining Both: The Complete Enterprise Pattern
 
-- classification
-- extraction
-- summarization for downstream systems
-- tool call results that must be structured
-- multi-agent handoff between specialized agents
+Here is the complete, production-ready recipe showing how `output_schema` and `output_key` work hand-in-hand to form a bulletproof multi-agent pipeline:
 
-A simple analogy: imagine a team of assistants writing a report. Without a template, each assistant may write the answer in a different way. With a Pydantic schema, you give them a fixed form: `title`, `summary`, `status`, `owner`, `next_steps`. Now every result is machine-readable and dependable.
-
-That is the real value of `output_schema`: it turns unstructured AI output into structured, executable business data.
-
-**Note:** ADK 2.0 supports using `output_schema` and `tools` together -- the agent can still call tools during its thought loop, and structure is only enforced on the final output. `output_schema` is best suited for data extraction, classification, or formatting tasks where the final answer needs a strict shape.
-
-#### 2. Passing Data with `output_key`
-The `output_key` parameter (a string) tells the ADK to take the final text of the agent's response and save it automatically into the session state dictionary (`ctx.session.state`).
-
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```python
-agent = Agent(
-    # ...
-    output_key="analysis_result" # Saves output to state['analysis_result']
-)
-```
+from enum import Enum
+from google.adk import Agent
+from pydantic import BaseModel, Field
 
-This is one of the most important patterns in agentic systems because it lets one agent produce a result and another agent consume it later without you manually copying values around in Python.
 
-A good way to think about `output_key` is this:
+# 1. Define clean enumerations and schemas
+class Department(str, Enum):
+    BILLING = "billing"
+    TECHNICAL = "technical"
+    SECURITY = "security"
+    GENERAL = "general"
 
-- `output_schema` decides the shape of the answer.
-- `output_key` decides where that answer is stored for later use.
 
-So if you are building a workflow where Agent A extracts user intent, and Agent B uses that intent to decide what tool to call, then `output_key` becomes a shared memory slot for the workflow.
+class SupportTicket(BaseModel):
+    department: Department = Field(
+        description="The target department to handle this issue"
+    )
+    urgency: str = Field(description="Priority: 'low', 'medium', or 'high'")
+    summary: str = Field(description="1-sentence summary of the user's issue")
+    action_needed: bool = Field(description="True if human intervention is required")
 
-Imagine a real business scenario:
 
-1. Agent A analyzes an incoming customer complaint.
-2. It saves the extracted result under `output_key="ticket_summary"`.
-3. Agent B reads that value from session state and decides whether to route the ticket to billing, support, or technical.
-
-Without `output_key`, you would need to manually pass the result by function call or custom state management. That works for small apps, but it becomes messy in multi-agent systems. `output_key` gives you a clean, built-in memory channel between agents.
-
-A simple analogy:
-
-> `output_schema` is the template for the form. `output_key` is the label on the folder where you store the completed form for the next team member to pick up.
-
-This matters because real agent applications are rarely one agent doing one isolated task. In production systems, agents collaborate in workflows, pass context forward, and rely on shared state.
-
-For example:
-
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-```python
-class CustomerIntent(BaseModel):
-    intent: str
-    urgency: str
-    customer_id: str
-
-intent_agent = Agent(
-    name="intent_classifier",
+# 2. Configure the triage agent with BOTH schema and output_key
+triage_agent = Agent(
+    name="triage_agent",
     model="gemini-3.5-flash",
-    instruction="Identify customer intent and urgency from the message.",
-    output_schema=CustomerIntent,
-    output_key="customer_intent"
+    instruction="""
+      You are an enterprise support triage specialist.
+      Evaluate the incoming customer request and classify it accurately into a SupportTicket.
+    """,
+    output_schema=SupportTicket,  # 📋 Enforces strict SupportTicket JSON contract
+    output_key="current_ticket",  # 💾 Stores the result into ctx.session.state['current_ticket']
 )
 ```
 
-Now the agent is doing two things at once:
+#### 🧠 Instructor's Analogy: The Form & The Folder
 
-1. It returns a structured, validated response.
-2. It stores that response in session state under `customer_intent`.
+| Concept | Real-World Analogy | Purpose |
+| :--- | :--- | :--- |
+| **`output_schema`** | **The Official Standardized Form** | Ensures whoever fills out the request (the LLM) follows strict rules, uses correct types, and leaves nothing ambiguous. |
+| **`output_key`** | **The Labeled Filing Folder in the Shared Cabinet** | Labels where the completed form is placed so the next department (the next agent in the graph) can find it immediately. |
 
-Later, another agent or tool can read that value and continue the workflow.
-
-This is essential for building multi-agent systems where one agent's output is needed as another agent's input.
+---
 
 ### Key Takeaways
-- The **`Agent`** class is the "brain" of an ADK 2.0 application.
-- The `instruction` parameter is the most powerful tool for controlling behavior.
+- **`Agent` vs `LlmAgent`**: `Agent` is a curated top-level alias (Facade pattern) for `LlmAgent`. Both run identically, but knowing the alias pattern helps you navigate ADK internals and multi-agent system designs.
+- **The 5 Constructor Buckets**: Every parameter on `LlmAgent` maps to **Identity**, **Brain & Reasoning**, **Capabilities & Tools**, **Enterprise Contracts (Schemas)**, or **Lifecycle Governance (Callbacks)**.
+- The **`Agent`** class is the primary "brain" of an ADK 2.0 application.
+- The `instruction` parameter is the most powerful tool for controlling persona, constraints, and task behavior.
 - **`output_schema`**: Enforces strict JSON output via Pydantic on the final response -- the agent can still call tools during its thought loop; only the final answer is constrained to the schema.
 - **`output_key`**: Automatically saves the agent's response into the session state for cross-node data passing.
 
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module04-agent-deep-dive-README -->
+{/* © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module04-agent-deep-dive-README */}
 ---
 
 

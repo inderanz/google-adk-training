@@ -98,6 +98,76 @@ app = App(
 )
 ```
 
+### Lab Part 2 Solution: Cloud Logging (geo_validator)
+
+Here is the complete solution for the `geo_validator` agent and the `callback_logging.py` file.
+
+#### `callback_logging.py`
+
+```python
+import logging
+
+# In a real GCP environment, uncomment the following to use Cloud Logging
+# import google.cloud.logging
+# client = google.cloud.logging.Client()
+# client.setup_logging()
+
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logger = logging.getLogger("CloudLogging")
+
+def log_query_to_model(prompt_text: str):
+    """Callback to log the query to Cloud Logging."""
+    logger.info(f"Query to model: {prompt_text}")
+
+def log_model_response(response_text: str):
+    """Callback to log the model's response to Cloud Logging."""
+    logger.info(f"Model response: {response_text}")
+```
+
+#### `geo_validator/agent.py`
+
+```python
+import asyncio
+from callback_logging import log_query_to_model, log_model_response
+from google.adk import Agent
+from google.adk.apps import App
+from google.adk.plugins import BasePlugin
+
+def validate_location(location: str) -> dict:
+    """Validates if a given location is a real geographical place."""
+    valid_places = ["Paris", "Tokyo", "New York", "London"]
+    is_valid = any(place.lower() in location.lower() for place in valid_places)
+    return {"location": location, "valid": is_valid}
+
+class LoggingPlugin(BasePlugin):
+    """A plugin that logs queries and responses using Cloud Logging callbacks."""
+    def __init__(self, name: str = 'logging_plugin'):
+        super().__init__(name)
+
+    async def on_agent_prompt_callback(self, *, agent, prompt, **kwargs):
+        log_query_to_model(str(prompt))
+
+    async def on_agent_response_callback(self, *, agent, response, **kwargs):
+        log_model_response(str(response))
+
+geo_agent = Agent(
+    name="geo_validator",
+    model="gemini-3.5-flash",
+    instruction="You are a geographic assistant. Validate the locations provided by the user.",
+    tools=[validate_location],
+)
+
+app = App(
+    name="geo_validator_app",
+    root_agent=geo_agent,
+    plugins=[LoggingPlugin()]
+)
+
+if __name__ == "__main__":
+    print("Running geo_validator test...")
+    asyncio.run(app.run("Is Tokyo a valid location?"))
+```
+
 ### Self-Reflection Answers
 
 1.  **What is the main advantage of using the Plugin System for observability?**

@@ -18,58 +18,83 @@ Many real-world applications require agents to understand and process more than 
 *   🧠 **Multimodal Reasoning**: Combine visual and textual information to answer complex questions.
 *   📄 **Document Analysis**: Extract text and structure from images of documents (OCR).
 
+> [!NOTE]
+> **Foundational Prerequisites: Programmatic Types & Sessions**
+> Before building vision agents, ensure you are comfortable with how ADK packages multimodal payloads (`types.Part.from_bytes`, `types.Blob`, and `types.Content`) and executes them via `runner.run_async()`.
+>
+> For an in-depth, beginner-to-advanced breakdown with line-by-line Python explanations, see [**Module 6.5: Programmatic Execution with Strong Types**](../module06_5-programmatic-execution/README.md).
+
 ### The `types.Part` Object
 
-The fundamental building block for multimodal content in the ADK is the `types.Part` object from the `google.genai` library. A user's prompt is no longer just a string, but a list of `Part` objects.
+As introduced in [Module 06.5](../module06_5-programmatic-execution/README.md), the fundamental building block for multimodal content in the ADK is the `types.Part` object from the `google.genai.types` library. A user's prompt is packaged as a structured `types.Content` turn containing a list of `Part` objects.
 
 A `Part` can contain:
 *   **Text:** `types.Part.from_text(text="Describe this image")`
-*   **Image Data:** `types.Part(inline_data=types.Blob(data=image_bytes, mime_type='image/png'))`
+*   **Image Data (via Bytes):** `types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg")`
+*   **Image Data (via Blob):** `types.Part(inline_data=types.Blob(data=image_bytes, mime_type="image/png"))`
 
-When you send a list of these parts to a vision-capable model like `gemini-3.5-flash`, the model can reason about the text and the image(s) together.
+When you send a list of these parts inside a `types.Content` turn to a vision-capable model like `gemini-2.5-flash`, the model reasons about the text and the visual elements together.
 
 #### Example: Building a Vision Agent
-To send an image to an agent programmatically, you package it into a list and run it via an `App`:
+To send an image to an agent programmatically, package it into a `types.Content` turn and execute it via the ADK `Runner`:
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```python
+# File: main.py
+import asyncio
 from google.adk import Agent
 from google.adk.apps import App
 from google.adk.runners import InMemoryRunner
 from google.genai import types
 
-# 1. Define the agent
+# 1. Define the vision-capable agent
 agent = Agent(
     name="vision_expert",
-    model="gemini-3.5-flash",
-    instruction="Describe the provided image in detail."
+    model="gemini-2.5-flash",
+    instruction="You are an expert visual product analyst. Describe the provided image in detail.",
 )
 
-# 2. Wrap in an App
+# 2. Wrap in an App and initialize the InMemoryRunner
 app = App(name="vision_app", root_agent=agent)
 runner = InMemoryRunner(app=app)
 
-# 3. Construct the multimodal list
-multimodal_prompt = [
-    "What is in this picture?",
-    types.Part(inline_data=types.Blob(data=image_bytes, mime_type="image/jpeg"))
-]
 
-# 4. Run!
-# response = await runner.run_debug(multimodal_prompt)
+async def main():
+    # 3. Read image bytes from local disk
+    with open("product.jpg", "rb") as f:
+        image_bytes = f.read()
+
+    # 4. Construct the multimodal turn with types.Content and types.Part
+    multimodal_turn = types.Content(
+        role="user",
+        parts=[
+            types.Part.from_text(
+                text="What product is shown in this picture and what are its key features?"
+            ),
+            types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg"),
+        ],
+    )
+
+    # 5. Programmatic execution via run_async
+    # (Refer to Module 06.5 for full session creation and event streaming details)
+    session = await runner.session_service.create_session(
+        app_name="vision_app",
+        user_id="analyst_1",
+    )
+
+    async for event in runner.run_async(
+        user_id="analyst_1",
+        session_id=session.id,
+        new_message=multimodal_turn,
+    ):
+        if event.content and event.content.parts:
+            for part in event.content.parts:
+                if part.text:
+                    print(part.text, end="", flush=True)
+    print()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
 
 ### Image Generation
@@ -99,6 +124,7 @@ The latest ADK guidance also highlights the broader design decision: start simpl
 
 Use the enterprise companion guide here:
 
+- [Module 06.5: Programmatic Execution with Strong Types](../module06_5-programmatic-execution/README.md)
 - [Module 07 Enterprise Playbook](./enterprise-playbook.md)
 - [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
 
@@ -107,14 +133,6 @@ This ensures the multimodal lesson connects to the broader ADK enterprise archit
 ## Concept Diagram (Basic → Advanced)
 
 The diagram below shows a high-level flow from raw user input (text and images) through preprocessing, multimodal fusion, model selection, post-processing and production delivery. Use it to explain the mental model to learners before diving into code.
-
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart LR
     A["User Input (text, image, file)"] --> B["Preprocessing (normalize, resize, OCR)"]

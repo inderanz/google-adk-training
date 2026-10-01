@@ -5,43 +5,57 @@ title: "Challenge Lab"
 
 import Setup from '../_setup-snippet.mdx';
 
-# Lab 11: Building a "Global Market Analyst" Challenge
+# Lab 11: Enterprise Core Banking OpenAPI Integration Challenge
 
-## Goal
+## 🏛️ Enterprise Scenario: Apex Global Financial Services
 
-In this lab, you will build an agent that can retrieve live currency exchange rates from a public REST API. You will learn how to use the `OpenAPIToolset` to automatically generate the necessary tools from an OpenAPI specification.
+You are a **Google Forward-Deployed Engineer (FDE)** assigned to **Apex Global Financial Services**. The bank is modernizing its wealth management platform and wants to equip financial advisors with an AI Assistant capable of interacting with their **Core Banking Gateway**.
+
+Rather than manually writing custom Python HTTP `requests` boilerplate for hundreds of REST endpoints, Apex Bank mandates **Zero-Adapter OpenAPI Synthesis**. They have provided an OpenAPI 3.0 specification for their Core Banking API, covering two critical endpoints:
+1. **Account Balance Inquiry (`GET /v1/accounts/{account_id}/balance`)** – Retrieves real-time ledger balance and currency for a customer account.
+2. **Intra-Bank Wire Transfer (`POST /v1/transfers`)** – Submits a high-value money transfer between accounts.
+
+Your objective is to complete the OpenAPI specification dictionary and integrate it using ADK 2.0's **`OpenAPIToolset`** to equip your agent with automated REST capabilities.
+
+---
+
+## 📋 Plain English Requirements to Technical Spec
+
+| Enterprise Banking Requirement | OpenAPI 3.0 Field Mapping | Expected ADK Tool Name (`operationId`) |
+|---|---|---|
+| *"Query customer balance by account ID."* | `GET /v1/accounts/{account_id}/balance` | `get_account_balance` |
+| *"Submit wire transfer with source, target, amount, currency, and note."* | `POST /v1/transfers` | `execute_wire_transfer` |
+
+---
+
+## 🚀 Hands-On Challenge
 
 ### Step 1: Create the Agent Project
 
 <Setup/>
 
-1.  **Create the agent project:**
-    ```shell
-    uv run adk create market_analyst
-    cd market_analyst
-    ```
-    > **Note:** `adk create` prompts you interactively to choose a model and backend. If this course's target model isn't in the numbered list, choose the **"Other models (fill later)"** option and set the model manually afterward (in `agent.py`, and in `.env` if you're using an API key) rather than picking a model you don't intend to use.
+1. **Create the agent project:**
+   ```shell
+   uv run adk create wealth_advisor
+   cd wealth_advisor
+   ```
+   > **Note:** Select **"Other models (fill later)"** if prompted, as we will configure the model explicitly as `gemini-2.5-flash` in `agent.py`.
 
-2.  **Set up your API key** in the `.env` file for the Gemini model. (The Frankfurter Currency API we are using is completely free and requires no authentication).
+2. **Verify API Credentials:** Ensure your `.env` contains your Gemini API key or Vertex AI credentials.
 
-### Step 2: Define the OpenAPI Specification
+---
 
-**Exercise:** Open the generated `agent.py`. `adk create` scaffolds it with generic boilerplate, not this lab's code -- replace the *entire contents* of the file with the skeleton below. Your task is to complete the spec for the `/latest` endpoint's `get` operation. You can deduce the necessary parameters from the Frankfurter API documentation (or the theory section).
+### Step 2: Implement the OpenAPI Specification & Agent Node
+
+Open `agent.py` in `wealth_advisor`. Replace its contents with the starter skeleton below and complete all `TODO` sections.
 
 <!-- TEACHER_NOTE_START -->
 **Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+- **Learning goal:** Teach how OpenAPI 3.0 specs auto-synthesize into ADK 2.0 executable tools via `OpenAPIToolset`.
+- **Why it matters:** Eliminates custom Python HTTP wrapper debt in enterprise environments with hundreds of existing REST endpoints.
+- **Version watch:** Grounded against ADK 2.0 (`google.adk.tools.openapi_tool.OpenAPIToolset`).
 <!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
+
 ```python
 # In agent.py
 import json
@@ -49,70 +63,91 @@ from google.adk import Agent
 from google.adk.tools.openapi_tool import OpenAPIToolset
 
 # ============================================================================
-# OPENAPI SPECIFICATION
+# TODO 1: COMPLETE THE CORE BANKING OPENAPI 3.0 SPECIFICATION
 # ============================================================================
-# The `operationId` is critical. The ADK uses it to generate the tool's name
-# (e.g., `operationId: "get_latest_rates"` becomes the `get_latest_rates` tool).
+# Critical Rule: `operationId` dictates the tool name exposed to Gemini.
+# - GET /v1/accounts/{account_id}/balance -> operationId: "get_account_balance"
+# - POST /v1/transfers -> operationId: "execute_wire_transfer"
 
-FRANKFURTER_SPEC = {
+CORE_BANKING_SPEC = {
     "openapi": "3.0.0",
     "info": {
-        "title": "Frankfurter Currency API",
-        "description": "Free API for current and historical foreign exchange rates",
-        "version": "1.0.0"
+        "title": "Apex Core Banking API",
+        "description": "Enterprise REST Gateway for balance inquiry and wire transfers.",
+        "version": "1.0.0",
     },
-    "servers": [{"url": "https://api.frankfurter.dev/v1"}],
+    "servers": [{"url": "https://api.apexbank.internal/v1"}],
     "paths": {
-        "/latest": {
+        "/accounts/{account_id}/balance": {
             "get": {
-                # TODO: Complete this section for the "/latest" endpoint.
-                # - The operationId should be "get_latest_rates".
-                # - The summary should be "Get latest exchange rates".
-                # - It needs a "parameters" list with query parameters: "amount", "from", "to".
+                # TODO: Define operationId ("get_account_balance")
+                # TODO: Define summary and description
+                # TODO: Define path parameter "account_id" (type: string, required: True, in: "path")
+                # TODO: Define responses (200 OK)
             }
-        }
-    }
+        },
+        "/transfers": {
+            "post": {
+                # TODO: Define operationId ("execute_wire_transfer")
+                # TODO: Define summary and description
+                # TODO: Define requestBody with JSON schema:
+                #       - source_account_id (string, required)
+                #       - target_account_id (string, required)
+                #       - amount (number, required)
+                #       - currency (string, required)
+                #       - reference_note (string, optional)
+                # TODO: Define responses (201 Created)
+            }
+        },
+    },
 }
 
 # ============================================================================
-# AGENT NODE DEFINITION
+# TODO 2: SYNTHESIZE OPENAPI TOOLSET
 # ============================================================================
+# Convert the spec dictionary to a JSON string and instantiate OpenAPIToolset.
 
-# TODO: 1. Create the OpenAPIToolset instance.
-# TODO: 2. Define the root Agent node and register the toolset.
-root_agent = Agent(...)
+# spec_json_str = json.dumps(...)
+# banking_toolset = OpenAPIToolset(spec_str=..., spec_str_type="json")
+
+# ============================================================================
+# TODO 3: DEFINE WEALTH ADVISOR AGENT NODE
+# ============================================================================
+# Construct the Agent using model="gemini-2.5-flash" and attach banking_toolset.
+
+# root_agent = Agent(
+#     name="wealth_advisor_agent",
+#     model="gemini-2.5-flash",
+#     description="...",
+#     instruction="...",
+#     tools=[...]
+# )
 ```
+
+---
 
 ### Step 3: Run and Test Your Agent
 
-1.  **Start the agent in terminal mode:** 
-    ```bash
-    uv run adk run .
-    ```
-2.  **Interact with the agent:**
-    *   Test its capabilities:
-        *   "Convert 100 USD to EUR."
-        *   "How many Japanese Yen (JPY) can I get for 50 British Pounds (GBP)?"
-        *   "Convert 500 AUD to USD and EUR." *(Notice if it calls the API twice or handles it smartly!)*
-    *   Observe the logs to see the agent constructing and executing the HTTP requests perfectly based on your spec.
+1. **Start the agent interactive CLI:**
+   ```bash
+   uv run adk run .
+   ```
 
-### Having Trouble?
+2. **Test Banking Queries:**
+   * *"Check the current account balance for account `ACC-88392`."*
+   * *"Transfer \$5,000 USD from `ACC-88392` to `ACC-99102` with reference note 'Q3 Portfolio Balancing'."*
 
-If you get stuck, you can find the complete, working code in the `lab-solution.md` file.
+3. **Inspect Logs:** Observe how ADK automatically maps user intent to the synthesized `get_account_balance` and `execute_wire_transfer` tools based on the OpenAPI `operationId` definitions.
 
-### Lab Summary
+---
 
-You have successfully integrated a live REST API into your agent without writing a single manual tool function. You have learned:
-*   How to translate API documentation into an OpenAPI specification.
-*   How to use `OpenAPIToolset` to automatically generate tools from a spec.
-*   How to instruct your agent to use the new, auto-generated tools.
+## 🧪 Self-Reflection Questions
 
-### Self-Reflection Questions
-- What are the main advantages of using `OpenAPIToolset` compared to writing a custom Python function (like `requests.get(...)`) for each API endpoint?
-- The `operationId` in the OpenAPI spec is very important. What do you think would happen if two different paths in the spec had the same `operationId`?
-- Many modern web services publish their own OpenAPI specifications (often as a URL like `api.example.com/openapi.json`). How does this widespread adoption of the OpenAPI standard make it easier to build powerful, integrated AI agents?
+1. **Why is `operationId` the most critical field in an OpenAPI path definition when using `OpenAPIToolset`?**
+2. **How does `OpenAPIToolset` prevent schema mismatch errors during POST requests compared to manual dictionary parsing?**
+3. **In enterprise banking, why should authentication headers (e.g. OAuth Bearer tokens) be handled at the HTTP transport layer rather than included as arguments in LLM prompts?**
 
-<hr/>
+---
 
 ### 🕵️ Hidden Solution 🕵️
 
@@ -131,6 +166,4 @@ Looking for the solution? Here's a hint (Base64 decode me):
 - Google ADK docs (latest): https://google.github.io/adk-docs/
 - Google AI / Gemini docs: https://ai.google.dev/
 - Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
-
+- OpenAPI 3.0 Specification: https://spec.openapis.org/oas/v3.0.3

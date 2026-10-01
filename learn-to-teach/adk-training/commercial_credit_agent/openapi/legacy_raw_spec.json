@@ -1,0 +1,93 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Legacy Core Banking ESB Gateway",
+    "description": "Un-normalized enterprise gateway export without operationIds",
+    "version": "0.9.1-SNAPSHOT"
+  },
+  "servers": [
+    {
+      "url": "https://legacy-esb.sovereignbank.internal/api"
+    }
+  ],
+  "paths": {
+    "/v1/borrowers/{tax_id}/exposure": {
+      "get": {
+        "summary": "Get borrower exposure details",
+        "description": "Legacy exposure inquiry",
+        "parameters": [
+          {
+            "name": "tax_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/borrowers/{tax_id}/risk-profile": {
+      "get": {
+        "summary": "Get risk profile",
+        "description": "Legacy risk profile inquiry",
+        "parameters": [
+          {
+            "name": "tax_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/purge-cache": {
+      "post": {
+        "summary": "Purge internal ESB cache",
+        "description": "Administrative endpoint not intended for LLM agent use",
+        "responses": {
+          "200": {
+            "description": "Cache cleared"
+          }
+        }
+      }
+    },
+    "/internal/system-health-dump": {
+      "get": {
+        "summary": "Internal JVM diagnostic dump",
+        "description": "Should never be exposed to Gemini",
+        "responses": {
+          "200": {
+            "description": "Diagnostics"
+          }
+        }
+      }
+    }
+  }
+}

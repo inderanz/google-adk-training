@@ -5,300 +5,280 @@ title: "Lab Solution"
 
 # Lab 7 Solution: Building a Visual Product Catalog Analyzer
 
-## Goal
+## Overview & Goal
 
-This file contains the complete code for the `main.py` script in the Visual Product Catalog Analyzer lab, demonstrating how to explicitly manage sessions when using `run_async` for multimodal input.
+This document provides the complete, production-ready implementation of `visual_catalog` using Google Agent Development Kit (ADK) 2.0.
 
-### `visual_catalog/main.py`
+Beyond providing raw code, this solution guide acts as an **FDE Engineering Playbook**. It breaks down how a **Google Forward-Deployed Engineer (FDE)** analyzes business requirements for computer vision & multimodal AI applications, packages binary images into typed Google GenAI `types.Part` objects, and manages asynchronous multi-part sessions using `InMemoryRunner`.
 
-This is the working solution pattern used in the lab. It is intentionally written in a simple, readable style so students can understand not only what each line does, but also why the code is structured this way.
+---
 
-Think of it like a small production pipeline:
+### 💡 FDE & Instructor Hint: Steering AI Assistants (Antigravity)
 
-1. prepare the agent
-2. create a runtime and conversation session
-3. package the image and text as a message
-4. send it to the model
-5. read the final answer and print it
+When guiding developers or using AI coding assistants like **Antigravity** during enterprise agent development, use this **Master ADK 2.0 Steering Prompt** to ensure generated code strictly follows Google's official architectural standards:
 
-That is the same pattern you will reuse in real AI projects later.
+> **Master Antigravity Steering Prompt Template:**
+> *"You are an expert Google ADK 2.0 Forward-Deployed Engineer. Write multimodal agent execution code using strict ADK 2.0 & Google GenAI standards:*
+> 1. *Use `from google.genai import types` to build multimodal input parts.*
+> 2. *Create image/media parts: `types.Part.from_bytes(data=image_bytes, mime_type="image/jpeg")` or `types.Part.from_uri(...)`.*
+> 3. *Combine image parts and text parts into a single `types.Content(role="user", parts=[image_part, text_part])`.*
+> 4. *Pass the multimodal `types.Content` turn to `await runner.run_async(content=...)` or `await runner.run_debug(content=...)*.
+> 5. *Access LLM response content via `event.content` (NEVER use legacy `.candidates`)."*
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
+---
+
+## 🏛️ Part 1: The FDE Architectural Mental Model
+
+### From Plain English Requirements to ADK 2.0 Code
+
+When an enterprise customer (like an e-commerce retailer) wants to automate product catalog generation, they need their AI system to "see" product photos and write marketing descriptions. However, Large Language Models do not open file paths directly on local disk drives.
+
+As a Google FDE, your job is to convert raw file system paths into **Typed Multimodal Blobs** and package them into ADK `types.Content` turns.
+
+Here is the exact Requirements-to-Code Matrix for this lab:
+
+| # | Business Requirement | FDE Engineering Risk / Challenge | ADK 2.0 Solution Pattern | Code Implementation |
+|---|---|---|---|---|
+| **1** | *"Read product photos (PNG/JPEG) from disk and feed them into the AI model."* | **File System Disconnect:** LLMs cannot read paths like `c:\images\headphones.jpg`. | **Binary Blob Wrapping:** Open file in `rb` binary mode and wrap bytes in `types.Part(inline_data=types.Blob(...))`. | `types.Part(inline_data=types.Blob(data=bytes, mime_type="image/jpeg"))` |
+| **2** | *"Send both text instructions and the image together in a single prompt turn."* | **Payload Fragmentation:** Sending text and image separately loses contextual binding. | **Multi-Part Content Assembly:** Pass both text and image `Part` objects inside `types.Content(parts=[...])`. | `types.Content(role="user", parts=[text_part, image_part])` |
+| **3** | *"Execute vision requests programmatically for multiple products in a batch pipeline."* | **Session Conflict:** Batch items overwrite history if sessions aren't explicitly isolated. | **Explicit Session Management:** Call `runner.session_service.create_session()` for each product ID. | `await runner.session_service.create_session(session_id=f"sess_{product_id}")` |
+| **4** | *"Stream and inspect final response events from the async execution engine."* | **Partial Response Confusion:** Async generators emit intermediate thinking events before final text. | **Final Response Filtering:** Iterate `async for event in runner.run_async()` and filter with `event.is_final_response()`. | `if event.is_final_response(): text = event.content.parts[0].text` |
+
+---
+
+## ⚙️ Part 2: Step-by-Step Implementation Guide
+
+### Complete `visual_catalog/main.py` Implementation
+
+Create `visual_catalog/main.py`. Read the extensive inline comments to understand how image byte encoding, multimodal message assembly, and session streaming work under the hood.
+
 ```python
-# ------------------------------------------------------------
-# 1) Import the libraries we need
-# ------------------------------------------------------------
-import asyncio                      # Required to run async code with `await` and `asyncio.run()`
-import logging                      # Helps us control noisy logs from Google / ADK internals
-import os                           # Lets us check file paths and whether files exist on disk
+"""
+Visual Product Catalog Analyzer (ADK 2.0)
 
-from google.adk import Agent        # ADK agent class: the model + instructions + role
-from google.adk.apps import App     # App wrapper that holds the root agent
-from google.adk.runners import InMemoryRunner  # In-memory execution engine for local testing
-from google.genai import types      # Provides `Part`, `Content`, and `Blob` for multimodal input
-from dotenv import load_dotenv       # Reads values from a local `.env` file
+This module demonstrates how to build a production multimodal AI pipeline.
+It covers:
+1. Converting local image files into typed `types.Part` blobs.
+2. Assembling multi-part `types.Content` turns combining text and vision.
+3. Explicit session creation using `runner.session_service`.
+4. Asynchronous event streaming with `runner.run_async()`.
+"""
 
-# ------------------------------------------------------------
-# 2) Reduce unnecessary noise from external libraries
-# ------------------------------------------------------------
-# This is optional, but very valuable when learning.
-# ADK may print lots of HTTP/debug logs that are not important for the business logic.
+import asyncio
+import logging
+import os
+
+from dotenv import load_dotenv
+from google.adk import Agent
+from google.adk.apps import App
+from google.adk.runners import InMemoryRunner
+from google.genai import types
+
+# Suppress noisy HTTP logs from underlying client libraries
 logging.getLogger("google.adk").setLevel(logging.WARNING)
 
-# ------------------------------------------------------------
-# 3) Helper function: convert a local image into AI-readable content
-# ------------------------------------------------------------
-# This is one of the most important ideas in multimodal AI:
-# the model does not read a JPG file directly from your computer.
-# We must read the bytes and place them into a container ADK knows how to send.
-#
-# Analogy:
-# If a human receives a file, they need to know what it is and what format it is in.
-# The same is true for the LLM: we tell it "this is an image" and send the raw bytes.
-def load_image_from_file(path: str) -> types.Part:
-    """Read an image file from disk and return a `types.Part` for the model."""
 
-    # Open the file in binary mode because images are not text files.
-    with open(path, 'rb') as f:
+# ============================================================================
+# SECTION 1: MULTIMODAL FILE CONVERSION HELPER
+# ============================================================================
+def load_image_from_file(file_path: str) -> types.Part:
+    """Reads a local image file and converts it into a Google GenAI `types.Part`.
+
+    Teaching Note on Multimodal Ingestion:
+    - The LLM does not read file paths directly. We must read the binary bytes
+      and declare the explicit MIME type (e.g. 'image/jpeg', 'image/png').
+    - `types.Blob` holds binary data + mime_type.
+    - `types.Part` wraps the blob so it can be added to a `types.Content` message list.
+
+    Args:
+        file_path: Absolute or relative file path to the image.
+
+    Returns:
+        A typed `types.Part` object ready for multimodal payload assembly.
+    """
+    # 1. Read file in binary mode ('rb')
+    with open(file_path, "rb") as f:
         image_bytes = f.read()
 
-    # Decide the media type based on the file extension.
-    # JPG/JPEG => image/jpeg
-    # PNG => image/png
-    mime_type = 'image/png' if path.lower().endswith('.png') else 'image/jpeg'
+    # 2. Determine correct MIME type from extension
+    mime_type = "image/png" if file_path.lower().endswith(".png") else "image/jpeg"
 
-    # Wrap the raw bytes in the structure expected by Google GenAI.
-    # `Blob` contains the binary data and its mime type.
-    # `Part` is the message chunk that can be placed inside a multimodal payload.
+    # 3. Construct and return typed inline Part
     return types.Part(
         inline_data=types.Blob(data=image_bytes, mime_type=mime_type)
     )
 
-# ------------------------------------------------------------
-# 4) The application class: organize the workflow cleanly
-# ------------------------------------------------------------
-# This class keeps the logic reusable.
-# A real app usually wraps AI behavior in a class so you can call it again and again.
+
+# ============================================================================
+# SECTION 2: MULTIMODAL APPLICATION CLASS
+# ============================================================================
 class VisualCatalogApp:
+    """Enterprise application wrapper orchestrating visual product catalog generation."""
+
     def __init__(self):
-        # A. Define the intelligence for this app
-        # ----------------------------------------------------------------
-        # The `Agent` is the model plus instructions.
-        # Think of this as the job description given to the LLM.
+        # A. Define the Vision Agent Node
+        # Gemini 2.5 Flash natively supports high-resolution multimodal vision analysis
         self.agent = Agent(
-            model='gemini-3.5-flash',
-            name='catalog_writer',
+            name="catalog_writer",
+            model="gemini-2.5-flash",
             instruction="""
-                You are an expert product catalog writer.
-                Your task is to analyze the provided image and generate a compelling,
-                professional description for a web catalog.
-                Highlight the main features, materials, and potential use cases.
-            """.strip()
+You are an expert product catalog writer.
+Your task is to analyze the provided product photo and write a compelling,
+professional web catalog description.
+Highlight key visible features, build materials, color schemes, and ideal customer use cases.
+""".strip(),
         )
 
-        # B. Build the app container
-        # ----------------------------------------------------------------
-        # `App` is the wrapper that holds the root agent.
-        # In a real system, this is the overall AI application structure.
+        # B. Wrap Agent inside the App Infrastructure Container
         self.app = App(name="visual_catalog", root_agent=self.agent)
 
-        # C. Create the runner used to execute the app
-        # ----------------------------------------------------------------
-        # `InMemoryRunner` is a lightweight local runner for learning and testing.
-        # It is useful because it handles the internal session and event flow for us.
+        # C. Initialize Execution Runner
         self.runner = InMemoryRunner(app=self.app)
 
-    # ------------------------------------------------------------
-    # 5) The actual business method: analyze one product image
-    # ------------------------------------------------------------
-    # This is the core workflow you will reuse in many AI apps.
     async def analyze_product(self, product_id: str, image_path: str):
-        # Print a readable heading so we know which product is being processed.
-        print(f"\n--- Analyzing Product: {product_id} ---")
+        """Processes a single product image and prints the catalog description.
 
-        # A session keeps the conversation state together.
-        # In ADK, a session is like a conversation thread or a project folder.
+        Teaching Note on Async Execution & Sessions:
+        - When using `run_async`, you MUST create the session explicitly via `session_service`.
+        - `user_id` and `session_id` isolate memory threads between product processing runs.
+
+        Args:
+            product_id: Unique product SKU or identifier.
+            image_path: Path to the product image on disk.
+        """
+        print(f"\n--- Processing Product: {product_id} ---")
+
         user_id = "catalog_admin"
         session_id = f"sess_{product_id}"
 
-        # --------------------------------------------------------
-        # Step 1: Create the session explicitly
-        # --------------------------------------------------------
-        # This is required when using `run_async` programmatically.
-        # Without a valid session, the runner does not know where to store the conversation context.
-        #
-        # Analogy:
-        # If you open a support ticket before sending a request, the agent can keep context.
-        # Without the ticket, the agent has no place to store the conversation history.
+        # Step 1: Create session explicitly in session_service
         await self.runner.session_service.create_session(
             app_name=self.app.name,
             user_id=user_id,
             session_id=session_id,
         )
 
-        # --------------------------------------------------------
-        # Step 2: Convert the image into an ADK input object
-        # --------------------------------------------------------
-        # Here we call the helper to turn the JPG/PNG file into a `types.Part` payload.
+        # Step 2: Convert local image into a typed Part blob
         image_part = load_image_from_file(image_path)
 
-        # --------------------------------------------------------
-        # Step 3: Build a multimodal message
-        # --------------------------------------------------------
-        # A message in ADK is a `types.Content` object.
-        # It contains a list of `parts`, and each part can be text, image, or other structured input.
-        #
-        # This is the real multimodal pattern:
-        # - text explains the task
-        # - image contains the actual visual data
-        msg = types.Content(
+        # Step 3: Build multi-part Content message (Text + Image)
+        # Note: Order matters! Place text prompt first, followed by visual image parts.
+        multimodal_msg = types.Content(
             role="user",
             parts=[
-                types.Part(text=f"Analyze product ID '{product_id}' and write a catalog description."),
+                types.Part.from_text(
+                    f"Analyze product ID '{product_id}' and write a web catalog description."
+                ),
                 image_part,
             ],
         )
 
-        # --------------------------------------------------------
-        # Step 4: Send the message to the model through the runner
-        # --------------------------------------------------------
-        # `run_async()` is the ADK entry point for programmatic execution.
-        # It returns a stream of events while the model thinks and responds.
-        print("📸 Sending image to Gemini...")
+        # Step 4: Stream response events asynchronously from runner
+        print("📸 Sending image bytes to Gemini Vision...")
         async for event in self.runner.run_async(
             user_id=user_id,
             session_id=session_id,
-            new_message=msg,
+            new_message=multimodal_msg,
         ):
-            # We only care about the final answer.
-            # There may be intermediate events before the model is done.
+            # Inspect event stream and extract final response text
             if event.is_final_response():
                 description = event.content.parts[0].text
-                print(f"✅ Description Generated:\n{description}\n")
+                print(f"✅ Generated Catalog Description:\n{description}\n")
 
-# ------------------------------------------------------------
-# 6) Entry point for running the workflow
-# ------------------------------------------------------------
-# This function is like the orchestrator for the whole app.
-# It loads environment config, creates the app object, and loops through products.
+
+# ============================================================================
+# SECTION 3: BATCH PIPELINE ORCHESTRATION
+# ============================================================================
 async def main():
-    # Load environment settings from .env, such as project and location values.
+    """Main batch processing entrypoint."""
     load_dotenv()
 
-    # Create one app object that can be reused.
-    catalog = VisualCatalogApp()
+    # Instantiate catalog app pipeline
+    catalog_app = VisualCatalogApp()
 
-    # List of product IDs and their image paths.
-    # In real work, these could come from a database, spreadsheet, or external API.
-    products = [
-        ('HEADPHONES-01', '../headphones.jpg'),
-        ('LAPTOP-02', '../laptop.jpg'),
+    # Batch queue of product SKUs and local image paths
+    products_to_process = [
+        ("HEADPHONES-01", "../headphones.jpg"),
+        ("LAPTOP-02", "../laptop.jpg"),
     ]
 
-    # Loop through each item.
-    for product_id, path in products:
+    for product_id, path in products_to_process:
         if os.path.exists(path):
-            await catalog.analyze_product(product_id, path)
-            await asyncio.sleep(1)  # Simple delay to avoid sending too many requests too quickly
+            await catalog_app.analyze_product(product_id, path)
+            await asyncio.sleep(1)  # Respect rate limits between batch items
         else:
-            print(f"⚠️ Warning: Image not found at {path}")
+            print(f"⚠️ Warning: Image file not found at path '{path}'")
 
-# ------------------------------------------------------------
-# 7) Standard Python execution pattern
-# ------------------------------------------------------------
-# This guard ensures the code only runs when executed directly as a file.
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### Why this logic is written this way
+---
 
-This is not random code. It follows a reusable mental model for modern AI app development:
+## 🔬 Part 3: Deep Dive — Multimodal Streaming Architecture
 
-- `Agent` = the model with instructions and role
-- `App` = the application wrapper around the agent
-- `InMemoryRunner` = the execution engine that drives the app
-- `Session` = the conversation context, stored for the user
-- `Content` = the complete message payload
-- `Part` = one item inside that message, such as text or image data
+Here is the exact sequence showing how image bytes flow from your local Python script into Gemini 2.5 Flash vision encoders via ADK 2.0:
 
-If you understand this pattern, you can reuse it for many practical tasks:
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Developer
+    participant App as VisualCatalogApp
+    participant Runner as InMemoryRunner
+    participant Agent as ADK Agent Node
+    participant Gemini as Gemini 2.5 Flash (Vision)
 
-- analyze customer documents
-- compare product photos
-- summarize contracts
-- build a visual QA bot
-- route user uploads to the right AI workflow
-
-This is the same structure used in many real-world agent systems: structured input, context, runner, and final response handling.
-
-### Key learning point for students
-
-The biggest habit to learn is this:
-
-- do not send raw files directly to the model
-- package the data into `types.Part` / `types.Content`
-- create or reuse a session for state
-- stream events until final response
-
-That is the core pattern behind real AI app engineering.
-
-> The important idea is not memorizing syntax. It is understanding the flow: define the agent, give it context, package the input, execute, and read the final result.
+    Developer->>App: `analyze_product('HEADPHONES-01', 'headphones.jpg')`
+    App->>App: Read image bytes & wrap in `types.Part(inline_data=Blob)`
+    App->>Runner: `session_service.create_session(session_id='sess_HEADPHONES-01')`
+    App->>Runner: `run_async(new_message=Content(parts=[text, image_blob]))`
+    Runner->>Agent: Resolve session & build LlmRequest
+    Agent->>Gemini: Base64 encode image blob & send to Vision API
+    Note over Gemini: Gemini vision encoder analyzes pixel tensor<br/>and generates text description!
+    Gemini-->>Agent: Stream LlmResponse chunks
+    Agent-->>Runner: Emit Event stream
+    Runner-->>App: `event.is_final_response()` == True
+    App-->>Developer: Print generated catalog description text
+```
 
 ---
 
-### Self-Reflection Answers
+## 🧪 Part 4: Verification & Testing Playbook
 
-1. Why did we have to call `create_session` manually this time, whereas in Module 6's `run_debug` we didn't?
-   - `run_debug` is a higher-level helper that handles some setup for us.
-   - `run_async` is the lower-level programmatic pattern, so we must create the session explicitly.
+### Running the Multimodal Pipeline
 
-2. How does the `InMemoryRunner` simplify the setup compared to a base `Runner`?
-   - It gives us a default in-memory session service, making local testing simpler.
-   - This reduces boilerplate and makes the learning flow easier.
+Execute the script using UV:
+```bash
+uv run python visual_catalog/main.py
+```
 
-3. If you wanted to analyze a PDF document instead of an image, which `mime_type` would you use?
-   - You would use `application/pdf`.
-   - The message structure is the same; only the MIME type changes.
+#### Expected Terminal Output
+```text
+--- Processing Product: HEADPHONES-01 ---
+📸 Sending image bytes to Gemini Vision...
+✅ Generated Catalog Description:
+Introducing the Premium Wireless Over-Ear Headphones. Featuring a sleek matte-black ergonomic finish, cushioned memory-foam earcups, and brushed aluminum accents...
+```
 
-> This version is intentionally kept simple and correct. It follows the repo's working ADK pattern and remains safe to use as a lab solution.
-
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module07-multimodal-and-images-lab-solution -->
-
-> **Cleanup:** Unlike other modules, this project lives directly inside `module07-multimodal-and-images/` (the actual course repo folder) rather than in a separate `adk-training` scratch directory. Once you're done, delete `visual_catalog/`, `.venv/`, `pyproject.toml`, and `uv.lock` from inside this module's folder so they don't accidentally get committed to the repo.
-
-### Self-Reflection Answers
-
-1.  **Why did we have to call `create_session` manually this time, whereas in Module 6's `run_debug` we didn't?**
-    *   **Answer:** `run_debug` is a high-level helper method that automatically handles session creation. `run_async` is the production standard; it requires explicit session management, giving developers more control.
-
-2.  **How does the `InMemoryRunner` simplify the setup compared to a base `Runner`?**
-    *   **Answer:** The `InMemoryRunner` comes pre-bundled with an `InMemorySessionService` configured, so you don't have to manage the service object manually.
-
-3.  **If you wanted to analyze a PDF document instead of an image, which `mime_type` would you use?**
-    *   **Answer:** You would use `application/pdf`. The `Part` and `Blob` structure remains the same for all media types.
-
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module07-multimodal-and-images-lab-solution -->
 ---
 
-## Official References
+## ❓ Self-Reflection & Interview Prep
 
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+1. **Why do we need `load_image_from_file` instead of passing the string `'../headphones.jpg'` directly to Gemini?**
+   * *Answer:* Gemini is a cloud-hosted API service that does not have access to your local hard drive or filesystem paths. `load_image_from_file` reads raw binary bytes and wraps them into a base64 inline `types.Blob` container that ADK can transmit over HTTP.
 
+2. **Why must we call `create_session` manually when using `run_async`?**
+   * *Answer:* High-level CLI commands (like `run_debug` or `adk run`) auto-initialize sessions for developer convenience. Production programmatic execution (`run_async`) gives developers fine-grained control over session isolation, persistence backends, and multi-tenant user threads, requiring explicit session creation.
+
+3. **How would you modify this code to analyze a multi-page PDF contract instead of a JPEG image?**
+   * *Answer:* Simply change the MIME type in `types.Blob(data=pdf_bytes, mime_type="application/pdf")`. The rest of the `types.Content` assembly and `run_async` execution pipeline remains identical!
+
+---
+
+## 📚 Official References
+
+- **Google ADK Documentation:** https://google.github.io/adk-docs/
+- **Google GenAI SDK Multimodal Guide:** https://googleapis.github.io/python-genai/
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module07-multimodal-and-images-lab-solution -->
