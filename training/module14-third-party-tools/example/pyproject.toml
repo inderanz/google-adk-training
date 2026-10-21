@@ -1,0 +1,13 @@
+[project]
+name = "module14-corporate-research"
+version = "0.1.0"
+description = "Use a LangChain company-profile tool through the native ADK LangchainTool adapter"
+requires-python = ">=3.12"
+dependencies = [
+    "google-adk==2.11.0",
+    "google-cloud-bigquery==3.45.2",
+    "langchain-core==1.6.6",
+]
+
+[tool.uv]
+package = false
