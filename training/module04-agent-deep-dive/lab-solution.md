@@ -175,7 +175,7 @@ uv run adk web
 ## ❓ Self-Reflection & Interview Prep
 
 1. **Why is `output_schema` better than relying on text prompt instructions like "respond in JSON"?**
-   * *Answer:* Prompt instructions are probabilistic and frequently fail by adding preamble text, markdown formatting, or incorrect key names. `output_schema` uses native model constrained decoding and framework validation, guaranteeing 100% compliant JSON responses.
+   * *Answer:* Prompt instructions are probabilistic and frequently fail by adding preamble text, markdown formatting, or incorrect key names. `output_schema` requests a supported structured response contract. Handle generation/schema failures and validate returned data; schema conformance does not prove factual correctness or authorization.
 
 2. **Can an agent still invoke tools while `output_schema` is set?**
    * *Answer:* Yes! In ADK 2.0, an agent can freely invoke tools during its reasoning loop to gather data. `output_schema` only constrains the *final response turn* returned to the caller.

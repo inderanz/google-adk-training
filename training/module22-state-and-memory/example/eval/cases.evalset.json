@@ -1,0 +1,51 @@
+{
+  "eval_set_id": "banking_module_22",
+  "eval_cases": [
+    {
+      "eval_id": "current_preference",
+      "conversation": [
+        {
+          "invocation_id": "current_preference",
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Explain how to prepare a bank case for review using my current preferred format."
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "adk_entry",
+        "user_id": "evaluation",
+        "state": {
+          "user:review_format": "concise"
+        }
+      }
+    },
+    {
+      "eval_id": "no_case_authority",
+      "conversation": [
+        {
+          "invocation_id": "no_case_authority",
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Does my remembered preference prove that the CASE-001 loan is approved?"
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "adk_entry",
+        "user_id": "evaluation",
+        "state": {
+          "user:review_format": "concise"
+        }
+      }
+    }
+  ]
+}

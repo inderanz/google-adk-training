@@ -5,6 +5,34 @@ title: "Module 7: Multimodal and Image Processing"
 
 # Module 7: Multimodal and Image Processing
 
+## Before you begin: what this module teaches
+
+**ADK concept: multimodal evidence and model capability boundaries.**
+
+Multimodal means the request or response includes supported modalities such as text, image or audio. The message contains parts; the chosen model must support their formats and limits. Extraction proposes what content says. Validation checks types and constraints. Verification establishes whether an authoritative source supports the claim. These are separate steps.
+
+**Where you would use this in real work.**
+
+An analyst receives a scanned invoice and asks for a summary of visible fields. The image is evidence to inspect, not proof that the invoice is authentic or that the amount is payable. The assistant must keep those meanings separate.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Gemini handles supported multimodal reasoning through ADK. Document AI or other approved extraction services may fit specialized document-processing requirements, but this lesson does not automatically provision them. Store and transmit customer files only through the agreed Google service path.
+
+**By the end, you should be able to:**
+
+- Build a supported image-plus-question request.
+- Report unreadable or uncertain content without inventing fields.
+- Explain why recognizing an amount does not authorize a transaction.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Point to the text and image parts in the request.
+- **Experienced engineer:** Evaluate rotated, low-quality and contradictory documents with explicit criteria.
+- **Bank FDE:** Ask whether the customer needs summarization, extraction, authenticity checks or all three.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
 ## Theory
 
 ### Why Multimodal Matters
@@ -134,17 +162,11 @@ This ensures the multimodal lesson connects to the broader ADK enterprise archit
 
 The diagram below shows a high-level flow from raw user input (text and images) through preprocessing, multimodal fusion, model selection, post-processing and production delivery. Use it to explain the mental model to learners before diving into code.
 ```mermaid
-flowchart LR
-    A["User Input (text, image, file)"] --> B["Preprocessing (normalize, resize, OCR)"]
-    B --> C{Is image present?}
-    C -- Yes --> D["Image Encoder (feature extraction)"]
-    C -- No --> E["Text Encoder (tokenization)"]
-    D --> F["Multimodal Fusion (concatenate / cross-attention)"]
-    E --> F
-    F --> G["Model Selection (Gemini / Local LLM / Ensemble)"]
-    G --> H["Post-processing (OCR cleanup, NER, summarization)"]
-    H --> I["Agent Action (tool call, DB write, UI response)"]
-    I --> J["Operational Concerns (monitoring, safety, cost)"]
+flowchart TB
+  A[Text plus supported image input] --> B[Validate format and access]
+  B --> C[Build typed Content and Parts]
+  C --> D[Run supported multimodal model]
+  D --> E[Inspect and evaluate extracted claims]
 ```
 
 How to read this diagram:
@@ -168,6 +190,12 @@ Use the official Google and ADK documentation as the current source of truth for
 - Vertex AI multimodal guidance: https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal
 
 These references should be reviewed whenever the training content is updated for a new model version or multimodal input behavior change.
+
+## Continue the course story
+
+Previous: [Module 06.5](../module06_5-programmatic-execution/README.md) · Next: [Module 08](../module08-intro-to-tools/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module07-multimodal-and-images-README -->
 ---

@@ -5,6 +5,34 @@ title: "Module 6: Programmatic Execution: Apps and Runners"
 
 # Module 6: Programmatic Execution: Apps and Runners
 
+## Before you begin: what this module teaches
+
+**ADK concept: App, Runner, sessions and asynchronous event processing.**
+
+App names and configures the application. Runner drives an invocation using the selected services. Session identifies the conversation; invocation identifies one execution within it. async def defines a coroutine, await waits for supported asynchronous work, and async for consumes events over time. It is like following a case through several desks: one request can produce many progress records before the answer.
+
+**Where you would use this in real work.**
+
+Meera's assistant must become part of a bank application instead of a terminal demonstration. The backend needs to submit a message, retain the right conversation and process results as execution progresses.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Use native ADK Runner and service interfaces. InMemoryRunner is a development convenience; durable Sessions and hosted runtime configuration are separate choices. The application must bind its verified analyst identity to the user/session scope it passes into ADK.
+
+**By the end, you should be able to:**
+
+- Trace a message from the application through Runner to returned events.
+- Explain why an event need not contain answer text.
+- Separate per-request data from shared objects and release resources explicitly.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Read asyncio.run, await and async for at the points they are used.
+- **Experienced engineer:** Test two users and concurrent requests without sharing mutable request data.
+- **Bank FDE:** Define session ownership, persistence needs and cancellation behavior for the bank UI.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
 ## Theory
 
 Until now, you interacted with agents via the Agent Development Kit (ADK) Command-Line Interface (`uv run adk web`, `uv run adk run`). The CLI is great for initial prototyping, exploratory conversations, and debugging prompts in your terminal.
@@ -20,39 +48,17 @@ To run an agent from Python, you must understand how ADK 2.0 separates intellige
 ADK 2.0 uses a modular separation of concerns. Instead of having a single monolithic class handle prompts, HTTP connections, and session storage, ADK divides responsibilities across three dedicated architectural layers:
 
 ```mermaid
-flowchart TD
-    subgraph Architecture["ADK 2.0 Runtime Architecture"]
-        direction TB
-        subgraph AppLayer["App (Operational Container)"]
-            AgentLayer["Agent (Intelligence & Decision Engine)"]
-        end
-        RunnerLayer["Runner (Execution Engine & Orchestration)"]
-    end
-
-    UserApp["Your Python Application (API, Bot, Script)"] -->|1. Invocations (user_id, session_id, message)| RunnerLayer
-    RunnerLayer -->|2. Resolves session state| SessionStore["Session Service (In-Memory or Store)"]
-    RunnerLayer -->|3. Loads runtime policies| AppLayer
-    RunnerLayer -->|4. Drives conversation & tool loops| AgentLayer
-    AgentLayer -->|5. Streams events| RunnerLayer
-    RunnerLayer -->|6. Yields Event stream| UserApp
-
-    classDef container fill:#f8fafc,stroke:#64748b,color:#0f172a;
-    classDef agentBox fill:#dbeafe,stroke:#2563eb,stroke-width:2px,color:#1e3a8a;
-    classDef appBox fill:#e0e7ff,stroke:#4f46e5,stroke-width:2px,color:#312e81;
-    classDef runnerBox fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f;
-    classDef userBox fill:#ecfdf5,stroke:#059669,stroke-width:2px,color:#064e3b;
-
-    class Architecture,SessionStore container;
-    class AgentLayer agentBox;
-    class AppLayer appBox;
-    class RunnerLayer runnerBox;
-    class UserApp userBox;
+flowchart TB
+  A[Application submits scoped message] --> B[Runner drives execution]
+  B --> C[SessionService loads conversation]
+  C --> D[App root agent processes request]
+  D --> E[Runner records and yields events]
 ```
 
 #### 1. The Agent: The Intelligence
 The `Agent` (or `root_agent`) represents the brain. It is defined using instructions, a selected LLM model (e.g., Gemini or a local LiteLLM model), structured output schemas, and tools.
 *   **Primary Responsibility:** Reasoning, prompt construction, and decision-making.
-*   **What it does NOT do:** It does not know about incoming HTTP requests, WebSocket connections, database drivers, or how many users are chatting simultaneously. It is a pure, stateless decision engine.
+*   **What it does NOT do:** It does not know about incoming HTTP requests, WebSocket connections, database drivers, or how many users are chatting simultaneously. It can read context and use tools during execution; keep per-request mutable data in the proper context/services rather than shared agent attributes.
 
 #### 2. The App: The Operational Container
 The `App` is the top-level configuration container that wraps your `root_agent`.
@@ -61,8 +67,8 @@ The `App` is the top-level configuration container that wraps your `root_agent`.
 
 #### 3. The Runner: The Orchestration Engine
 The `Runner` is the execution workhorse. It receives messages from your Python application, coordinates with the `SessionService` to load conversation history, invokes the agent, records state updates, and yields an asynchronous stream of `Event` objects.
-*   **Primary Responsibility:** Orchestration, state transition, and multi-tenant session isolation.
-*   **The Singleton Pattern:** In typical production services, you instantiate **only one Runner instance** for your entire process. That single Runner concurrently handles requests from hundreds or thousands of unique users across distinct sessions.
+*   **Primary Responsibility:** Execution and interaction with scoped session services. Your application must authenticate callers and enforce access to their sessions and business records.
+*   **Lifecycle:** A service can reuse a Runner with appropriately scoped services. This is not a mandatory singleton or a throughput guarantee. Test concurrency, per-session request coordination and resource cleanup for the chosen deployment.
 
 ---
 
@@ -106,32 +112,11 @@ The Runner achieves complete isolation by requiring two addressing keys for ever
 
 ```mermaid
 flowchart TB
-    subgraph RunnerInstance["Single Runner Process (Application Singleton)"]
-        direction TB
-        AppContainer["App: support_analyzer_app"]
-        RootAgentNode["Agent: support_analyzer_agent"]
-        SessionSvc["Session Service (InMemorySessionService)"]
-
-        AppContainer --> RootAgentNode
-        SessionSvc -.-> RootAgentNode
-    end
-
-    ClientAlice["Alice (user_id='alice', session_id='sess_01')"] -->|Request A| RunnerInstance
-    ClientBob["Bob (user_id='bob', session_id='sess_02')"] -->|Request B| RunnerInstance
-
-    SessionSvc -->|History A| HistoryAlice[("Alice's Isolated History: Invoice Dispute")]
-    SessionSvc -->|History B| HistoryBob[("Bob's Isolated History: Password Reset")]
-
-    RunnerInstance -->|Event Stream A| ClientAlice
-    RunnerInstance -->|Event Stream B| ClientBob
-
-    classDef runnerBox fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f;
-    classDef clientBox fill:#e0e7ff,stroke:#4338ca,stroke-width:2px,color:#1e1b4b;
-    classDef historyBox fill:#ecfdf5,stroke:#059669,stroke-width:1px,color:#064e3b;
-
-    class RunnerInstance runnerBox;
-    class ClientAlice,ClientBob clientBox;
-    class HistoryAlice,HistoryBob historyBox;
+  A[Alice request] --> C[Authenticate and bind session scope]
+  B[Bob request] --> C
+  C --> D[Runner uses selected SessionService]
+  D --> E[Load the requested authorized session]
+  E --> F[Return events to its caller]
 ```
 
 *   **`InMemoryRunner`**: Automatically instantiates an `InMemorySessionService`. It holds session histories in a Python dictionary in RAM. It is fast, requires zero database configuration, and is ideal for unit tests, local experimentation, and command-line scripts. All session history is cleared when the process exits.
@@ -160,7 +145,7 @@ app = App(
 )
 
 # 2. Instantiate the Runner with your App
-# InMemoryRunner manages sessions in RAM and configures default local credentials.
+# InMemoryRunner supplies development storage; configure model credentials separately.
 runner = InMemoryRunner(app=app)
 
 
@@ -259,25 +244,11 @@ In production applications (like a web chat widget or streaming API endpoint), b
 Unlike `run_debug()`, which returns a static list, `run_async()` is an **asynchronous generator** (`AsyncGenerator[Event, None]`) that yields `Event` objects the moment the model or tool emits them.
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant App as Python Application
-    participant Runner as InMemoryRunner
-    participant Session as InMemorySessionService
-    participant Agent as Root Agent (LLM)
-
-    App->>Session: create_session(app_name, user_id)
-    Session-->>App: Session Object (session.id)
-    App->>Runner: run_async(user_id, session.id, new_message)
-    Runner->>Session: load conversation history
-    Runner->>Agent: process new message + history
-    Agent-->>Runner: emit Event 1 (turn started)
-    Runner-->>App: yield Event 1
-    Agent-->>Runner: emit Event 2 (thinking / tool)
-    Runner-->>App: yield Event 2
-    Agent-->>Runner: emit Event 3 (final response text)
-    Runner-->>App: yield Event 3 (is_final_response = True)
-    Runner->>Session: persist state and events
+flowchart TB
+  A[Create or load session] --> B[Submit Content to run_async]
+  B --> C[Runner executes agent and tools]
+  C --> D[Receive and inspect each Event]
+  D --> E[Render selected response content]
 ```
 
 #### Production Streaming Script
@@ -397,3 +368,8 @@ if __name__ == "__main__":
 - [ADK Agents & Apps Architecture](https://google.github.io/adk-docs/agents/)
 - [Google GenAI Python SDK Documentation](https://googleapis.github.io/python-genai/)
 - [Python `asyncio` Standard Library Guide](https://docs.python.org/3/library/asyncio.html)
+## Continue the course story
+
+Previous: [Module 05](../module05-running-agents/README.md) · Next: [Module 06.5](../module06_5-programmatic-execution/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.

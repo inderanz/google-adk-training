@@ -1,525 +1,453 @@
 ---
 sidebar_position: 14
-title: "Module 14: Integrating Third-Party Tools"
+title: "Module 14: Third-Party Tools — Using LangChain Tools with ADK"
 ---
 
-# Module 14: Integrating Third-Party Tools
+# Module 14: Third-Party Tools — Using LangChain Tools with ADK
 
-## Theory
-## 🧭 Executive Overview & The Enterprise Integration Dilemma
+## Before you begin: what this module teaches
 
-### Standing on the Shoulders of Giants
-In enterprise AI engineering, development teams repeatedly face a classic architectural crossroads: **Build vs. Buy vs. Compose**.
+**ADK concept: third-party tools inside an ADK agent.**
 
-While the ADK provides a powerful framework for building custom tools, you don't always have to reinvent the wheel. The AI and Python ecosystems are vast, with many open-source libraries that already provide pre-built tools for a wide range of tasks.
-When designing intelligent agents for complex enterprise workflows—such as corporate credit underwriting, regulatory compliance monitoring, or counterparty risk intelligence—an agent rarely operates in an informational silo. It needs access to external knowledge:
-1. **Public Encyclopedic and Corporate Profiles:** Entity histories, corporate hierarchy, past mergers and acquisitions, and executive leadership records.
-2. **Financial and Regulatory Filings:** SEC EDGAR disclosures, company registry documents, patent filings, and legal proceedings.
-3. **Scientific and Technical Literature:** ArXiv preprints, clinical trials, or engineering patents.
-4. **Alternative Public Data:** Domain WHOIS records, public market indices, or weather and geospatial metrics.
+An agent becomes useful when it can call operations outside the model, such as looking up a company. Google’s **Agent Development Kit (ADK)** calls these capabilities **tools**. A bank may already have a useful tool defined with another library. This module teaches how ADK’s `LangchainTool` adapter makes a LangChain tool available to an ADK agent.
 
-Frameworks like **LangChain** have a rich ecosystem of "toolkits" and "agents" that come with ready-to-use integrations for services like Wikipedia, WolframAlpha, various search APIs, and more.
-Faced with these requirements, engineering teams often fall into one of two dangerous extremes:
+An **adapter** connects two interfaces. Here, it lets ADK expose and execute the existing tool’s callable capability. You will trace the company ID from the proposed tool call into the Python lookup, and follow the structured result back to the agent. The adapter connects the libraries; the lookup still needs rules for valid IDs, permitted data, freshness and failures. Those responsibilities do not disappear because a framework supplies the connection.
 
-The Google ADK is designed with **interoperability** in mind. It allows you to tap into this vast ecosystem by providing simple wrappers that make it possible to use tools from other popular frameworks directly within your ADK agent. This lets you leverage the best of both worlds: the robust, scalable architecture of the ADK and the extensive tool library of the broader community.
-```mermaid
-flowchart TD
-    subgraph AntiPatternA["The Novice Trap: Not-Invented-Here (NIH) Syndrome"]
-        A1["Requirement: Query Wikipedia / ArXiv / Public Records"] --> B1["Hand-write 1,200 lines of custom scraping & HTTP code"]
-        B1 --> C1["Fragile HTML regex parsing & unhandled pagination"]
-        C1 --> D1["Massive maintenance overhead & technical debt"]
-    end
+**Where you would use this in real work.**
 
-### The Wrapper Pattern
-    subgraph AntiPatternB["The Careless Trap: Uncontrolled Dependency Chaos"]
-        A2["Requirement: Query Public Ecosystem"] --> B2["Blindly pip-install heavy third-party frameworks"]
-        B2 --> C2["Dependency hell, version conflicts, transitively bloated images"]
-        C2 --> D2["Unmonitored execution, supply-chain vulnerabilities, prompt leaks"]
-    end
+In our fictional banking story, Meera is preparing for a meeting with Acme Robotics. She needs the company’s name, a short description, the source record and its review date. The bank’s earlier prototype already packaged this lookup as a LangChain tool.
 
-The key to this integration is the **Wrapper Pattern**. The ADK provides special wrapper classes, like `LangchainTool`, that act as adapters.
-    subgraph FDEStandard["The Google FDE Standard: Controlled Ecosystem Interoperability"]
-        A3["Requirement: External Public Knowledge"] --> B3["Leverage Proven Third-Party Tools via ADK Adapters"]
-        B3 --> C3["Wrap with LangchainTool & Enterprise Governance Guardrails"]
-        C3 --> D3["Input sanitization, output clipping, zero-trust token isolation"]
-    end
+The technology team asks: “Can our ADK assistant reuse that tool?” You will answer by connecting the existing capability and checking its behaviour. If the record is missing or too old, Meera needs that fact stated clearly. An attractive paragraph created without a usable record would not meet her request.
 
-Here's how it works:
-    style AntiPatternA fill:#ffebee,stroke:#c62828,stroke-width:2px
-    style AntiPatternB fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    style FDEStandard fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-```
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
 
-1.  **You find a tool** you want to use from a third-party library (e.g., a Wikipedia search tool from LangChain).
-2.  **You instantiate** this third-party tool according to its own library's documentation.
-3.  **You "wrap"** this instance inside the corresponding ADK wrapper class (e.g., `LangchainTool(tool=your_langchain_tool_instance)`).
-4.  **You add the wrapped tool** to your ADK agent's `tools` list.
-### The Client Context: Sovereign Horizon Bank (Project Sentinel)
+Gemini interprets the analyst’s request through the configured Google enterprise backend. ADK manages the agent and tool call. In this example, BigQuery stores the reviewed company profiles, and Google’s BigQuery client performs the bounded lookup inside the tool.
 
-The ADK wrapper handles all the translation behind the scenes. It inspects the third-party tool, extracts its name, description, and parameters, and generates the necessary schema for the Gemini LLM to understand it. When the LLM decides to call the tool, the wrapper receives the request, calls the underlying third-party tool's execution method, and then formats the result back into a standard dictionary that the ADK agent can understand.
-At **Sovereign Horizon Bank**, the Commercial Lending Group is deploying **Project Sentinel**: an autonomous Counterparty Due Diligence Agent. When a multinational enterprise applies for a syndicated loan facility exceeding \$50,000,000, credit officers must verify the borrower's public corporate profile, historical business pivots, and executive litigation history alongside internal financial spreadsheets.
+These are separate responsibilities: reasoning, tool execution and data retrieval. Agent Runtime can host the application on the managed path, but installing LangChain or wrapping its tool does not create a deployment. You will learn to reuse the tool while keeping the application’s execution and Google service configuration explicit.
 
-Once wrapped, a third-party tool behaves just like a **custom function tool** you wrote yourself — you can freely mix multiple wrapped tools (e.g. a `WikipediaQueryRun` from LangChain alongside your own `get_order_status` function) in the same agent's `tools` list.
-Writing custom web scrapers and API wrappers for Wikipedia, arXiv, or corporate directories would consume weeks of valuable engineering bandwidth. Fortunately, the broader open-source Python ecosystem (notably LangChain and community toolkits) already maintains battle-tested, actively patched libraries for hundreds of public data sources.
+**By the end, you should be able to:**
 
-**Important restriction:** As Module 12 covered, a **built-in tool** like `google_search` **cannot** share an agent's `tools` list with any custom function tools — and a wrapped third-party tool counts as a custom function tool for this purpose. This is a restriction from the Gemini API itself (not the ADK): it constructs fine in Python but fails the moment the model actually runs, with `400 INVALID_ARGUMENT: Multiple tools are supported only when they are all search tools.` So an agent can have `google_search` *or* a mix of custom/third-party tools, but not both together.
-Google ADK 2.0 does not force you into a walled garden. Instead, it provides first-class **interoperability adapters**—such as `LangchainTool`—enabling you to instantly harness external tool ecosystems while retaining Google ADK's enterprise-grade orchestration, zero-trust state management, and Cloud Run deployability.
+- **Explain the connection:** describe the ADK agent, LangchainTool adapter, existing LangChain tool and underlying Python function in order.
+- **Build the integration:** register the adapted tool and inspect which arguments the model is allowed to supply.
+- **Preserve the customer contract:** return a bounded profile with its source and review date, using a canonical company ID.
+- **Handle a failure:** distinguish invalid input, a missing profile, stale evidence and an unavailable service.
+- **Transfer the pattern:** assess another existing tool and identify what must be checked before an ADK agent may use it.
 
-If you need grounding *and* a third-party tool like Wikipedia search in the same system, use the same **sequential composition** pattern from Module 12: run a `google_search`-only agent, then feed its output into a second agent that has your wrapped third-party tool(s).
-In this module, you will learn the theory and practice of third-party tool integration, moving from basic adapter mechanics to advanced governance wrappers, sandboxed dependency isolation, and multi-agent sequential composition.
+**How this moves the story forward.** Meera can obtain an existing profile. Module 15 introduces a different kind of help: consulting another agent to explain the documents used in a review.
 
-### Why is this important?
----
+Read the detailed customer task below, then follow the [guided lab](./lab.md). Build one checkpoint at a time and compare your explanation with the observed result.
 
-*   **Saves Development Time:** Instead of writing your own code to connect to the Wikipedia API, you can use a pre-built, tested, and maintained tool from a library like LangChain in just a few lines of code.
-*   **Access to a Huge Library:** You gain immediate access to hundreds of existing tools for a massive variety of tasks.
-*   **Focus on Your Core Logic:** You can spend your time building the unique tools and business logic that are specific to your application, while relying on the community for common, general-purpose tools.
-## 📚 Level 1: Mental Model & Fundamentals (Beginner)
+## First understand the bank employee's task
 
-In the lab for this module, you will put this into practice by integrating a powerful web search tool from the LangChain ecosystem into your ADK agent.
-### The Adapter Pattern in Agent Development
+Imagine a business banking team at **Sovereign Horizon Bank**, a fictional bank used throughout this course. **Acme Robotics**, also fictional, has asked the bank about a business loan. We keep these names and IDs consistent with the runnable examples.
 
-### Key Takeaways
-- The ADK is interoperable and can integrate tools from third-party libraries like LangChain.
-- The ADK uses a "Wrapper Pattern" (e.g., `LangchainTool`) to adapt third-party tools for use within an ADK agent.
-- This approach saves significant development time by allowing you to leverage a vast ecosystem of pre-built, community-maintained tools.
-- **Potential Risk:** Integrating third-party libraries, especially those with extensive dependencies (like LangChain), can introduce the risk of "dependency conflicts" (often called "dependency hell"), where different libraries require incompatible versions of the same underlying package.
-- A wrapped third-party tool counts as a custom function tool, so it can freely mix with your own function tools — but, as in Module 12, it still **cannot** share a `tools` list with a built-in tool like `google_search`; use sequential composition if you need both.
-In classical software design (Gang of Four), the **Adapter Pattern** converts the interface of a class into another interface that clients expect. It allows classes with incompatible interfaces to work together seamlessly.
+A **relationship manager** works with business customers and helps coordinate their banking needs. Before meeting this company, the relationship manager asks a bank analyst to prepare a short introduction. An **analyst** is the employee who gathers information and checks the supporting records.
 
-This wraps up **Part 2: Tools & Capabilities** — your agent can now search, remember, call your own functions, and borrow tools from an entire ecosystem. In Part 3, you'll learn how to coordinate multiple specialized agents into **Multi-Agent Systems**.
-In Google ADK 2.0, an agent interacts with tools through a standardized tool interface:
-- It requires a **`types.FunctionDeclaration`** containing a name, a human-readable description, and a JSON schema of typed input parameters.
-- It expects an asynchronous or synchronous execution method that accepts arguments and returns a Python dictionary or primitive string.
+For this exercise, the analyst needs the company's name, a short description of what it does, the record used to write that description, and the date when the bank last reviewed that record. The analyst currently opens records and copies the details manually.
 
-## Official ADK / Google references
-Third-party libraries like **LangChain** structure their tools around `langchain_core.tools.BaseTool` or `StructuredTool`. These objects contain their own attributes (`.name`, `.description`, `.args_schema`, `._run`, `.coroutine`).
+The bank wants the analyst to ask an AI assistant:
 
-Use the official Google and ADK documentation as the current source of truth for tool interoperability and framework behavior:
-The ADK provides `LangchainTool` (`from google.adk.integrations.langchain import LangchainTool`) as an adapter:
+> “Please give me a short introduction to company ACME-001 before my meeting. Show me which record you used and its review date. If you cannot find the information, tell me what is missing.”
 
-- ADK documentation home: https://google.github.io/adk-docs/
-- ADK tools documentation: https://google.github.io/adk-docs/tools/
-- ADK agent and runtime docs: https://google.github.io/adk-docs/agents/
-- Gemini API docs: https://ai.google.dev/gemini-api/docs
-- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
-- LangChain integrations docs: https://python.langchain.com/docs/integrations/tools/
-```mermaid
-flowchart LR
-    subgraph ExternalEcosystem["LangChain Ecosystem"]
-        LT["LangChain BaseTool<br/>(e.g., WikipediaQueryRun)"]
-    end
+`ACME-001` is the company's identifier in the teaching data. It is not a PAN, CIN, account number or loan-case number. Later modules use `CASE-001` for a separate review case; the two IDs must not be treated as interchangeable.
 
-These references should be reviewed whenever the third-party tool ecosystem or ADK tool contracts evolve.
-    subgraph ADKAdapter["Google ADK 2.0"]
-        WRAPPER["LangchainTool Adapter<br/>- Inspects name & description<br/>- Extracts Pydantic args_schema<br/>- Generates Gemini FunctionDeclaration<br/>- Strips internal params ('run_manager')"]
-    end
+## What should the assistant return?
 
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module14-third-party-tools-README -->
-    subgraph GeminiModel["Google Gemini API"]
-        GEMINI["Gemini 2.5 Flash<br/>(Function Calling Engine)"]
-    end
+A useful answer contains these details:
 
-    LT <--> WRAPPER
-    WRAPPER <--> GEMINI
-```
+| Detail | What it means in this exercise |
+|---|---|
+| Company name | The name stored against the supplied company ID |
+| Short description | A summary based only on the retrieved company record |
+| Source | The record reference supplied with that information, so the analyst can check it |
+| Review date | The date recorded by the bank's data team when it reviewed the profile; not today's lookup date |
+| Missing information or problem | A clear explanation if the profile cannot be used |
 
-### The Mechanics of Wrapping a Tool
+The bank's data team chooses and reviews the records that analysts may use. We call these **approved records**. BigQuery stores those records in a table, which you can picture as rows and columns. Storing a row in BigQuery does not itself make the information correct.
 
-Integrating an external tool into an ADK agent involves four discrete steps:
+If the company ID is missing, the assistant asks for it. It does not guess an ID from a company name. If there is no matching profile, it says so. If the record is too old, incomplete, or temporarily unavailable, it explains the problem instead of writing an invented company introduction. The current code requires all its profile fields; it does not produce a partly filled successful profile.
 
-1. **Instantiate the Third-Party Utility:** Configure the external library's native connection, setting parameters like result limits or document length.
-2. **Create the Third-Party Tool:** Instantiate the library's tool object (e.g., `WikipediaQueryRun`).
-3. **Wrap with ADK's `LangchainTool`:** Pass the instance into `LangchainTool(tool=...)`. ADK automatically inspects the tool and generates the Gemini function declaration.
-4. **Register with the ADK Agent:** Place the wrapped tool into the `Agent(tools=[...])` list.
+The assistant prepares background information. It does not approve a loan or establish that the company has passed financial or regulatory checks.
 
-```python
-from google.adk import Agent
-from google.adk.integrations.langchain import LangchainTool
-from langchain_community.tools import WikipediaQueryRun
-from langchain_community.utilities import WikipediaAPIWrapper
-import wikipedia
+## Why is this a lesson about third-party tools?
 
-# Step 0: Set an enterprise User-Agent (Mandatory for Wikimedia API compliance)
-wikipedia.set_user_agent(
-    "SovereignHorizon-Sentinel/1.0 (https://sovereignhorizon.com/sentinel;"
-    " sec-ops@sovereignhorizon.com)"
-)
+Now consider a separate request from the bank's technology team:
 
-# Step 1: Instantiate the underlying LangChain API wrapper
-api_wrapper = WikipediaAPIWrapper(top_k_results=2, doc_content_chars_max=2500)
+> “Another team already provides a company lookup as a LangChain tool. Our new assistant uses Google ADK. Can the ADK agent use that existing tool without us rewriting the lookup?”
 
-# Step 2: Instantiate the LangChain tool
-langchain_wikipedia = WikipediaQueryRun(api_wrapper=api_wrapper)
+This is the main question of Module 14. **Third-party** means the capability comes from another library or provider. **LangChain** is a separate library that can represent Python operations as tools. **ADK's LangchainTool** is Google's adapter that makes a supported LangChain tool usable by an ADK agent. An **adapter** connects two different interfaces; it does not decide whether the returned information is true.
 
-# Step 3: Wrap using the ADK Adapter
-adk_wikipedia_tool = LangchainTool(
-    tool=langchain_wikipedia,
-    name="corporate_encyclopedia_search",  # Optional: Clean business name
-    description=(  # Optional: Precise prompt-optimized description
-        "Search Wikipedia for corporate backgrounds, business history, and"
-        " executive profiles."
-    ),
-)
+The main learning path is:
 
-# Step 4: Register with the ADK Agent
-sentinel_agent = Agent(
-    name="due_diligence_agent",
-    model="gemini-2.5-flash",
-    instruction=(
-        "You are a corporate due diligence specialist for Sovereign Horizon"
-        " Bank. When researching corporate entities, use the"
-        " corporate_encyclopedia_search tool to retrieve verified historical"
-        " facts."
-    ),
-    tools=[adk_wikipedia_tool],
-)
-```
+1. Understand the company lookup's input and result.
+2. Represent that existing lookup as a LangChain `StructuredTool`.
+3. Wrap it with ADK's `LangchainTool`.
+4. Register the adapted tool in the ADK agent's `tools` list.
+5. Inspect the arguments, returned data and final explanation.
+6. Compare with a direct ADK function tool to understand what the adapter changes.
 
-### The Wikimedia User-Agent Requirement: A Lesson in Real-World API Hygiene
+The supplied company lookup reads BigQuery. That gives us a controlled example with the same input and result in both versions. **BigQuery is the supporting data source; reusing a third-party tool through ADK is the module topic.** You do not need to build a LangChain agent or learn the whole LangChain framework.
 
-A common stumbling block for beginners integrating third-party tools is **API Provider Policies**.
+## Keep the deployment question separate
 
-For example, the open-source `wikipedia` Python package historically defaulted to a generic `User-Agent: python-requests/x.y.z`. Because thousands of developers made millions of unthrottled requests using this identical header, Wikimedia Foundation enacted a strict policy: any request bearing a generic or missing `User-Agent` is throttled or rejected with an HTTP 403 / HTML error, leading to a confusing `requests.exceptions.JSONDecodeError`.
+The bank wants Google Cloud for model access, application hosting and stored company records. Using an open-source LangChain tool inside an ADK application does not, by itself, require hosting the application elsewhere. Google Cloud identity, permissions and service configuration are taught after the tool's basic execution is clear.
 
-As a Google FDE, you must always ensure your agents operate with proper identification:
-```python
-wikipedia.set_user_agent(
-    "EnterpriseAppName/Version (ContactURL; SecurityEmail)"
-)
-```
-This is not merely a workaround; it is professional API governance.
+An earlier prototype used a LangChain Wikipedia tool. Wikipedia introduces a separate decision about where facts come from. We examine it later as a comparison; the main lab reuses a LangChain tool that reads the bank's selected records. An adapter's ability to call a tool is separate from whether that source meets the bank's needs.
 
----
+## Words you will see in the code and later explanations
 
-## ⚙️ Level 2: The Core Anatomy: What, How, When, Why, Where (Intermediate)
+| Word | Simple meaning in this example |
+|---|---|
+| Canonical company ID | The agreed company identifier in the bank's records, such as ACME-001 |
+| Evidence | The retrieved record used to support the answer |
+| Provenance | Information showing where the record came from and when it was reviewed |
+| Freshness | Whether the review date is recent enough for the agreed use |
+| Contract | The input, result fields and failure outcomes the lookup promises to support |
+| Parameterized query | A database query where the company ID is supplied as a value rather than inserted into the SQL text |
+| Runtime | The process or hosted service in which the application executes |
 
-## Official References
-To make sound engineering decisions, an FDE must be able to articulate the complete architectural profile of third-party tool integrations.
+## Work through the concept as a customer problem
 
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Gemini API (multimodal): https://ai.google.dev/gemini-api/docs
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Vertex AI generative guidance: https://cloud.google.com/vertex-ai/generative-ai
-- Cloud Vision and OCR: https://cloud.google.com/vision
-### The 5 W's Architectural Breakdown
+### Reuse a working desk procedure through an adapter
 
-| Dimension | Question | Enterprise FDE Answer |
+Suppose the bank already has a company-lookup function used by a LangChain application. Meera wants the new ADK assistant to use that capability. Rewriting the query would introduce another copy to maintain. Replacing the whole agent framework would also be unnecessary. The narrow problem is making the existing tool callable from ADK.
+
+An **adapter** translates an interface: how an operation is described, called and returned. Think of a branch using a standard request form to contact an established records desk. The form changes how the branch requests help; it does not change who owns the records or make the records more reliable.
+
+### Follow the four layers separately
+
+The underlying Python lookup validates a company ID and reads a bounded BigQuery result. LangChain's `StructuredTool` describes that operation as a tool. ADK's `LangchainTool` adapts that tool into ADK's interface. The ADK `Agent` exposes the adapted capability in its `tools` list; Gemini may request it during execution.
+
+**Schema** means the permitted argument/result structure. **Validation** checks a value against the contract. **Provenance** identifies the record's source. **Freshness** concerns whether the recorded review time is acceptable for this use. A schema-valid answer can still be old; an adapter cannot resolve that business question.
+
+If the user asks about “Acme,” first resolve the intended canonical company ID. Do not manufacture `ACME-001` from a case ID or use the model's guessed association as bank truth. When no approved record exists, a clear missing-record result is more useful than an invented company profile.
+
+### Three reviews before accepting the design
+
+- **Beginner:** point to the underlying function, LangChain wrapper, ADK adapter and agent registration. Explain which layer actually queries BigQuery and why a LangChain agent is not required.
+- **Experienced engineer:** compare the same lookup through a native ADK function tool and the LangChain adapter. Check argument validation, errors, source fields and result size. Retain the adapter when reuse justifies the dependency.
+- **Bank FDE:** ask whether an existing approved tool must be reused, who curates its data and how stale/missing records should appear to analysts. Google Cloud hosting is compatible with an open-source adapter; it does not make an arbitrary public source approved for customer decisions.
+
+**Carry forward:** [Module 15](../module15-intro-to-multi-agent-systems/README.md) keeps the familiar call-and-return idea but makes the callable capability a reasoning agent rather than a data lookup.
+
+## Learning path and deliverables
+
+| Stage | What you learn | What you produce |
 |---|---|---|
-| **WHAT** | What is third-party tool integration in ADK? | An adapter-based integration pattern where foreign tool classes (such as LangChain `BaseTool` or `StructuredTool`) are converted into native ADK `FunctionTool` objects. ADK dynamically translates foreign Pydantic schemas into Google Gemini `FunctionDeclaration` objects and bridges execution invocations across runtime boundaries. |
-| **HOW** | How does it function mechanically? | 1. **Reflection & Inspection:** ADK's `LangchainTool` inspects the wrapped object's `.args_schema`, `.name`, and `.description`.<br/>2. **Schema Synthesis:** ADK strips framework-internal parameters (e.g., `run_manager`) and converts Pydantic fields into Gemini OpenAPI-compatible parameters.<br/>3. **Dispatch:** At runtime, when Gemini outputs a function call, ADK intercepts it and delegates execution to `tool.run_async()` or `tool.run()`, returning a structured response to the agent. |
-| **WHEN** | When should an FDE use third-party tools? | • When standard, community-hardened utilities already exist for **public, non-proprietary data sources** (e.g., Wikipedia, ArXiv, PubMed, DuckDuckGo, SEC EDGAR).<br/>• During **rapid discovery and prototyping sprints** where building custom scrapers would stall delivery.<br/>• **When NOT to use:** Never for core internal banking systems, sensitive customer ledger mutations, low-latency (less than 15ms) hot paths, or when the external library introduces untrusted or heavily vulnerable dependencies. |
-| **WHY** | Why adopt this pattern over custom tools? | • **80%+ Time Savings:** Eliminates the need to hand-write pagination, rate-limit backoff, and text truncation logic for public APIs.<br/>• **Interoperability:** Allows enterprise teams with existing LangChain tool investments to migrate seamlessly to Google ADK without rewriting tool assets.<br/>• **Why caution is required:** Third-party libraries increase the attack surface, can introduce breaking schema changes during package updates, and risk dependency collisions. |
-| **WHERE** | Where does this sit in an enterprise agentic architecture? | At the **periphery (edge connectors)** of the multi-agent system. Wrapped tools should reside in specialized, read-only research agents or data-enrichment sub-agents, safely decoupled from core financial decision nodes and ledger systems. |
+| Beginner | Functions, arguments, dictionaries, imports, exceptions, type hints | Explain one lookup without calling any code a “black box” |
+| Intermediate | ADK schemas, function tools and adapters for other libraries | A working LangChain tool registered through the ADK adapter |
+| Advanced | Provenance, freshness, parameterized SQL, output budgets, failure modes | Deterministic tests and a model evaluation plan |
+| Enterprise delivery | Identity boundaries, IAM, deployment, monitoring, rollback | A reviewable customer design and deployment evidence checklist |
 
----
+Read this page, complete the [lab](./lab.md), compare with the [annotated solution](./lab-solution.md), and apply the [enterprise playbook](./enterprise-playbook.md). Executable source, tests, a dependency lock, and evaluation inputs live in the sibling `example/` directory.
 
-### The Gemini API Multi-Tool Constraint: A Critical Architectural Rule
+The earlier modules taught function tools, grounding, and `ToolContext`. This module teaches **how an ADK agent calls a tool supplied through another library**. A context object is not required when a function does not use it; the lookup here authenticates to BigQuery through the application's Google Cloud identity.
 
-In Module 12, we explored built-in tools like `google_search`. A fundamental constraint of the Google Gemini API (at the foundation model level, not the ADK framework level) is the **Search Tool Isolation Rule**:
+## Version baseline and what was verified
 
-> [!WARNING]
-> **The Gemini Multi-Tool Restriction:**
-> Google Gemini models **cannot mix built-in search tools (`google_search`) with custom function tools or wrapped third-party tools in the same agent's `tools` list**.
->
-> If you configure:
-> ```python
-> # ❌ THIS WILL FAIL AT RUNTIME
-> agent = Agent(
->     model="gemini-2.5-flash",
->     tools=[
->         google_search,
->         adk_wikipedia_tool,
->     ],  # Mixes built-in search + custom/wrapped tool
-> )
-> ```
-> The Python instantiation will succeed, but the moment the agent executes, the Gemini API returns:
-> ```text
-> 400 INVALID_ARGUMENT: Multiple tools are supported only when they are all search tools.
-> ```
+See the [course review and verification record](../module15-intro-to-multi-agent-systems/review-notes.md) for the cross-module checks and the evidence still required from a customer deployment.
 
-Because wrapped third-party tools (`LangchainTool`) are registered internally as **custom function tools**, they count as function tools under this rule!
+Reviewed **3 October 2026**:
 
-#### The FDE Architectural Solution: Sequential Agent Composition
-
-In an enterprise due diligence workflow for Sovereign Horizon Bank, you often need **both**:
-- Current, breaking news and real-time press releases (via `google_search`).
-- Structured historical corporate encyclopedic background (via wrapped `WikipediaQueryRun`).
-
-How do you combine them without triggering `400 INVALID_ARGUMENT`? You use **Sequential Agent Composition**:
-
-```mermaid
-flowchart TD
-    UserQuery["User Request:<br/>'Perform due diligence on Acme Robotics Corp'"] --> Agent1
-
-    subgraph Phase1["Phase 1: Real-Time Grounding"]
-        Agent1["Live News Agent<br/>(model: gemini-2.5-flash)<br/>Tools: [google_search] ONLY"]
-        Agent1 --> Result1["Output: Recent funding rounds, regulatory headlines"]
-    end
-
-    Result1 --> Agent2
-
-    subgraph Phase2["Phase 2: Historical Corporate Diligence"]
-        Agent2["Corporate History Agent<br/>(model: gemini-2.5-flash)<br/>Tools: [adk_wikipedia_tool, internal_db]"]
-        Agent2 --> FinalReport["Comprehensive Underwriting Due Diligence Report"]
-    end
-
-    style Phase1 fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
-    style Phase2 fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-```
-
-By decoupling search grounding from function tools across distinct, specialized agents, your system remains 100% compliant with the Gemini API specification while providing richer, multi-dimensional intelligence.
-
----
-
-## 🚀 Level 3: Under the Hood: Schema Synthesis & Execution Pipeline (Advanced)
-
-To debug and govern third-party tools effectively, an enterprise engineer must understand how Google ADK executes `LangchainTool` internally.
-
-### Dissecting the ADK `LangchainTool` Implementation
-
-Inspecting the ADK 2.0 source code (`google.adk.integrations.langchain.LangchainTool`) reveals how ADK bridges the two frameworks:
-
-```python
-class LangchainTool(FunctionTool):
-  _langchain_tool: Union[LangchainBaseTool, object]
-  _return_direct: bool
-
-  def __init__(self, tool, name=None, description=None):
-    # 1. Validation: Verify tool has .run or ._run
-    if not hasattr(tool, "run") and not hasattr(tool, "_run"):
-      raise ValueError("Tool must be a Langchain tool with run/_run method.")
-
-    # 2. Extract underlying execution callable
-    if isinstance(tool, StructuredTool):
-      func = tool.func or tool.coroutine
-    elif hasattr(tool, "_run"):
-      func = tool._run
-    else:
-      func = tool.run
-
-    super().__init__(func)
-
-    # 3. Strip framework-specific internal parameters
-    self._ignore_params.append("run_manager")
-    self._langchain_tool = tool
-    self._return_direct = getattr(tool, "return_direct", False)
-
-    # 4. Allow overriding name and description for prompt optimization
-    if name is not None:
-      self.name = name
-    elif hasattr(tool, "name") and tool.name:
-      self.name = tool.name
-
-    if description is not None:
-      self.description = description
-    elif hasattr(tool, "description") and tool.description:
-      self.description = tool.description
-```
-
-### Three Critical Framework Secrets Revealed by the Source Code
-
-#### 1. Automatic Parameter Filtering (`run_manager`)
-LangChain tools frequently accept an internal `CallbackManager` parameter named `run_manager: Optional[CallbackManagerForToolRun] = None`. If passed to Gemini, the model would hallucinate JSON values for this internal object, causing immediate runtime crashes.
-
-Notice line 21: `self._ignore_params.append('run_manager')`. ADK automatically strips this parameter so Gemini's function schema contains only clean, business-relevant arguments.
-
-#### 2. Schema Translation (`_get_declaration()`)
-When Gemini queries the agent's capabilities, `LangchainTool` invokes `_get_declaration()`. If the wrapped tool defines an `args_schema` (a Pydantic `BaseModel`), ADK extracts that schema and translates it directly into Gemini's `FunctionDeclaration`. If no Pydantic schema is present, ADK falls back to Python signature inspection.
-
-#### 3. Preserving Verbatim Output (`return_direct`)
-In LangChain, a tool can set `return_direct = True`, meaning its output should be returned immediately to the user without being summarized or rephrased by the LLM.
-
-Notice how ADK respects this in its `run_async` implementation:
-```python
-if self._return_direct and not (
-    isinstance(result, dict) and result.get("error")
-):
-  tool_context.actions.skip_summarization = True
-```
-ADK directly hooks into `tool_context.actions.skip_summarization = True` (which we studied in Module 13)! This guarantees that exact legal disclosures, raw financial tables, or verbatim citations bypass LLM summarization.
-
----
-
-## 🛡️ Level 4: Enterprise Governance, Sandboxing & Zero-Trust Engineering (Expert)
-
-In a Tier-1 financial institution like Sovereign Horizon Bank, importing raw open-source libraries directly into your agent runtime without governance is considered an unacceptable operational vulnerability.
-
-### The Threat Landscape: OWASP Top 10 for LLMs
-
-Integrating third-party tools introduces two specific vulnerabilities from the **OWASP Top 10 for Large Language Models**:
-
-1. **LLM05: Supply Chain Vulnerabilities:** Third-party packages often import dozens of unvetted transitive dependencies. A malicious update or unmaintained dependency can compromise the host container.
-2. **LLM07: Insecure Plugin Design:** External tools may accept unvalidated strings. If an adversary injects a prompt injection payload into a research query (e.g., `Marie Curie; rm -rf /`), an un-sanitized tool might execute dangerous shell commands or trigger Denial of Service.
-3. **Token & Context Bloat:** Public tools like Wikipedia or web search tools may return 50,000 characters of unformatted HTML, exhausting the model's context window or costing hundreds of dollars in unnecessary token processing.
-
-```mermaid
-flowchart TD
-    subgraph RawIntegration["Ungoverned Third-Party Tool (Vulnerable)"]
-        A1["LLM Output"] --> B1["LangchainTool"]
-        B1 --> C1["Public API / Wikipedia"]
-        C1 -- "50,000 chars of raw HTML & PII" --> D1["Context Window Blown / Budget Depleted 💥"]
-    end
-
-    subgraph GovernedIntegration["Enterprise Governed Adapter (The FDE Standard)"]
-        A2["LLM Output"] --> B2["FDE Governed Wrapper"]
-        B2 -- "1. Validate query length & strip injection characters" --> C2["Input Sanitizer"]
-        C2 --> D2["Underlying LangchainTool"]
-        D2 --> E2["Public API / Wikipedia"]
-        E2 --> F2["Output Guardrail"]
-        F2 -- "2. Clip to 2,000 chars & redact sensitive patterns" --> G2["Sanitized Return Payload"]
-        G2 --> H2["Gemini Context"]
-    end
-
-    style RawIntegration fill:#ffebee,stroke:#c62828,stroke-width:2px
-    style GovernedIntegration fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-```
-
-### Building the Enterprise Governed Tool Adapter
-
-To eliminate these risks, Google FDEs deploy the **Enterprise Governed Tool Adapter**. Rather than passing a raw `LangchainTool` directly to the agent, we subclass or wrap it with an enterprise policy controller:
-
-```python
-import re
-from typing import Any
-from google.adk.integrations.langchain import LangchainTool
-from google.adk.tools import ToolContext
-
-
-class GovernedCorporateResearchTool(LangchainTool):
-  """Enterprise-hardened wrapper for third-party research tools.
-
-  Enforces strict input validation, length bounding, prompt injection
-  neutralization, and output payload truncation.
-  """
-
-  def __init__(
-      self,
-      tool: Any,
-      name: str = "governed_corporate_research",
-      description: str = "Search external encyclopedic knowledge.",
-      max_query_chars: int = 150,
-      max_output_chars: int = 2500,
-  ):
-    super().__init__(tool=tool, name=name, description=description)
-    self.max_query_chars = max_query_chars
-    self.max_output_chars = max_output_chars
-
-  def _sanitize_input(self, query: str) -> str:
-    """Strip malicious control characters and enforce query length bounds."""
-    if not isinstance(query, str):
-      query = str(query)
-
-    # 1. Reject empty or oversized queries
-    cleaned = query.strip()
-    if len(cleaned) > self.max_query_chars:
-      cleaned = cleaned[: self.max_query_chars]
-
-    # 2. Neutralize classic prompt injection escape delimiters
-    cleaned = re.sub(
-        r"(ignore previous instructions|system prompt|admin override)",
-        "[REDACTED_INJECTION_ATTEMPT]",
-        cleaned,
-        flags=re.IGNORECASE,
-    )
-
-    # 3. Strip shell meta-characters
-    cleaned = re.sub(r"[;&|`$]", "", cleaned)
-    return cleaned
-
-  def _sanitize_output(self, raw_output: str) -> str:
-    """Enforce strict token budget guardrails and strip potential PII."""
-    if not raw_output:
-      return "No corporate intelligence records found."
-
-    text = str(raw_output)
-
-    # 1. Truncate to maximum permissible character length
-    if len(text) > self.max_output_chars:
-      text = (
-          text[: self.max_output_chars]
-          + "\n... [TRUNCATED BY ENTERPRISE POLICY TO PRESERVE CONTEXT WINDOW]"
-      )
-
-    return text
-
-  async def run_async(
-      self, *, args: dict[str, Any], tool_context: ToolContext
-  ) -> Any:
-    """Intercept invocation to apply pre-execution and post-execution guardrails."""
-    # Pre-execution: Sanitize the query argument
-    query_param_key = next(iter(args.keys())) if args else "query"
-    if query_param_key in args:
-      args[query_param_key] = self._sanitize_input(args[query_param_key])
-
-    # Execute underlying LangChain tool safely
-    try:
-      raw_result = await super().run_async(args=args, tool_context=tool_context)
-      return self._sanitize_output(str(raw_result))
-    except Exception as exc:
-      # Circuit breaker: Shield the LLM from raw stack traces
-      return (
-          f"External corporate research service temporarily unavailable: {exc}"
-      )
-```
-
-### Dependency Isolation: The Container Sidecar Pattern
-
-When an enterprise application requires libraries that have conflicting dependencies (e.g., LangChain requiring `pydantic v1` or older `numpy` while your core ADK services require modern `pydantic v2`), FDEs do not pollute the primary agent container.
-
-Instead, we employ the **Container Sidecar Pattern**:
-- Run the third-party tool inside an independent microservice container (e.g., a lightweight FastAPI or Flask container running on Cloud Run).
-- Expose its endpoint via an OpenAPI 3.0 specification.
-- Ingest it into your ADK agent using `OpenAPIToolset` (Module 11).
-
-This achieves **100% dependency isolation**: the third-party dependencies never touch your agent's runtime environment!
-
----
-
-## 🏛️ Level 5: Architectural Trade-Offs & FDE Decision Matrix (Expert)
-
-When selecting how to provide tools to an agent, a Google FDE chooses between four distinct tool modalities:
-
-### Comprehensive Tooling Modality Comparison
-
-| Dimension | Native Custom Function (`@tool`) | Zero-Adapter OpenAPI (`OpenAPIToolset`) | Wrapped Third-Party (`LangchainTool`) | Model Context Protocol (`MCPTool`) |
-|---|---|---|---|---|
-| **Primary Use Case** | Bespoke internal business logic, database queries, mathematical calculations. | Existing REST APIs, microservices, enterprise ERP/CRM services. | Standard public utilities, community libraries (Wikipedia, ArXiv, scraping). | Cross-vendor desktop/IDE integrations, standardized enterprise tool hubs. |
-| **Development Effort** | Medium (Writing Python functions and Pydantic schemas). | Zero (Synthesized automatically from OpenAPI spec). | Low (Instantiate and wrap in 4 lines). | Low (Connect to running MCP server). |
-| **Dependency Footprint** | Minimal (Standard library or core project deps). | Minimal (Only `google-adk` and HTTP client). | **Heavy** (Imports foreign framework and transitive dependencies). | Medium (Requires MCP client/daemon). |
-| **Governance & Security** | Maximum control; complete visibility into source code. | High; constrained by OpenAPI contract and API gateway policies. | **Requires Wrapper Guardrails** to prevent prompt injection and context bloat. | High; tools run in isolated processes with strict RPC schemas. |
-| **Latency Profile** | Ultra-low (In-process execution: less than 5ms). | Network bound (HTTP roundtrip: 30–150ms). | Variable (Depends on external library and remote API: 150–2,000ms). | IPC/RPC overhead (10–30ms). |
-| **Recommended Scope** | Core proprietary financial logic (credit models, risk calculations). | Internal microservices (Core Banking, Loan Origination APIs). | Peripheral research & public document discovery. | Developer tools, multi-agent shared resource hubs. |
-
----
-
-### Requirements-to-Code Matrix: Sovereign Horizon Bank Project Sentinel
-
-| Business Requirement | Threat / Challenge | Google FDE Implementation Pattern |
+| Component | Baseline | Evidence and scope |
 |---|---|---|
-| **Query Public Corporate Records** | Reinventing the wheel; building bespoke scrapers for Wikipedia. | Wrap `WikipediaQueryRun` using `LangchainTool(name='corporate_encyclopedia_search')`. |
-| **Wikimedia API Compliance** | Default user-agent blocked by Wikimedia bot policies with HTTP 403. | `wikipedia.set_user_agent("SovereignHorizon-Sentinel/1.0 (...)")`. |
-| **Context Window Preservation** | Wikipedia articles returning 30,000+ characters, causing token bloat. | Configure `WikipediaAPIWrapper(doc_content_chars_max=2000)` and enforce max output clipping in wrapper. |
-| **Prompt Injection Protection** | Malicious corporate descriptions escaping system prompts. | Enforce `_sanitize_input()` regex filtering to strip delimiters and injection phrases. |
-| **Simultaneous News & History** | Gemini API throws `400 INVALID_ARGUMENT` if combining `google_search` with custom tools. | **Sequential Agent Composition**: Deploy a `google_search` grounding agent followed by a corporate diligence agent. |
+| Google ADK | `2.11.0` | Current stable [PyPI release](https://pypi.org/project/google-adk/2.11.0/); imports, schemas, and tool execution checked |
+| BigQuery Python client | `3.45.2` | Resolved from PyPI; query configuration tested with the real SDK and a mocked client |
+| LangChain Core (required for the main lab) | `1.6.6` | Resolved from PyPI; adapter schema and execution compared with the native tool |
+| Python | Code supports 3.12+; tested on 3.14.7 | Latest stable patch is [3.14.8](https://www.python.org/downloads/release/python-3148/); it was unavailable through the local `uv` download catalog during this review |
+| Gemini model | Deployment configuration | `.env.example` suggests `gemini-3.8-flash`; confirm access, location, lifecycle, and evaluation results in your project |
 
----
+Google's [model lifecycle table](https://docs.cloud.google.com/gemini-enterprise-agent-platform/models/model-versions) lists Gemini 3.8 Flash and schedules Gemini 2.5 Flash retirement for 20 October 2026. The example reads `GEMINI_MODEL` from configuration instead of embedding an aging model ID in the implementation.
 
-## 🎯 Key Takeaways
+**Validation boundary:** deterministic tests use no cloud services. Live Gemini responses, BigQuery IAM, deployed networking, and model-based evaluation require an approved project and credentials; passing local tests does not establish production readiness. The solution records the checks actually performed.
 
-1. **Composition Over Reinvention:** The Google ADK is designed for interoperability. Through adapters like `LangchainTool`, you can leverage hundreds of battle-tested open-source tools without rebuilding them from scratch.
-2. **The Adapter Lifecycle:** Wrapping a third-party tool requires four simple steps: instantiate the underlying API wrapper, create the library tool object, wrap it with `LangchainTool`, and register it in the `Agent.tools` list.
-3. **The Gemini Multi-Tool Constraint:** Gemini foundation models cannot combine built-in `google_search` with custom or wrapped tools in the same agent. Solve this using **Sequential Agent Composition** (separate research and analysis agents).
-4. **Governance is Mandatory:** In enterprise environments, never deploy raw third-party tools directly to the model. Wrap them in an **Enterprise Governed Tool Adapter** to sanitize inputs, enforce token budgets, clip excessive outputs, and isolate credentials.
-5. **Architectural Placement:** Keep third-party tools at the edge of your agentic topology (research, enrichment). Core business logic and financial transactions should remain native custom functions or zero-adapter OpenAPI microservices.
+The updated lock uses Google Gen AI SDK 2.28.0 and LangSmith 0.14.4. Earlier warnings from their older versions are not evidence about this resolution. Keep warnings visible during testing and record the emitting package/version; the lesson should use public supported APIs rather than copying dependency internals.
 
----
+## Run the example and understand every command
 
-## 📚 Official References
+Before changing the code, run the supplied example's tests. This gives you a **baseline**: a known result from the unchanged reference implementation. Later, if a test fails after your edit, you can compare the new behavior with that starting point.
 
-- **Google ADK Documentation:** [https://google.github.io/adk-docs/](https://google.github.io/adk-docs/)
-- **ADK Tool Integrations:** [https://google.github.io/adk-docs/tools/](https://google.github.io/adk-docs/tools/)
-- **Google Gemini API Documentation:** [https://ai.google.dev/gemini-api/docs](https://ai.google.dev/gemini-api/docs)
-- **LangChain Tool Ecosystem:** [https://python.langchain.com/docs/integrations/tools/](https://python.langchain.com/docs/integrations/tools/)
-- **Wikimedia Foundation User-Agent Policy:** [https://meta.wikimedia.org/wiki/User-Agent_policy](https://meta.wikimedia.org/wiki/User-Agent_policy)
-- **OWASP Top 10 for LLM Applications:** [https://owasp.org/www-project-top-10-for-large-language-model-applications/](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+Think of this as rehearsing a bank enquiry with fictional records. We want to check that the assistant asks for the right company, preserves the evidence source, and refuses invalid requests before we connect it to a live banking environment.
+
+### 1. Open a terminal in the correct directory
+
+From the repository root, run:
+
+```bash
+cd training/module14-third-party-tools/example
+pwd
+ls
+```
+
+`cd` changes your terminal's working directory. `pwd` prints that directory; it should end in `module14-third-party-tools/example`. `ls` lists its contents. You should see `pyproject.toml`, `uv.lock`, `corporate_research`, and `tests`. If your terminal is already in `example`, skip the `cd` command.
+
+Run the following commands here, one at a time. Opening a Python file in your editor does not necessarily put the terminal in that file's directory. For the later practice exercise, use the corresponding directory in your practice copy.
+
+### 2. Understand the project files before installing anything
+
+| Item | What it means in this exercise |
+|---|---|
+| `pyproject.toml` | Declares Python requirements and direct dependencies: ADK, the BigQuery client and LangChain Core. |
+| `uv.lock` | Records resolved versions, including dependencies needed by those libraries. Let `uv` manage it; do not edit it by hand. |
+| `.venv/` | The project's Python environment, containing its interpreter and installed packages. It is created locally and can be rebuilt. |
+| `corporate_research/` | Our application code: agent registration, adapter, lookup rules and database access. |
+| `tests/` | Executable checks that compare actual behavior with expected behavior. |
+| `eval/` | Separate model-evaluation scenarios; the `unittest` command below does not execute these files. |
+
+The lock is the recorded dependency selection; `.venv` is the local installation. A virtual environment separates Python packages—it does not sandbox the application's permissions or network access. See [uv's project guide](https://docs.astral.sh/uv/guides/projects/).
+
+### 3. Install the locked dependencies
+
+```bash
+uv sync --locked
+```
+
+- `uv sync` creates or updates this project's `.venv` to match the selected dependencies. By default, it can remove extra packages that do not belong in that environment.
+- `--locked` checks that `uv.lock` agrees with the project requirements and refuses to change it. A missing or outdated lock causes an error.
+
+LangChain Core is already a required dependency here; no optional installation step is needed. Installation may download packages. It does not run the agent or query BigQuery. If everything is installed, a short audit message is normal. See [uv's locking and syncing documentation](https://docs.astral.sh/uv/concepts/projects/sync/).
+
+### 4. Check which Python will run the example
+
+```bash
+uv run --locked python --version
+```
+
+`uv run` executes a command in the project environment, checking its dependencies first. `python --version` prints that interpreter's version. You do not need to activate `.venv` manually when using `uv run`.
+
+For example, `Python 3.12.14` means this command selected Python 3.12.14. Your patch version may differ. The project's declared minimum is Python 3.12; the [verification table above](#version-baseline-and-what-was-verified) records the reviewed test environment separately. This command checks interpreter selection, not whether the application works.
+
+### 5. Run the local tests
+
+```bash
+uv run --locked python -m unittest discover -s tests -v
+```
+
+Read it from left to right:
+
+| Part | Instruction |
+|---|---|
+| `uv run --locked` | Use this project's environment without updating its dependency lock. |
+| `python -m unittest` | Run Python's built-in `unittest` module as a program. |
+| `discover` | Find test files automatically; the default filename pattern is `test*.py`. |
+| `-s tests` | Start searching in the `tests` directory. |
+| `-v` | Use verbose output: show each test name and its result. |
+
+A **test** supplies inputs, executes code and checks an expectation. An **assertion** is the check that fails when the result differs from the expected behavior. See [Python's test-discovery documentation](https://docs.python.org/3/library/unittest.html#test-discovery).
+
+### 6. Understand what these 23 tests actually exercise
+
+| Test group | Count | What it checks in this example |
+|---|---:|---|
+| Lookup business rules | 15 | Invalid IDs, missing or stale evidence, dates, source fields, output limits, Unicode, error handling and excluded fields. |
+| Repository behavior | 3 | Parameterized SQL, query resource limits, empty results and table-configuration validation. |
+| Tool and adapter behavior | 3 | Native tool execution, the exposed argument schema, and equivalent lookup results through the LangChain adapter. |
+| ADK Runner integration | 2 | The registered adapted agent returns evidence with its source/date and rejects an invalid ID before querying. |
+
+These counts describe the current reference suite. Read the actual tests in `example/tests/test_tools.py` and `example/tests/test_agent_adapter.py` to connect each name to its assertion.
+
+**Worked example: rejecting an invalid company ID.** The Runner test uses this sequence:
+
+1. A **scripted model** emits a predetermined function call with `company_id="invalid id"`. No Gemini request is made.
+2. The real ADK `Runner` executes the registered `LangchainTool`, which reaches the real lookup function.
+3. The function rejects the ID and returns `status="invalid_input"`.
+4. The test checks that status and checks that `fetch_profile` was never called.
+
+`fetch_profile` is replaced with a **mock**: a test substitute that records calls and can supply a fictional result. In the successful Runner test, it supplies a prepared company record. This lets us test the adapter and business rules without querying BigQuery.
+
+The suite therefore needs no cloud project, API key or Google login, and makes no billable Gemini or BigQuery calls. It does execute real application code and ADK components. It does **not** verify live IAM, deployed networking, real query execution or the quality of Gemini's answers. Those belong to later integration checks and model evaluations.
+
+### 7. Read the result without confusing warnings with failures
+
+A successful run ends like this; execution time varies:
+
+```text
+Ran 23 tests in 0.247s
+
+OK
+```
+
+| Output | How to interpret it |
+|---|---|
+| A test name followed by `ok` | That test passed. |
+| `FAIL` | An assertion found different behavior from what the test expected. |
+| `ERROR` | An unexpected exception prevented the test from completing normally. |
+| `Ran 0 tests` | The intended checks did not run. Check the directory and discovery arguments even if the next line says `OK`. |
+| `FAILED (...)` | The suite did not pass; read the traceback for the affected test. |
+| `Skipping missing token usage metadata ... scripted-model` | The scripted model supplies no usage figures; ADK skips that accounting. |
+| `[EXPERIMENTAL] ... JSON_SCHEMA_FOR_FUNC_DECL` | ADK reports an experimental schema feature. Keep the warning visible; it is not itself a failed assertion. |
+| `Executing <Task ...> took ... seconds` | Asyncio's debug mode reports a slow task step. It is a diagnostic, not itself a failed assertion. |
+
+For this exercise, expect **23 tests and `OK`**. That establishes the local baseline, not approval to deploy against customer records.
+
+### 8. Practise one boundary at a time
+
+Use a separate checkout or copy the example's source and configuration into a practice directory. Keep `pyproject.toml`, `uv.lock`, the application package and the tests together. Exclude `.venv` when copying; create the practice environment with `uv sync --locked`.
+
+1. Run the unchanged reference suite and note its result and Python version.
+2. Follow the [lab](./lab.md) in your practice copy. Begin with the company-ID validation inside `get_company_profile` in `corporate_research/tools.py`.
+3. Before editing, predict the result for a valid ID and an invalid ID. Write down why the invalid ID must stop before database access.
+4. Implement that exercise step, then rerun the relevant test file:
+
+   ```bash
+   uv run --locked python -m unittest discover -s tests -p 'test_tools.py' -v
+   ```
+
+5. Compare any failure with your prediction. Correct the implementation against the business contract; do not weaken a test merely to make it pass.
+6. Continue with record validation, repository behavior and the adapter as directed by the lab. Keep unrelated code working so each change has a clear purpose.
+7. Run the full 23-test command again after completing the exercise.
+
+The other files are **scaffolding**: working support code that lets you concentrate on one concept. They are still part of the solution; learn their role before replacing them. The goal is to explain why a test passes and which customer requirement it protects.
+
+### If setup does not work
+
+| Symptom | Next step |
+|---|---|
+| `uv: command not found` | Complete the course's [environment setup](../module02-environment-setup/README.md), then reopen the terminal if required. |
+| Project files or `tests` cannot be found | Check `pwd` and enter the example directory. |
+| The lock needs updating | Check whether `pyproject.toml` changed or the copied lock came from another revision. Keep the reference pair together rather than removing `--locked` to bypass the mismatch. |
+| Package download fails | Check connectivity and any required corporate package-index/proxy configuration. No application test has run yet. |
+| A test fails | Read its traceback, identify the expected and actual behavior, and compare your edit with the annotated solution. |
+
+## Write down exactly what the lookup may accept and return
+
+For this exercise, we make explicit design assumptions that an FDE would confirm with the customer:
+
+| Plain-English requirement | Implementation decision | Acceptance evidence |
+|---|---|---|
+| “Find a short description of this company” | Read one company ID from the bank’s records; ask when only a name is provided | Missing-ID conversation asks for clarification |
+| “Use records selected by the bank’s data team” | Query only a configured table and rows with `approved = TRUE` | Fixed SQL and IAM review |
+| “Show where it came from” | Return `source_uri` and `reviewed_on` unchanged | Provenance assertions and citation evaluation |
+| “Tell us when you cannot answer” | Distinct `not_found`, `stale`, `invalid_record`, and `unavailable` statuses | Failure-path tests |
+| “Do not use a profile reviewed too long ago” | Exercise policy: maximum age 90 calendar days in UTC | Boundary checks at 90 and 91 days |
+| “Keep the application and records on Google Cloud” | Google-hosted model and approved BigQuery evidence; no runtime public-web lookup | Dependency and outbound-traffic review |
+| “Do not expose everything” | One lookup parameter, selected columns, one row, bounded result | Schema, query, and output tests |
+
+
+
+## Understand the request flow
+
+Read these two diagrams separately: first how evidence becomes available, then how one request uses it. Each arrow means “the next step.”
+
+### Before the request: prepare the evidence
+
+The data team owns this prerequisite. The lab supplies a fictional table fixture; it does not implement an ingestion or review pipeline.
+
+```mermaid
+flowchart TD
+    Sources["Approved source<br/>documents"] --> Review["Ingest evidence<br/>and review it"]
+    Review --> Table["Store approved profiles<br/>in BigQuery"]
+```
+
+**Output:** the `company_profiles` table contains reviewed evidence, a source reference, and a review date. Neither storage nor an LLM turns an unverified claim into a verified fact.
+
+### During the request: look up one company
+
+This is the successful lookup path implemented by the example. The query reads the table prepared above; the model supplies only `company_id`.
+
+```mermaid
+flowchart TD
+    Analyst["1. Analyst provides<br/>a company ID"] --> Agent["2. ADK and Gemini<br/>request the lookup"]
+    Agent --> Adapter["3. ADK LangchainTool<br/>calls the existing lookup"]
+    Adapter --> Validate["4. Python validates<br/>the company ID"]
+    Validate --> Query["5. BigQuery executes<br/>a fixed, parameterized query"]
+    Query --> Check["6. Python checks the record<br/>and limits its size"]
+    Check --> Result["7. Tool returns evidence,<br/>source, date and status"]
+    Result --> Answer["8. Gemini drafts<br/>a sourced answer"]
+```
+
+**Failure paths:** invalid input stops before the query. Missing, stale, invalid, or unavailable evidence produces an explicit status instead of a successful profile. The [solution's decision diagrams](./lab-solution.md#1-start-with-the-business-contract) show those branches.
+
+The original request, tool result, and final answer can all enter the model context. Giving a sub-agent a limited argument list does not by itself isolate secrets from that sub-agent's process, environment, or conversation history.
+
+## Python concepts you will use
+
+| Expression | Meaning |
+|---|---|
+| `def get_company_profile(company_id: str) -> dict[str, str | bool]:` | Define a function taking text and returning a dictionary whose values are text or Boolean |
+| `isinstance(value, str)` | Check a value's runtime type |
+| `re.fullmatch(pattern, value)` | Require the entire identifier to match an allowed format |
+| `return {"status": "not_found"}` | Exit immediately with a structured result |
+| `try ... except` | Handle named failure types at a boundary |
+| `with bigquery.Client(...) as client:` | Use a client and close it when the block ends |
+| `record["summary"][:2000]` | Take at most the first 2,000 characters |
+| `dict[str, str] | None` | Return a dictionary or no record |
+| `datetime.now(UTC).date()` | Obtain today's date using an explicit UTC timezone |
+
+`typing.Dict` is a deprecated alias; use `dict[...]`. The `typing` module, `Any`, Pydantic, and asynchronous functions are not inherently deprecated. Add abstractions when they serve a purpose, and explain them. See [Python typing](https://docs.python.org/3/library/typing.html#deprecated-aliases).
+
+## Compare ways to connect a tool after learning the adapter
+
+| Option | Appropriate use | Boundary you still own |
+|---|---|---|
+| Plain Python function / `FunctionTool` | One stable business operation, such as a company-ID lookup | Validation, authorization, timeouts, result contract |
+| Official Google SDK inside the reused function | A narrow operation on BigQuery or another Google service | IAM, resource scope, service errors and costs |
+| ADK `BigQueryToolset` | Approved open-ended data exploration | Tool selection, write mode, dataset access, query budgets |
+| `LangchainTool` | Use an existing, reviewed LangChain tool from an ADK agent | Foreign dependencies and exact adapter semantics |
+| `OpenAPIToolset` | Existing REST contract or separately deployed connector | Authentication, server authorization, network controls |
+| `McpToolset` | Existing MCP tool server | Server trust, tool filtering, credentials, lifecycle |
+| Agent Search / Google Search grounding | Retrieval over managed stores or approved public-web research | Source scope, ACL behavior, supported model/tool combination, citation display |
+
+The native ADK [BigQuery integration](https://adk.dev/integrations/bigquery/) is available. This exercise deliberately exposes **one fixed lookup** instead of an arbitrary SQL tool because that matches the customer contract. The two choices have different authority and should be evaluated accordingly.
+
+No adapter, OpenAPI document, or MCP protocol automatically creates a sandbox. A Python import executes in your runtime and may access the process's credentials and network.
+
+## How the LangChain adapter works
+
+The adapter changes how ADK calls an existing tool. The business function still performs input validation, the BigQuery lookup, and result checks.
+
+```mermaid
+flowchart TD
+    Call["1. ADK receives<br/>a function call"] --> Adapter["2. LangchainTool invokes<br/>the wrapped callable"]
+    Adapter --> Function["3. Python function validates,<br/>queries and checks evidence"]
+    Function --> Result["4. Function returns<br/>a structured result"]
+    Result --> ADK["5. ADK passes the result<br/>back to the model"]
+```
+
+**Before execution**, `StructuredTool.from_function(...)` wraps the Python function and `LangchainTool(tool=...)` adapts that object for ADK. The adapter selects the underlying callable during construction; at step 2 it invokes that callable. The diagram describes this **specific `StructuredTool` example**, not every LangChain feature.
+
+In ADK 2.11.0, the adapter derives a function declaration from the selected function or coroutine. It does not run a LangChain agent. Do not assume that LangChain callbacks, tracing, middleware, or retry settings survive an adapter unchanged: test what you depend on.
+
+The current import is `from google.adk.integrations.langchain import LangchainTool`. The older `google.adk.tools.langchain_tool` path is a compatibility path. See the [versioned ADK adapter source](https://github.com/google/adk-python/blob/v2.11.0/src/google/adk/integrations/langchain/langchain_tool.py).
+
+For `return_direct=True`, the adapter can set ADK's `skip_summarization` action on a successful result. This controls summarization; it does not guarantee that every client renders verbatim text. Our adapter sets `return_direct=False` because the analyst needs a sourced explanation.
+
+## Advanced review: avoid these incorrect assumptions
+
+| Old claim | Accurate replacement |
+|---|---|
+| Regexes “neutralize prompt injection” | A format check constrains an ID. Retrieved instructions remain untrusted; use restricted authority, deliberate context handling, adversarial evaluation, and appropriate content controls |
+| A User-Agent authenticates an enterprise | It identifies a client. It does not authenticate a bank, grant API access, or guarantee success |
+| Catching exceptions is a circuit breaker | A circuit breaker needs state, failure thresholds, an open interval, and recovery behavior |
+| Truncating 2,000 characters enforces a token budget | Characters, bytes, tokens, and full-request cost differ |
+| A sub-agent isolates credentials | It is an orchestration boundary, not necessarily a process or identity boundary |
+| Two independently scaled Cloud Run services are a sidecar | They are separate services; sidecars share a service instance and lifecycle |
+| Google Search can never coexist with another tool | Compatibility depends on model, endpoint, SDK, and tool configuration; ADK documents supported workarounds |
+| A fixed adapter saves “80%” or achieves “99.98%” reliability | Those are measurements to collect, not properties guaranteed by a wrapper |
+
+For Google Search, consult [ADK tool limitations and workarounds](https://adk.dev/tools/limitations/), including `bypass_multi_tools_limit=True` and an `AgentTool` boundary. Do not teach a universal failure across all current Gemini models. The lookup lab needs no search tool, so it introduces no speculative search composition.
+
+## Transfer the lesson to a second customer
+
+Suppose a retailer asks: “Tell support staff which products have an approved recall notice.”
+
+Keep the integration reasoning, then change the domain: a canonical product ID, an approved recall source, an explicit freshness policy, a narrow lookup, structured evidence, access control, and tests for missing or contradictory records. A package wrapper is reusable; the business contract is not automatically reusable.
+
+You have learned the module when you can explain **why this tool should exist, what it is allowed to do, how its source is maintained, how it fails, and what evidence is needed before deployment**.
+
+## Sources
+
+- [ADK function tools](https://adk.dev/tools-custom/function-tools/)
+- [ADK BigQuery integration](https://adk.dev/integrations/bigquery/)
+- [BigQuery parameterized queries](https://docs.cloud.google.com/bigquery/docs/parameterized-queries)
+- [Gemini Enterprise Agent Platform overview](https://docs.cloud.google.com/gemini-enterprise-agent-platform/agents)
+- [Wikimedia User-Agent policy](https://meta.wikimedia.org/wiki/User-Agent_policy)
+- [Python tutorial](https://docs.python.org/3/tutorial/)
+
+## Continue the course story
+
+Previous: [Module 13.5](../module13_5-firestore-persistence/README.md) · Next: [Module 15](../module15-intro-to-multi-agent-systems/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module14-third-party-tools -->

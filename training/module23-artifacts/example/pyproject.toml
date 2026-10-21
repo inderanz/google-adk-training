@@ -1,0 +1,11 @@
+[project]
+name = "banking-module23"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["google-adk[gcp,a2a]==2.11.0", "google-cloud-modelarmor==0.7.1", "google-cloud-aiplatform[agent_engines]==1.165.1"]
+
+[project.optional-dependencies]
+eval = ["google-adk[eval]==2.11.0"]
+
+[tool.uv]
+package = false

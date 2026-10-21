@@ -1,0 +1,10 @@
+[
+  {
+    "id": "allowed",
+    "prompt": "Read the checklist for CASE-001.",
+    "expected": {
+      "tool": "read_checklist",
+      "status": "ok"
+    }
+  }
+]

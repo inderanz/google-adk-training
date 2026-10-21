@@ -1,0 +1,10 @@
+[
+  {
+    "id": "pack",
+    "prompt": "Prepare CASE-001 review pack. Save the checklist then use its returned version.",
+    "expected": {
+      "tool": "create_review_pack",
+      "status": "prepared_for_human_review"
+    }
+  }
+]

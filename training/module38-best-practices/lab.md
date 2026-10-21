@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 38: Building a Production-Ready Agent with ADK 2.0
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 
 In this lab, you will build a **Best Practices Agent** that demonstrates several production-ready patterns: Input Validation, Framework-Level Retries, and Caching.

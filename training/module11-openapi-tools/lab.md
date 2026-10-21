@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 11: Enterprise Core Banking OpenAPI Integration Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## 🏛️ Enterprise Scenario: Apex Global Financial Services
 
 You are a **Google Forward-Deployed Engineer (FDE)** assigned to **Apex Global Financial Services**. The bank is modernizing its wealth management platform and wants to equip financial advisors with an AI Assistant capable of interacting with their **Core Banking Gateway**.
@@ -123,6 +126,11 @@ CORE_BANKING_SPEC = {
 #     tools=[...]
 # )
 ```
+
+> [!TIP]
+> **Enterprise Tip (Handling Internal Hostnames & `ConnectError`):**
+> Because `https://api.apexbank.internal/v1` is a private intranet domain, your local operating system cannot resolve it via public DNS (raising `ConnectError: [Errno 8]`).
+> To test your agent locally without real network dependencies, Google FDEs inject an in-memory transport mock via `httpx_client_factory` and `httpx.MockTransport`. Check the [Lab Solution](/google-adk-training/module11-openapi-tools/lab-solution) for the complete pattern!
 
 ---
 

@@ -7,6 +7,9 @@ import { ChainSetup } from '../_chain-setup-snippet.mdx';
 
 # Lab 5: Exploring Different Execution Modes Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 Your task is to run and interact with your **"Support Analyzer"** agent using the three primary execution modes provided by the ADK CLI. **Always run these commands from your main `adk-training` directory.**
 

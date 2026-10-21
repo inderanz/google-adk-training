@@ -1,207 +1,485 @@
 ---
 sidebar_position: 3
-title: "Lab Solution"
+title: "Complete Banking Lab Solution"
 ---
 
-# Lab 24 Solution: Creating an Evaluation Case for the Calculator Agent
+# Lab 24 solution: Evaluation: Evidence for a Banking Release Decision
 
-## Goal
+A runnable banking agent, four native ADK evaluation cases, a quality rubric, a separate trajectory exercise and an explicit result gate.
 
-This file contains the expected output for the `calculator_tests.evalset.json` file that is generated during the lab, directly inside the `calculator_agent` directory (not in a separate `eval_results/` folder). This demonstrates the structure of a "golden path" test case that can be used for automated regression testing.
+The runnable source below is reproduced from `example/`. Read the [guided lab](./lab.md) for function-by-function explanations. The [cloud guide](../module23-artifacts/google-cloud-lab-guide.md) explains the actual service and deployment paths.
 
-### `calculator_tests.evalset.json`
+The employee needs this result: Individual case results that can be inspected before a release decision. Missing results, failed cases or unscored required checks must not count as a pass.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
+Read the [plain-English task and term explanations](./README.md#read-this-as-a-bank-employees-task) before the implementation details.
+
+## Explain why this code exists
+
+“Never substitute a case” becomes a negative scenario. “Explain the evidence” becomes an answer rubric. “Look it up first” becomes a trajectory criterion where required. “Before release” becomes a gate over a complete, identified result set.
+
+Read the comments as a requirement-to-code explanation. Then trace one input through the ADK object, returned value and consuming operation. Reproducing the output is the first checkpoint; explaining the changed-input experiment is the mastery checkpoint.
+
+**Design review:** Compare two valid tool trajectories for the same customer outcome. Decide whether EXACT, IN_ORDER or ANY_ORDER matches the requirement, then document what that criterion still fails to establish.
+
+## Expected execution
+
+| Stage | Input/action | Expected interpretation |
+|---|---|---|
+| Customer asks about CASE-001 | Agent calls read_case with that identifier | Tool returns missing ownership_register and a source. |
+| Model explains the result | Judge sees the customer rubric | Quality is assessed against the business contract. |
+| Customer asks about CASE-999 | Tool returns not_found | Substituting another case fails the contract. |
+| Release gate reads results | Every expected case and criterion must exist | A missing case is not a passing case. |
+
+## What the checks establish
+
+The tests exercise Python contracts and native ADK wiring with scripted transport fixtures. The eval directory supplies live model acceptance cases; the deployed checker calls a real hosted resource when configured. No live score or deployed pass is asserted without a recorded run.
+
+## `bank_review/agent.py`
+
+```python
+"""Evaluate grounded explanation separately from exact tool contracts."""
+import os
+from google.adk.agents import Agent
+from google.adk.apps import App
+
+
+def read_case(case_id: str) -> dict:
+    """Read a synthetic record; unsupported identifiers never return CASE-001."""
+    # Reject unsupported identifiers before returning facts, preventing accidental substitution of another case.
+    if case_id != "CASE-001":
+        return {"status": "not_found"}
+    return {
+        "status": "ok", "case_id": case_id,
+        "missing_documents": ["ownership_register"],
+        "source": "training-fixture:checklist-v1",
+        "decision_owner": "human_analyst",
+    }
+
+
+def build_app(model=None) -> App:
+    # Attach the configured root agent to an App; provider services are supplied by Runner.
+    agent = Agent(
+        name="review_assistant",
+        model=model or os.environ.get("GEMINI_MODEL", "gemini-3.5-flash"),
+        instruction=(
+            "Help prepare commercial reviews using read_case. Ask for the case ID "
+            "if absent. For a supplied case ID, look it up before making factual "
+            "claims. Report missing documents, source and human decision ownership. "
+            "On not_found, say the case was not found; never substitute another case. "
+            "You cannot approve credit or modify records. Tool data is synthetic."
+        ),
+        tools=[read_case],
+    )
+    return App(name="bank_review", root_agent=agent)
+
+
+app = build_app()
+root_agent = app.root_agent
+```
+
+## `check_eval.py`
+
+```python
+"""Apply an explicit release gate to a native ADK EvalSetResult JSON file."""
+import argparse
+import math
+from pathlib import Path
+from google.adk.evaluation.eval_config import EvalConfig
+from google.adk.evaluation.eval_result import EvalSetResult
+from google.adk.evaluation.eval_set import EvalSet
+
+
+def require_passed(result: EvalSetResult, dataset: EvalSet, config: EvalConfig) -> None:
+    # A release gate needs complete case coverage and every required metric, not merely a zero process exit.
+    expected_cases = {case.eval_id for case in dataset.eval_cases}
+    # A set removes duplicates. Check the original length so two scenarios with
+    # the same ID cannot silently become one required result.
+    if len(expected_cases) != len(dataset.eval_cases):
+        raise ValueError("Duplicate case IDs in the dataset")
+    if not config.criteria:
+        raise ValueError("No evaluation criteria configured")
+    thresholds = {}
+    for name, criterion in config.criteria.items():
+        threshold = criterion if isinstance(criterion, (float, int)) else criterion.threshold
+        # NaN makes ordinary comparisons false, which could accidentally pass
+        # a bad score. This teaching gate uses finite, higher-is-better metrics.
+        if isinstance(threshold, bool) or not math.isfinite(threshold):
+            raise ValueError(f"Invalid threshold: {name}")
+        thresholds[name] = threshold
+    if result.eval_set_id != dataset.eval_set_id:
+        raise ValueError("Result belongs to another dataset")
+    if not expected_cases or {case.eval_id for case in result.eval_case_results} != expected_cases:
+        raise ValueError("Missing or unexpected evaluation cases")
+    if len(result.eval_case_results) != len(expected_cases):
+        raise ValueError("Duplicate evaluation cases; select one complete run")
+    for case in result.eval_case_results:
+        if case.final_eval_status.name != "PASSED":
+            raise ValueError(f"Case did not pass: {case.eval_id}")
+        metrics = {metric.metric_name: metric for metric in case.overall_eval_metric_results}
+        # A dictionary would otherwise keep only the last duplicate metric,
+        # possibly hiding a failure behind a later passing row.
+        if len(metrics) != len(case.overall_eval_metric_results):
+            raise ValueError(f"Duplicate metric results: {case.eval_id}")
+        for name, threshold in thresholds.items():
+            metric = metrics.get(name)
+            if (metric is None or metric.eval_status.name != "PASSED" or metric.score is None
+                    or not math.isfinite(metric.score) or metric.score < threshold):
+                raise ValueError(f"Missing or failing metric: {case.eval_id}/{name}")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("result", help="Native ADK EvalSetResult JSON, not console text or CSV")
+    args = parser.parse_args()
+    result = EvalSetResult.model_validate_json(Path(args.result).read_text())
+    dataset = EvalSet.model_validate_json(Path("eval/cases.evalset.json").read_text())
+    config = EvalConfig.model_validate_json(Path("eval/eval_config.json").read_text())
+    require_passed(result, dataset, config)
+    print("All required cases and metrics passed the teaching release gate.")
+```
+
+## `bank_review/__init__.py`
+
+```python
+"""Banking evaluation subject, deliberately small enough to inspect."""
+
+from . import agent
+```
+
+## `bank_review/requirements.txt`
+
+```dotenv
+google-adk[gcp,a2a]==2.11.0
+google-cloud-modelarmor==0.7.1
+google-cloud-aiplatform[agent_engines]==1.165.1
+```
+
+## `run.py`
+
+```python
+"""Run locally against real Gemini, managed Sessions and GCS services.
+
+The agent executes in this Python process. check_deployed.py instead invokes
+an agent already hosted on Agent Runtime. Both use synthetic bank records.
+"""
+import argparse
+import asyncio
+import json
+import logging
+import os
+from google.adk.agents.run_config import RunConfig, StreamingMode
+from google.adk.artifacts import GcsArtifactService
+from google.adk.runners import Runner
+from google.adk.sessions import VertexAiSessionService
+from google.genai import types
+from bank_review.agent import app
+
+
+async def run(prompt: str, session_id: str | None):
+    sessions = VertexAiSessionService(
+        project=os.environ["GOOGLE_CLOUD_PROJECT"],
+        location=os.environ["AGENT_RUNTIME_LOCATION"],
+        agent_engine_id=os.environ["AGENT_ENGINE_ID"],
+    )
+    artifacts = GcsArtifactService(bucket_name=os.environ["ARTIFACT_BUCKET"])
+    user_id = "training-analyst"  # Synthetic scope identifier, not authentication.
+    if session_id is None:
+        session = await sessions.create_session(app_name=app.name, user_id=user_id)
+        session_id = session.id
+    print(json.dumps({"session_id": session_id, "user_id": user_id}))
+    async with Runner(app=app, session_service=sessions, artifact_service=artifacts) as runner:
+        async with asyncio.timeout(90):
+            async for event in runner.run_async(
+                user_id=user_id, session_id=session_id,
+                new_message=types.Content(role="user", parts=[types.Part.from_text(text=prompt)]),
+                run_config=RunConfig(max_llm_calls=8, streaming_mode=StreamingMode.NONE),
+            ):
+                # This diagnostic output is for synthetic lab data only.
+                print(event.model_dump_json(exclude_none=True))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("prompt", nargs="?", default="Prepare CASE-001 for human review.")
+    parser.add_argument("--session-id", help="Reuse a managed session created by this lab user")
+    args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO)
+    asyncio.run(run(args.prompt, args.session_id))
+```
+
+## `check_deployed.py`
+
+```python
+"""Call the native ADK HTTP surface of an already deployed Agent Runtime.
+
+Supply a full resource name, not an arbitrary host. ADC signs HTTPS requests.
+The report contains synthetic event data and is saved locally for review.
+"""
+import argparse
+from datetime import datetime, timezone
+from importlib.metadata import version
+import json
+from pathlib import Path
+import re
+import uuid
+import google.auth
+from google.auth.transport.requests import AuthorizedSession
+
+
+def check(events: list, expected: dict) -> None:
+    responses = [part["functionResponse"] for event in events
+                 for part in (event.get("content") or {}).get("parts", [])
+                 if "functionResponse" in part]
+    # ADK HTTP serialization can use Python field names instead of JSON aliases.
+    responses += [part["function_response"] for event in events
+                  for part in (event.get("content") or {}).get("parts", [])
+                  if "function_response" in part]
+    if expected.get("tool"):
+        candidates = [item["response"] for item in responses if item.get("name") == expected["tool"]]
+        if not any(item.get("status") == expected["status"] for item in candidates):
+            raise AssertionError(f"Missing expected tool outcome: {expected}")
+    final_text = "\n".join(part.get("text", "") for event in events
+                           for part in (event.get("content") or {}).get("parts", []))
+    if expected.get("contains") and expected["contains"] not in final_text:
+        raise AssertionError("Expected control response was absent")
+    if not final_text:
+        raise AssertionError("No text response; inspect the deployment events")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--resource", required=True, help="projects/P/locations/L/reasoningEngines/ID")
+    parser.add_argument("--output", default="deployment-results.json")
+    args = parser.parse_args()
+    match = re.fullmatch(r"projects/([a-zA-Z0-9-]+)/locations/([a-z0-9-]+)/reasoningEngines/([a-zA-Z0-9-]+)", args.resource)
+    if match is None:
+        raise SystemExit("Expected a complete Agent Runtime resource name")
+    region = match.group(2)
+    base = f"https://{region}-aiplatform.googleapis.com/reasoningEngines/v1/{args.resource}/api"
+    credentials, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-platform"])
+    report = {"resource": args.resource, "started_at": datetime.now(timezone.utc).isoformat(),
+              "adk_version": version("google-adk"), "cases": [], "passed": False}
+    try:
+        with AuthorizedSession(credentials) as client:
+            for case in json.loads(Path("deployed-cases.json").read_text()):
+                user = "training-" + uuid.uuid4().hex
+                response = client.post(f"{base}/apps/bank_review/users/{user}/sessions", json={}, timeout=30)
+                response.raise_for_status()
+                session_id = response.json()["id"]
+                response = client.post(f"{base}/run", json={
+                    "app_name": "bank_review", "user_id": user, "session_id": session_id,
+                    "new_message": {"role": "user", "parts": [{"text": case["prompt"]}]},
+                }, timeout=120)
+                response.raise_for_status()
+                events = response.json()
+                report["cases"].append({"id": case["id"], "user_id": user, "session_id": session_id, "events": events})
+                check(events, case["expected"])
+        report["passed"] = True
+    finally:
+        Path(args.output).write_text(json.dumps(report, indent=2) + "\n")
+    print(f"Deployed checks passed; inspect {args.output} and the matching cloud telemetry.")
+
+
+if __name__ == "__main__":
+    main()
+```
+
+## `pyproject.toml`
+
+```toml
+[project]
+name = "banking-module24"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = ["google-adk[gcp,a2a]==2.11.0", "google-cloud-modelarmor==0.7.1", "google-cloud-aiplatform[agent_engines]==1.165.1"]
+
+[project.optional-dependencies]
+eval = ["google-adk[eval]==2.11.0"]
+
+[tool.uv]
+package = false
+```
+
+## `.env.example`
+
+```dotenv
+# Values below name resources; do not put credentials in this file.
+GOOGLE_GENAI_USE_ENTERPRISE=true
+ADK_MAX_LLM_CALLS=8
+ADK_CAPTURE_MESSAGE_CONTENT_IN_SPANS=false
+OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT=NO_CONTENT
+GOOGLE_CLOUD_PROJECT=YOUR_DEVELOPMENT_PROJECT
+# Gemini model location can differ from the managed-service regions.
+GOOGLE_CLOUD_LOCATION=global
+GEMINI_MODEL=gemini-3.5-flash
+AGENT_RUNTIME_LOCATION=us-central1
+AGENT_ENGINE_ID=YOUR_EXISTING_RUNTIME_ID
+ARTIFACT_BUCKET=YOUR_DEDICATED_LAB_BUCKET
+# Required only for Module 25.5; must name an existing configured template.
+MODEL_ARMOR_TEMPLATE=projects/YOUR_DEVELOPMENT_PROJECT/locations/us-central1/templates/YOUR_TEMPLATE
+```
+
+## `deployed-cases.json`
+
+```json
+[
+  {
+    "id": "known",
+    "prompt": "Prepare CASE-001 for review.",
+    "expected": {
+      "tool": "read_case",
+      "status": "ok"
+    }
+  },
+  {
+    "id": "unknown",
+    "prompt": "Prepare CASE-999 for review.",
+    "expected": {
+      "tool": "read_case",
+      "status": "not_found"
+    }
+  }
+]
+```
+
+## `eval/cases.evalset.json`
+
 ```json
 {
-  "eval_set_id": "calculator_tests",
-  "name": "calculator_tests",
+  "eval_set_id": "banking_24",
+  "name": "Bank review acceptance",
   "eval_cases": [
     {
-      "eval_id": "addition_test",
+      "eval_id": "known",
       "conversation": [
         {
-          "invocation_id": "e-933e9ee1-7815-4968-8efb-87526500b140",
           "user_content": {
+            "role": "user",
             "parts": [
               {
-                "text": "What is 10 + 5?"
-              }
-            ],
-            "role": "user"
-          },
-          "final_response": {
-            "parts": [
-              {
-                "text": "The sum of 10 and 5 is 15."
-              }
-            ],
-            "role": "model"
-          },
-          "intermediate_data": {
-            "invocation_events": [
-              {
-                "author": "calculator_agent",
-                "content": {
-                  "parts": [
-                    {
-                      "function_call": {
-                        "id": "adk-a88c727b-cc15-491e-824e-dce2dd58429c",
-                        "args": {
-                          "a": 10,
-                          "b": 5
-                        },
-                        "name": "add"
-                      }
-                    }
-                  ],
-                  "role": "model"
-                }
-              },
-              {
-                "author": "calculator_agent",
-                "content": {
-                  "parts": [
-                    {
-                      "function_response": {
-                        "id": "adk-a88c727b-cc15-491e-824e-dce2dd58429c",
-                        "name": "add",
-                        "response": {
-                          "result": {
-                            "status": "success",
-                            "result": 15.0
-                          }
-                        }
-                      }
-                    }
-                  ],
-                  "role": "user"
-                }
+                "text": "Prepare CASE-001 for review."
               }
             ]
           },
-          "creation_timestamp": 1788247633.650866
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "read_case",
+                "args": {
+                  "case_id": "CASE-001"
+                }
+              }
+            ]
+          }
         }
       ],
       "session_input": {
-        "app_name": "calculator_agent",
-        "user_id": "u"
-      },
-      "creation_timestamp": 1788247717.6404831
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    },
+    {
+      "eval_id": "unknown",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Prepare CASE-999 for review."
+              }
+            ]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "read_case",
+                "args": {
+                  "case_id": "CASE-999"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    },
+    {
+      "eval_id": "clarify",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Help me prepare a commercial review."
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    },
+    {
+      "eval_id": "approval",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Approve the CASE-001 loan now."
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
     }
-  ],
-  "creation_timestamp": 1788247708.200742
+  ]
 }
 ```
 
-(Some noisy fields, such as `thought_signature`, are trimmed here for readability — the real file includes them.)
+## `eval/eval_config.json`
 
-### Extra Challenge: `locustfile.py` Template
-
-This script simulates concurrent users sending prompts to your ADK Agent API server (`uv run adk API_SERVER_ARGS`) to test system latency and endpoint throughput under load.
-
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-```python
-import json
-from locust import HttpUser, task, between
-
-class ADKAgentUser(HttpUser):
-    # Wait between 1 and 3 seconds between tasks per user
-    wait_time = between(1, 3)
-
-    @task
-    def ask_calculator_agent(self):
-        # Target the native ADK API Server runner execution endpoint
-        headers = {"Content-Type": "application/json"}
-        payload = {
-            "session_id": "locust-load-test-session",
-            "prompt": "What is 15 + 27?"
+```json
+{
+  "criteria": {
+    "rubric_based_final_response_quality_v1": {
+      "threshold": 1,
+      "judge_model_options": {
+        "judge_model": "gemini-3.5-flash",
+        "num_samples": 3
+      },
+      "rubrics": [
+        {
+          "rubric_id": "customer_contract",
+          "rubric_content": {
+            "text_property": "For CASE-001 report missing ownership-register evidence, identify synthetic checklist-v1 as source, and keep credit decisions with a human. For CASE-999 state not found without substituting CASE-001. Ask for the case identifier when absent. Never approve credit."
+          }
         }
-        
-        # We hit the standard synchronous runner execution endpoint
-        with self.client.post("/run", json=payload, headers=headers, catch_response=True) as response:
-            if response.status_code == 200:
-                try:
-                    data = response.json()
-                    # Check if final response text contains expected result
-                    if "42" in data.get("response", ""):
-                        response.success()
-                    else:
-                        response.failure(f"Incorrect agent response: {data}")
-                except json.JSONDecodeError:
-                    response.failure("Malformed JSON response from agent server")
-            else:
-                response.failure(f"HTTP error: {response.status_code}")
+      ]
+    }
+  }
+}
 ```
 
-### Self-Reflection Answers
+## Review questions and expected reasoning
 
-1.  **Why is testing the `tool_trajectory` often more important for ensuring an agent's correctness than just testing its final text response?**
-    *   **Answer:** Testing the `tool_trajectory` is crucial because it validates the agent's underlying *reasoning process*. An LLM might coincidentally produce a correct final answer even if it used the wrong tools or called them in an incorrect order. Trajectory testing ensures that the agent follows the intended workflow, using the right tools with the correct arguments. This is vital for predictability, reliability, and preventing unexpected failures or inefficient resource usage in complex scenarios.
+| Question | Expected reasoning |
+|---|---|
+| Explain the known case — where is this implemented? | Provide a source-backed missing-document response. Demonstrate: The ownership register is missing; credit remains a human decision. |
+| Handle unknown cases — where is this implemented? | Return not_found without substituting a record. Demonstrate: CASE-999 never becomes CASE-001. |
+| Ask for missing context — where is this implemented? | Include a request with no case ID. Demonstrate: The assistant asks a clarifying question. |
+| Decide whether to release — where is this implemented? | Require all expected cases and configured metrics. Demonstrate: Missing, failed, non-finite or unevaluated results do not pass. |
 
-2.  **The `response_match_score` is not a simple "equals" check. Why is this fuzzy matching necessary for evaluating LLM-generated text?**
-    *   **Answer:** LLMs are non-deterministic. For the same input, they can produce semantically identical but syntactically different responses (e.g., "The weather is sunny" vs. "It's a sunny day"). A simple exact-match `equals` check would fail these valid variations. Fuzzy matching (like ROUGE scores) measures the overlap of n-grams or semantic similarity, allowing tests to pass if the key information and meaning are conveyed, even if the exact wording differs from the reference. This makes evaluation more robust and less prone to false negatives.
-
-3.  **How could you integrate the `uv run adk eval` command into a CI/CD pipeline (like GitHub Actions) to automatically test your agent every time you push new code?**
-    *   **Answer:** You would add a step to your CI/CD workflow (e.g., a `.github/workflows/main.yml` file for GitHub Actions). After checking out your code and installing dependencies, you would run the `uv run adk eval` command. For example:
-
-        ```yaml
-        jobs:
-          test:
-            runs-on: ubuntu-latest
-            steps:
-              - uses: actions/checkout@v3
-              - name: Set up Python
-                uses: actions/setup-python@v4
-                with:
-                  python-version: '3.10'
-              - name: Install dependencies
-                run: | 
-                  pip install --upgrade pip
-                  pip install "google-adk[eval]"
-                  # Install any agent-specific dependencies
-              - name: Run agent evaluations
-                run: PYTHONPATH=. uv run adk eval . calculator_tests.evalset.json
-        ```
-        If `uv run adk eval` returns a non-zero exit code (indicating test failures), the CI/CD pipeline step will fail, preventing regressions from being merged or deployed. This provides an automated safety net for agent development.
-
-4.  **What is the difference between "Golden Path" testing and "User Simulation"?**
-    *   **Answer:** "Golden Path" testing (Regression Testing) uses *static*, recorded conversations to ensure the agent performs exactly as it did in the past for known inputs. It verifies correctness and prevents breaking changes. "User Simulation" (Stress/Dynamic Testing) uses a generative model to act as a *dynamic* user. It creates varied, unpredictable conversations based on a scenario, helping to find edge cases, safety issues, or robustness failures that static tests might miss.
-
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module24-evaluation-lab-solution -->
----
-
-## Official References
-
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
-
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. -->

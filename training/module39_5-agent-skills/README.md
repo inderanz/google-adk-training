@@ -5,6 +5,46 @@ title: "Module 39.5: Agent Skills"
 
 # Module 39.5: Enhancing Agents with Skills
 
+## Before you begin: what this module teaches
+
+**ADK concept: skills, progressive disclosure and execution permissions.**
+
+A skill packages instructions and optional references/scripts. Progressive disclosure exposes brief discovery information first, then loads detailed content when selected. SkillToolset supplies the supported access tools. A reference teaches a procedure; a tool or code executor performs an operation. Loading a skill must not silently expand the user's authorization.
+
+**Where you would use this in real work.**
+
+The bank has several approved procedures, but loading every manual into every prompt makes simple questions harder to handle. The assistant should load the relevant procedure when needed, while keeping operation permissions explicit.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Use ADK's supported skill interfaces with pinned versions and reviewed content. Script execution needs a deliberate supported sandbox and identity; UnsafeLocalCodeExecutor is not a customer isolation boundary. A remote skill registry also needs provenance, access and lifecycle controls.
+
+**By the end, you should be able to:**
+
+- Distinguish discovery metadata, loaded instructions, references and executable capabilities.
+- Explain the skill directory and its required frontmatter.
+- Evaluate whether selecting the right skill leads to correct authorized behavior.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Trace when a reference is loaded instead of assuming it is always in context.
+- **Experienced engineer:** Test conflicting instructions, stale versions and unavailable references.
+- **Bank FDE:** Ask who approves procedures, scripts and updates and how a withdrawn skill is removed.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
+## Draw the execution boundary
+
+Illustrative progressive disclosure. Model selection must be evaluated, and tool access stays explicit.
+
+```mermaid
+flowchart TB
+  A[Request and skill metadata] --> B[Select relevant skill]
+  B --> C[Load instructions]
+  C --> D[Read needed references]
+  D --> E[Use only authorized capabilities]
+```
+
 ## Theory
 
 ### What is a Skill?
@@ -34,22 +74,8 @@ This keeps the main agent incredibly lightweight, loading heavy documentation on
 
 ### Using Skills in the ADK
 
-In the modern ADK, Skills are managed using the `SkillToolset`. Note that as of ADK 2.0, the Skills feature is still marked **experimental** in the official documentation — the core API you'll use here (`load_skill_from_dir`, `SkillToolset`) is stable enough for this course, but expect it to keep evolving.
+In the modern ADK, Skills are managed using the `SkillToolset`. Note that as of ADK 2.0, the Skills feature is still marked **experimental** in the official documentation — pin the API used by the lab and recheck compatibility before adopting or upgrading it. An experimental feature is not a stability promise.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```python
 import pathlib
 from google.adk.agents import Agent
@@ -107,6 +133,12 @@ You connect it by passing a registry (e.g. `GCPSkillRegistry` from `google.adk.i
 - They prevent context bloat via **Progressive Disclosure**—loading detailed instructions only when the skill is activated.
 - In ADK 2.0, you load skills from a directory using `load_skill_from_dir()`.
 - You provide skills to an Agent by bundling them inside a `SkillToolset`, which handles the activation and execution logic.
+
+## Continue the course story
+
+Previous: [Module 39](../module39-plugins/README.md) · Next: [Module 40](../module40-advanced-capstone-aegis-incident-response/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module39_5-agent-skills-README -->
 ---

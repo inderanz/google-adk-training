@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 3 Challenge: Build and Run the "Echo" Agent
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 Your task is to create, configure, and run a simple "Echo" agent using the ADK.
 

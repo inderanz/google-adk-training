@@ -5,6 +5,15 @@ title: "Lab Solution"
 
 # Lab 34 Solution: Deploying the "Shopping Cart" Server
 
+## Scope: observe a persistence failure before designing the customer service
+
+The file-backed cart below is a disposable transport experiment. Its `/tmp` storage is instance-local; its MCP session header is not authenticated customer identity; read-modify-write files do not provide concurrent business transactions. Do not treat this implementation as a durable or authorized banking service.
+
+After observing the limitation, specify the customer replacement: an authenticated resource owner, a stable business record ID, a Firestore/Cloud SQL repository with concurrency control, and a compatible multi-instance MCP transport/session strategy. Reuse Module 13.5's separation of identity, case record and conversation state. Merely replacing the directory with a shared store does not solve all four requirements.
+
+Acceptance evidence must include allowed/denied users, two concurrent writers, instance replacement and a duplicate operation. The [README](./README.md) explains those concepts and the Google service choices. The existing deployment demonstration does not establish these production properties.
+
+
 ## Goal
 
 This file contains the complete code for the `stateless_cart_server.py` and the `agent.py` client for the lab.
@@ -130,9 +139,9 @@ root_agent = Agent(
 
 2.  **What are the advantages of using a managed service like Google Cloud Memorystore (Redis) for storing session state compared to the file-based approach used in this lab?**
     *   **Answer:** A managed in-memory service like Google Cloud Memorystore (Redis) offers several advantages over a file-based approach for production session state:
-        *   **True Persistence:** Data survives container restarts and scales to zero.
+        *   **External state:** Data is independent of the Cloud Run container. Retention, failover and durability depend on the selected Memorystore product/configuration; use an appropriate durable database for authoritative records.
         *   **High Performance:** In-memory key-value stores are extremely fast, providing low-latency access to session data.
-        *   **Scalability & Consistency:** All Cloud Run instances connect to the same central data source, ensuring state consistency across a horizontally scaled service.
+        *   **Scalability & Consistency:** All Cloud Run instances connect to the same central data source, allowing a shared state design; concurrent updates still need the appropriate atomicity/version controls.
         *   **Operational Simplicity:** Managed services handle patching, backups, and scaling, reducing operational overhead.
 
 3.  **The `MCPToolset` on the client side doesn't need to know *how* the server is storing its state. Why is this separation of concerns a key benefit of the MCP architecture?**

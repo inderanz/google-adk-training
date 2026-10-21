@@ -5,6 +5,9 @@ title: "Challenge Lab"
 
 # Lab 31: Choosing the Right Deployment Strategy Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 
 In this lab, you will apply the decision framework from the theory section to a series of real-world scenarios. This is a conceptual exercise to help you develop the strategic thinking needed to choose the right deployment path for your agents. There is no coding in this lab.
@@ -40,7 +43,7 @@ Be prepared to justify your choice based on the key requirements of each scenari
     *   All access must be strictly controlled and auditable.
     *   The infrastructure must be fully managed to reduce the internal operational burden.
 
-**Your Task:** Which platform is the only viable choice here, and why?
+**Your Task:** Which targets remain viable after checking current service scope and the customer's controls, and what evidence supports your recommendation?
 
 ---
 

@@ -1,136 +1,300 @@
 ---
 sidebar_position: 2
-title: "Challenge Lab"
+title: "Guided Banking Lab"
 ---
 
-# Lab 15: Designing a Multi-Agent System Challenge
+# Lab 15: Introduction to Multi-Agent Systems
 
-## Goal
+**What you are practising:** Agent composition and specialist consultation in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
 
-### Goal
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
 
-Before writing any code, a crucial step in building a multi-agent system is to design it conceptually. In this lab, you will design a simple two-agent system on paper (or in a text file). This process of planning will make the implementation in the next module much smoother.
 
-Our system will be a "Greeting Router." It will consist of a main router agent and one specialist agent that knows how to greet in Spanish.
+## Begin with the customer
 
-### The Scenario
+### Read this as a bank employee's task
 
-We want to build an agent that can handle greetings in multiple languages. A monolithic approach would require a very complex `instruction` prompt. Instead, we will create a system with specialized agents for each language, and a router to direct the user's request. For this lab, we will only design the router and the Spanish specialist.
+A relationship manager is preparing to meet Acme Robotics. The analyst helping with the meeting needs to explain why the bank asks for financial statements and an ownership register. Financial statements describe a business’s finances; an ownership register identifies its owners.
 
----
+In this course, an analyst is the employee who gathers and checks information for a review. Picture a business banking team preparing for a company meeting. The bank, company and records are fictional.
 
-### Step 1: Define the Roles and Responsibilities
+> Help me explain why these documents are needed. I want one clear answer. If you cannot check whether the documents have arrived, say that clearly.
 
-First, let's define what each agent in our system will do.
+| What you need to understand first | This exercise's answer |
+|---|---|
+| What information starts the task? | A question about the purpose of the two documents. |
+| What should the employee receive? | An explanation from the coordinator, using advice from a document specialist when it calls that specialist. |
+| What should happen when it cannot be completed? | A receipt question must not receive an invented status; this example has no current-case lookup. |
 
-#### Agent 1: The `router_agent`
+### New words, explained using this task
 
-*   **Purpose:** This will be our main, parent agent. Its only job is to understand the user's request and delegate the task to the correct specialist agent. It should not perform any greetings itself.
-*   **Type:** **`Agent`**. It needs the reasoning capability of an LLM to understand the user's intent.
-*   **Initial Instruction Idea:**
-    ```
-    You are a language router. Your job is to understand which language the user wants to be greeted in and delegate to the appropriate specialist.
-    If the user asks for a greeting in Spanish, you MUST delegate to the `spanish_greeter_agent`.
-    ```
-*   **Tools:** None. Its primary action is delegation.
+| Term | Meaning here |
+|---|---|
+| Coordinator | The agent responsible for combining advice and answering the user. |
+| Specialist | An agent given one narrower reasoning task. |
+| AgentTool | The ADK wrapper that lets one agent ask another agent for a result. |
 
-#### Agent 2: The `spanish_greeter_agent`
+The next technical table connects these requirements to ADK objects and checks. Read one row at a time: the employee's need comes first, then the coding choice, then the result that would show it works.
 
-*   **Purpose:** This is our specialist sub-agent. Its only job is to provide a friendly greeting in Spanish.
-*   **Type:** **`Agent`**.
-*   **Description (for the router):** This is a critical piece of information -- the `router_agent`'s LLM reads this description to decide whether this specialist is the right match for a given request.
-    **Your task:** write this description yourself, in one sentence, before moving on. A good description is specific and action-oriented (what does this agent actually *do*?) and would clearly distinguish it from any other specialist you might add later (say, a future `french_greeter_agent`). Jot it down here -- you'll reuse it in Step 3's plan and in the next module's implementation. (Check the `lab-solution.md` file for one example of a description that works well, once you've written your own.)
-*   **Initial Instruction Idea:**
-    ```
-    You are a friendly assistant who only speaks Spanish.
-    Your job is to greet the user warmly in Spanish. Do not say anything else.
-    ```
 
----
+A coordinator consults a document adviser and then answers the analyst. Both roles are advisory; neither reads current case status.
 
-### Step 2: Map the Interaction Flow
+Module 14 supplied bounded evidence tools. This module defines who should use a capability. Module 16 will decide which checks must run regardless of model choice.
 
-Now, let's trace the path of a user's request through our designed system.
+## The technical specification you will implement
 
-#### Flow 1: Supported Language (Spanish)
+| Requirement | Code decision | Acceptance check |
+| --- | --- | --- |
+| Explain required evidence | A narrowly instructed document adviser | The explanation covers financial statements and an ownership register. |
+| Keep one conversational owner | AgentTool call-and-return | The coordinator receives the specialist result and produces the response. |
+| Do not invent case status | No case-read capability in this example; state the limitation | A receipt/status question results in a request for an authorized lookup. |
+| Do not approve or execute | No approval or payment tool | No state-changing banking operation is available. |
 
-1.  **User Input:** The user starts a conversation with the `router_agent` and says: `"Can you greet me in Spanish?"`
-2.  **Router Receives:** The ADK's runner passes this input to the `router_agent`.
-3.  **Router Reasons:** The `router_agent`'s LLM receives the user input, its own instruction, and the list of available sub-agents along with their descriptions.
-4.  **Router Delegates:** Based on its instructions ("If the user asks for... Spanish, ...delegate to the `spanish_greeter_agent`") and the description you wrote for the sub-agent in Step 1, the LLM decides to perform an **agent transfer**.
-5.  **Framework Transfers Control:** The ADK framework intercepts this decision and transfers control of the conversation to the `spanish_greeter_agent`.
-6.  **Specialist Executes:** The `spanish_greeter_agent` now takes over. It executes its own instruction ("greet the user warmly in Spanish").
-7.  **Specialist Responds:** The `spanish_greeter_agent` generates the final response to the user, such as `"¡Hola, mucho gusto!"`
+## Set up the supplied example
 
-#### Flow 2: Unsupported Language
+From the repository root:
 
-1.  **User Input:** The user asks: `"Can you greet me in French?"`
-2.  **Router Receives:** The input is passed to the `router_agent`.
-3.  **Router Reasons:** The `router_agent`'s LLM analyzes the request. It sees that the user wants "French," but it looks at its list of sub-agents and sees no specialist with a description matching "French."
-4.  **Router Responds Directly:** Following its instructions for unsupported languages, the `router_agent` does *not* delegate. Instead, it formulates its own response to the user.
-5.  **Router's Final Response:** The `router_agent` replies: `"I'm sorry, I don't have a specialist for that language yet."`
-
----
-
-### Step 3: Plan the File Structure
-
-Based on our design, we can plan the files we'll need to create in the next lab.
-
-```
-adk-training/
-└── greeting_system/              <-- New project directory
-    ├── .env                      <-- For API keys
-    ├── agent.py                  <-- This will define our Workflow and Router node
-    ├── __init__.py               <-- Makes the directory a Python package
-    └── spanish_greeter_agent.py  <-- This will define our Specialist node
+```bash
+cd training/module15-intro-to-multi-agent-systems/example
+uv sync --locked --python 3.14
+uv run python -m unittest discover -s tests -v
 ```
 
-**`agent.py` (The Router and Workflow):**
-This file will need to:
-1.  Import the `Agent` and `Workflow` classes.
-2.  Import the `agent` object from your `spanish_greeter_agent.py` module.
-3.  Define the `router` agent and register the specialist in its `sub_agents` list.
-4.  Define the `root_agent` as a `Workflow` that starts with the `router`.
+`uv sync` creates an isolated `.venv` for this example. The lockfile fixes the resolved packages. Run commands from `example/` so Python can import the local `bank_case` package. The tests use synthetic data; they do not require Gemini credentials or a banking system.
 
-**`spanish_greeter_agent.py` (The Specialist):**
-This file will need to:
-1.  Define a standard `Agent` object.
-2.  Include a clear `description` for the router.
-3.  Include `instruction` that tells the agent to only greet in Spanish.
+For the optional live Gemini path, use an authorized development project with billing, the required API access and a model supported in your chosen location:
 
-### Lab Summary
+```bash
+cp .env.example .env
+gcloud auth application-default login
+```
 
-You have successfully designed a multi-agent system on paper! 
-- You learned to break down a problem into specialized **Nodes**.
-- You defined how nodes are registered via **`sub_agents`** and orchestrated via **`Workflow`**.
-- You mapped the flow of control within a **Graph**.
+Edit `.env`: set your project, a supported model location and `GEMINI_MODEL`. The sample selects the Google enterprise backend with `GOOGLE_GENAI_USE_ENTERPRISE=true`; it does not require an AI Studio key. The supplied model is `gemini-3.8-flash`; verify project access and regional availability before running. In deployed workloads, use the workload’s service identity rather than a developer login or a downloaded service-account key.
 
-In the next module, you will bring this design to life by implementing this Greeting System.
+```bash
+uv run --env-file .env python run.py
+```
 
-### Self-Reflection Questions
-- What is the most important piece of information that allows the `router_agent` to decide which specialist to delegate to?
-- How would you extend this system to support a new language, like French? What new files or modifications would you need to make?
-- This lab uses LLM-driven delegation (agent transfer). What might be the advantages or disadvantages of this approach compared to the `router_agent` using an `AgentTool` to explicitly call the `spanish_greeter_agent`? (You haven't built an `AgentTool` yet -- Module 19 covers it in depth. For now, just think about the difference between a permanent, one-way *handoff* to another agent versus calling that agent like a function and getting a result back so you can keep working.)
+Live runs use billable model calls. The offline tests do not establish model quality, project permissions or regional availability.
 
-<hr/>
+## Files and responsibilities
 
-### 🕵️ Hidden Solution 🕵️
+| File | Responsibility |
+| --- | --- |
+| `pyproject.toml` | Declares Python support and the pinned ADK dependency; uv.lock records the resolution. |
+| `.env.example` | Lists configuration for optional live services, not credentials to commit. |
+| `bank_case/agent.py` | Defines the lesson operations and native ADK composition; construction is separate from execution. |
+| `runtime.py` | Creates a local app/session, consumes ADK events and prints observable output. |
+| `run.py` | Parses the CLI request/options and starts the selected example. |
 
-Looking for the solution? Here's a hint (Base64 decode me):
-`L2dvb2dsZS1hZGstdHJhaW5pbmcvbW9kdWxlMTUtaW50cm8tdG8tbXVsdGktYWdlbnQtc3lzdGVtcy9sYWItc29sdXRpb24=`
 
-<div style={{color: 'rgba(0,0,0,0.01)', userSelect: 'all', fontSize: '1px'}}>
-    The direct link is: <a href="/google-adk-training/module15-intro-to-multi-agent-systems/lab-solution" style={{color: 'inherit', textDecoration: 'none'}}>Lab Solution</a>
-</div>
+The complete source is in this module’s `example/` directory. Work in a copy when experimenting. The [solution](./lab-solution.md) reproduces the implementation so you can compare each step.
 
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module15-intro-to-multi-agent-systems-lab -->
----
+## Develop the solution before opening the complete code
 
-## Official References
+Work in a practice copy of `example/` so the reference remains available. Use the existing dependency and runner setup; rebuild the lesson functions in `bank_case/agent.py` one checkpoint at a time. Predict each result before running it. You do not need to build a second agent framework or recreate the cloud SDK.
 
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+| Checkpoint | What you write or decide | Evidence before continuing |
+| --- | --- | --- |
+| Define the role in one sentence | Write what document_adviser can explain and what it cannot verify. | Your role description mentions checklist purpose, not document receipt. |
+| Build the specialist | Construct its Agent with name, model, description and instruction; give it no banking write tools. | Explain which fields guide the caller and which guide the specialist. |
+| Build the caller | Wrap the specialist in AgentTool and put it in the coordinator tools list. | The scripted test finishes with the coordinator as author. |
+| Challenge the boundary | Run a checklist-purpose question and a receipt/approval request. | Record both tool choices and the final response limitations. |
 
+For each checkpoint, state: **input → operation → output → failure**. First explain it in ordinary English, then point to the Python line that implements it. A successful process exit is not enough; inspect the returned data and the control path.
+
+Use the [FDE discovery and integration guide](./fde-learning-guide.md) to record customer-specific answers. The lab brief supplies fictional assumptions; an FDE obtains actual policy, data ownership and access requirements from the customer.
+
+## Build the mental model before reading the solution
+
+### Step 1: Translate the customer sentence into responsibilities
+
+Underline “explain documents,” “keep consistent,” and “authorized bank process.” These become an advisory role, a coordinator and a capability restriction. Write the four acceptance checks above before changing a prompt. There is no reason to build a payment API for this request.
+
+### Step 2: Read the agent factory
+
+`build_agent()` creates fresh agent objects. The optional `model` parameter lets the test supply a scripted model; live runs use `GEMINI_MODEL`. `os.environ["GEMINI_MODEL"]` fails clearly if configuration is missing instead of silently choosing a model.
+
+### Step 3: Construct the document adviser
+
+`Agent(...)` calls a class constructor with named arguments. `name` is the machine-readable identifier; `description` describes its callable role; `instruction` is the specialist’s own guidance. Adjacent strings inside parentheses are combined by Python. No tool can read or change a case here.
+
+### Step 4: Expose the adviser as a tool
+
+`AgentTool(agent=document_adviser)` wraps the existing agent object. The outer `tools=[...]` is a Python list of callable capabilities. The coordinator may call it, receive a tool result, and continue. This is different from giving it a `sub_agents` handoff target.
+
+### Step 5: Trace an invocation rather than guessing
+
+Read `runtime.py`: create a synthetic session, serialize the request into a user message, consume the asynchronous event stream, then close the runner. In the test, follow coordinator function call → adviser result → coordinator response. The scripted fixture proves this wiring; it does not prove Gemini will choose the right tool.
+
+### Step 6: Evaluate a real explanation
+
+When credentials are configured, ask about the checklist, then ask “Has the ownership register arrived?” The first should explain document purpose; the second must acknowledge the missing live lookup. Record the actual tool trajectory and response, not just whether the process exited successfully.
+
+## Python reading guide
+
+Read a file from its inputs toward its outputs. Imports make library names available. A `def` creates a function; its body runs when called. Type annotations describe expected values; Pydantic performs the runtime validation at the schema boundary. A dictionary maps keys to values, a list holds ordered items, and a tuple groups fixed items such as graph endpoints.
+
+Named arguments such as `name="case_router"` identify constructor options. An unquoted function name is a callable object; adding `()` calls it. `return` ends the function and supplies its result. `raise` reports a failure instead of producing success. In asynchronous code, `await` waits without blocking the event loop on that operation; it does not automatically parallelize surrounding statements.
+
+The examples use current built-in annotations such as `list[str]` and `dict`, Pydantic v2 `model_validate()`/`model_dump()`, `asyncio.run()` at the CLI boundary, and native ADK classes. No custom agent execution framework is required.
+
+## Build this capability in observable increments
+
+**Derivation:** The customer wants one explanation with specialist advice, so use call-and-return. If the requirement changes to direct dialogue with the specialist, reconsider delegation. If the checklist explanation fits one instruction, compare the simpler one-agent baseline before paying for a second reasoning step.
+
+Do these checkpoints in a practice copy. Keep the reference available, but predict the data and execution before reading its answer.
+
+| Checkpoint | What you produce | Evidence to retain |
+|---|---|---|
+| 1. Customer contract | One normal request and one failure request in English | Expected business outcome for each |
+| 2. Data contract | A concrete input and output for the lesson operation | Explain every field's source and consumer |
+| 3. Small implementation | The first relevant function below, with comments explaining the requirement | Run its contract check before adding orchestration |
+| 4. Native ADK wiring | The supplied factory, context or provider configuration | Identify who calls your function and who reads its return |
+| 5. Execution | Predict, then run the supplied scenario | Actual event/tool result compared with the prediction |
+| 6. Failure | Change one condition without changing the acceptance rule | A failure result and explanation of the responsible boundary |
+
+**Module-specific observation:** Predict the tool name, the responding agent and which model runs next after an adviser returns. Use the scripted AgentTool test to check that prediction; then compare a live run where Gemini chooses not to consult.
+
+**Transfer to a changed customer requirement:** Design a second adviser whose output conflicts with the first. State which source is authoritative and how the coordinator should report disagreement.
+
+The complete lab command below runs the software checks. Read the test names and retain the case relevant to your checkpoint. These tests establish code contracts; real Gemini evaluation and cloud evidence remain separate completion requirements.
+
+## Read the implementation in small pieces
+
+### Imports and definitions
+
+```python
+"""Two advisory roles; the coordinator calls a specialist and resumes."""
+import os
+from google.adk.agents import Agent
+from google.adk.tools.agent_tool import AgentTool
+```
+
+Imports name the public ADK and Python APIs used below. Importing a class does not run a model call. The factory separates object construction from execution so the same code can be exercised with a test fixture.
+
+### Read `build_agent`
+
+```python
+def build_agent(model=None):
+    # Construct the ADK composition now; Runner executes it only after receiving a request.
+    selected_model = model or os.environ["GEMINI_MODEL"]
+    document_adviser = Agent(
+        name="document_adviser",
+        model=selected_model,
+        description="Explains the fictional commercial-review document checklist.",
+        instruction=(
+            "The training checklist requires financial statements and an ownership "
+            "register. Explain why each is useful. You have no case lookup tool, "
+            "so never claim that a document was received or that credit was approved."
+        ),
+    )
+    return Agent(
+        name="case_coordinator",
+        model=selected_model,
+        instruction=(
+            "Help a bank analyst prepare CASE-001 for Acme Robotics (fictional). "
+            "Consult document_adviser for checklist questions, then explain the "
+            "next step. For actual status, say an authorized case lookup is needed. "
+            "No agent here can approve credit or move funds."
+        ),
+        tools=[AgentTool(agent=document_adviser)],
+    )
+```
+
+`model=None` makes the argument optional. Tests pass a model object; live execution reads the required environment variable. The local `document_adviser` variable holds an Agent object, not its response. `AgentTool(agent=document_adviser)` passes that object to a wrapper. The returned Agent is the coordinator that Runner will execute. None of these constructor calls verifies a document or performs a model request; execution begins in `run_once`.
+
+### Explain the important expressions
+
+| Expression | Meaning for a new Python learner | Why the bank needs it |
+|---|---|---|
+| `from ... import Agent` | Import a public class from an installed package | Reuse ADK rather than implement an agent runtime |
+| `model=None` | Optional argument with a default value | The same factory supports a real or scripted model |
+| `selected_model = ...` | Assign a local variable | Both roles use explicit configuration |
+| `Agent(...)` | Construct an object using named fields | Make responsibility and capability visible |
+| `AgentTool(agent=...)` | Wrap an agent in ADK’s tool interface | Preserve call-and-return behavior |
+| `return Agent(...)` | Give the constructed coordinator to the caller | Runner owns execution; construction makes no model request |
+
+
+## Understand the small runner
+
+For a line-by-line explanation of the CLI, async execution, Content messages and events, use [Follow Python from the command to the first event](./fde-learning-guide.md#follow-python-from-the-command-to-the-first-event).
+
+`runtime.py` is visible teaching code, not an orchestration framework. `App(name="bank_case", root_agent=agent)` names the application; `InMemoryRunner` supplies development session storage. The synthetic `analyst-demo` value is an identity fixture, not authentication. Production must derive identity from a verified caller.
+
+The helper creates a session, serializes the supplied payload as JSON in a `types.Content` user message, and iterates `runner.run_async(...)`. `async for` consumes events as ADK produces them. `RunConfig(max_llm_calls=12)` bounds model calls; it is separate from the 60-second invocation deadline. A workflow may also have its own shorter timeout.
+
+`Event.output` carries software-facing graph data. Content/message fields carry text a UI can show. The helper prints both when present. An intermediate specialist or node can emit content too, so a production UI must define which results are drafts, internal work or the user-visible final result. Do not treat every text event as the completed banking answer.
+
+The `async with` block closes runner resources. This local helper creates a new in-memory session for each run and does not claim restart persistence. Module 13.5 and Module 22 teach persistent providers.
+
+## Run changed requests and predict the result
+
+Run a question you choose after configuring `.env`:
+
+```bash
+uv run --env-file .env python run.py "Why is an ownership register needed for CASE-001?"
+uv run --env-file .env python run.py "Has the ownership register arrived? Approve the loan now."
+```
+
+The quoted text is one positional CLI argument. `nargs="?"` makes it optional and supplies the demonstration question when omitted. Argument parsing happens before checking credentials, so `uv run python run.py --help` works offline.
+
+Predict the selected adviser and the boundary the answer should respect. The receipt/approval request must not cause a claim of verified receipt or approval. These are live behavior checks, not claims of already-passing Gemini evaluation.
+
+### Advanced customer variation
+
+Propose a one-agent baseline and an independently maintained specialist alternative. Define a held-out question set and explain what measured improvement would justify the extra model call.
+
+Before implementing the variation, record the new requirement, the code boundary that changes and the negative case that would expose an incorrect implementation.
+
+## Verify the customer outcome
+
+| Experiment | What to observe |
+| --- | --- |
+| Ask for current receipt status | The response must explain that an authorized lookup is required; there is no receipt tool. |
+| Ask to approve a loan | No approval operation can run; evaluate that the response also avoids claiming approval. |
+| Remove the adviser description in a copy | The program still constructs, but tool-selection quality may change. Measure it with model evaluation. |
+| Merge the two roles | Compare quality, calls, latency and cost; the simpler design may be better for this requirement. |
+
+### Local evidence
+
+2 offline tests passed, including a scripted model call through the real ADK AgentTool and Runner. Live Gemini response quality has not been evaluated.
+
+Tests of strict schemas, routing, joins, budgets and service scope are software contract tests. Scripted model replies are transport fixtures; they cannot demonstrate whether Gemini understands a bank request or produces a faithful explanation.
+
+### Live model evaluation
+
+The example includes `eval/cases.evalset.json`, `eval/eval_config.json` and a small `adk_entry` package exporting `root_agent` for ADK’s native evaluator. The files are validated against the installed ADK schema; no passing live score is claimed.
+
+```bash
+uv run --with 'google-adk[eval]==2.11.0' --env-file .env adk eval adk_entry eval/cases.evalset.json --config_file_path eval/eval_config.json --print_detailed_results
+```
+
+This optional command resolves evaluation dependencies and uses model/judge calls. Its environment is separate from the base lockfile’s verified offline path. Inspect per-case scores and traces, preserve failing cases, and fix the agent or architecture rather than weakening acceptance criteria. The judge model is explicitly configured in `eval_config.json`; changing `GEMINI_MODEL` alone does not change it.
+
+The pinned ADK AgentTool implementation can emit a deprecation warning from its internal Runner plugins argument. The lesson itself uses the public AgentTool and App APIs; it does not pass that deprecated argument. Preserve this upstream warning in upgrade review rather than copying internal implementation code.
+
+## Troubleshooting by symptom
+
+| Symptom | Check |
+| --- | --- |
+| ModuleNotFoundError for bank_case | Run from this module’s example directory after uv sync. |
+| ValidationError | Inspect the rejected field and type; do not disable validation to make the sample pass. |
+| Missing GEMINI_MODEL | Use --env-file .env for live runs and set the required variable. |
+| Authentication, model-access or region error | Verify the development identity, project permissions and endpoint support; a local unit test cannot prove them. |
+| A timeout or missing required output | Inspect the failed operation. Do not substitute an approval or an empty success result. |
+| Experimental/deprecation warning inside a dependency | Record the emitting package and version. Do not assume your example uses the deprecated API or hide the warning. |
+
+## Transfer exercise
+
+A second bank asks for the same capability with different document types, review thresholds and case identifiers. Before editing code, rewrite the requirement table and name the authoritative sources. Change the contract and rule tests together, then explain which orchestration pattern remains useful and which assumptions must change.
+
+Hand over your decision table, readable diagram, working example, negative-test evidence and live-validation plan. A learner has understood the pattern when they can explain a failure path without copying the solution.
+
+## Official sources
+
+- [ADK workflow choices](https://adk.dev/workflows/)
+- [Function tools and agent tools](https://adk.dev/tools-custom/function-tools/)
+- [Collaborative workflows](https://adk.dev/workflows/collaboration/)
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. -->

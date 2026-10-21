@@ -1,154 +1,89 @@
 ---
-sidebar_position: 20.1
-title: "Module 20 Enterprise Playbook: Cyclic Workflows for Iteration and Self-Correction"
+sidebar_position: 4
+title: "Enterprise Banking Playbook"
 ---
 
-# Module 20 Enterprise Playbook: Cyclic Workflows for Iteration and Self-Correction
+# Module 20 enterprise playbook
 
-This module introduces one of the most practical enterprise patterns in ADK: iterative refinement. In earlier modules, the workflow was generally described as a set of linear, branching, or specialist-based steps. Module 20 adds the behavior that many real-world systems need: a loop that reviews, corrects, and improves the output until a quality or completion condition is met.
+## Start from the bank’s requirement
 
-For a forward-deployed engineer, this is a key pattern because a lot of business work is not one-pass. It is iterative, review-heavy, and usually benefits from quality control loops.
+> Draft a note for this case and include both record references. Allow at most three drafts. If it still fails the checks, tell me that manual review is needed.
 
-## The forward-deployed engineer lens
+The employee needs this result: A note that passed the taught case-ID and citation checks, ready for a human to review. An invalid draft or an exhausted attempt limit must not be labelled successful.
 
-Enterprise teams often describe problems like:
+Read the [plain-English task and term explanations](./README.md#read-this-as-a-bank-employees-task) before the implementation details.
 
-- “We need the answer reviewed before sending it to the customer.”
-- “The draft should be refined until it meets our quality criteria.”
-- “This task needs a critic and a refiner to improve output quality.”
-- “We want the system to self-correct, but still stop safely after a bounded number of passes.”
 
-This is exactly the kind of situation where cyclic workflows become useful.
+## Architecture decision: separate improvement from authorization
 
-## Business translation
+The memo loop can assist an analyst; it cannot grant itself lending authority. Keep approval operations in a separately authorized service. Do not use a critic model’s “approved” token, a substring search or a polished final draft as proof of business approval.
 
-The core idea is simple: a workflow can run a review step, inspect the result, and then decide whether to revise it or stop.
+Bound attempts, wall time, tokens and evidence size. Three iterations are a business budget, while `max_llm_calls` and model retry limits are separate technical budgets. A provider retry inside one iteration can consume additional time and cost.
 
-Examples:
+For long-running revision, persist the evidence version, attempt status, feedback and accepted draft reference through durable services. On resume, recheck evidence freshness and use idempotent writes. Cancellation or session rewind cannot undo a memo already emailed or a transaction already submitted. The lab performs neither operation.
 
-- draft generation → critic → edit loop
-- incident summary → validation step → rewrite if needed
-- proposal response → compliance check → revise and re-run
-- research summary → quality review → improve clarity and completeness
+Evaluate misleading citations, contradictory evidence, instruction injection in source text, stale policy and critic/writer agreement on an incorrect statement. A second model does not automatically provide independent verification.
 
-This is not “the model keeps looping until it feels good.” It is a disciplined operational pattern designed around explicit exit conditions and safety limits.
+## Translate the prototype into a customer implementation
 
-## Core ADK concept
+| Concern | Concrete implementation decision | Acceptance evidence |
+|---|---|---|
+| Identity | Authenticate ingress; derive caller/tenant context in trusted code | Wrong-user and wrong-tenant requests are denied |
+| Business truth | Use authorized case and ledger adapters | Freshness, provenance and record version are preserved |
+| Hosting | Choose supported Agent Runtime or Cloud Run based on ownership and operations | Staging deployment and recovery checks on the chosen target |
+| Persistence | Use a native ADK provider suitable for the environment | Restart and concurrent-session behavior tested |
+| Secrets | Workload identity and Secret Manager where a secret is needed | No credentials in prompts, source or normal logs |
+| Failure | Bound calls; report failure/unknown outcomes; reconcile writes | Timeout and duplicate-operation scenarios tested |
+| Quality | Evaluate grounded explanations and capability selection | Recorded per-case results, including held-out cases |
+| Operations | Cloud Logging/Trace with deliberate data capture policy | Case correlation, error categories and access controls verified |
 
-ADK 2.0 uses dynamic workflows and `@node` functions to implement cyclic behavior. A node can call other nodes repeatedly using Python control flow, such as `for` or `while` loops.
+Reuse the authorized Firestore case pattern from Module 13.5 and bounded evidence adapters from Module 14. Do not replace them with prompt-only access checks. The standalone examples isolate this module’s concept; their fixture values must be replaced with authorized records before customer use.
 
-This is valuable because it enables:
+Keep a release record containing the dependency lock, model version/configuration, rule/contract versions, test results, evaluation results and known limitations. Google-native components reduce custom infrastructure work, but do not certify a solution’s security, compliance or business correctness.
 
-- iterative refinement loops
-- review and critique logic
-- bounded retry or optimization cycles
-- explicit stop conditions
-- better observability over intermediate output quality
+## Failure and acceptance review
 
-## Enterprise pattern
+| Scenario | Required reasoning |
+| --- | --- |
+| Run the default fixture | The first attempt has a citation defect; the second reaches human review. |
+| Use the always_incomplete writer | Three attempts end in needs_manual_review without an accepted memo. |
+| Return malformed data | The application reports invalid_model_output. |
+| Write misleading prose with both valid citations | The structural gate can pass; explain why a semantic evaluation and human review still matter. |
 
-### Pattern 1: Critic-refiner loop
-The first node reviews the current output and identifies gaps or issues. The second node uses that feedback to revise the work.
+## Explain the native Google integration
 
-This is a common workflow for:
+ADK runs the bounded workflow, and the optional Gemini Agent drafts text. Durable Sessions can preserve conversation events; they do not provide a transaction that reverses an externally published memo.
 
-- writing and editing
-- policy checks
-- analysis quality improvements
-- summarization refinement
+Use the [shared customer integration specification](../module15-intro-to-multi-agent-systems/fde-learning-guide.md#a-concrete-integration-boundary-after-module-215) to identify the exact earlier-course adapters and missing bank-owned fields. Keep ADK control logic, managed hosting and business data services as separate responsibilities.
 
-### Pattern 2: Rework until acceptance
-The loop continues until the work meets a business rule, quality threshold, or explicit “APPROVED” condition.
+**Review challenge:** Add a semantic evaluation rubric for contradicted evidence and misleading citations. Keep it separate from the exact gate, and justify whether a failing semantic check should trigger revision, human review or rejection.
 
-This pattern is useful when a result is not acceptable until it passes a defined bar.
+## Evidence available in this revision
 
-### Pattern 3: Bounded self-correction
-The system should always limit the number of iterations to protect cost, latency, and reliability. This is an essential production rule.
+5 offline tests passed, including successful revision, three-attempt exhaustion and malformed output. The optional Gemini writer and semantic memo quality have not been evaluated live.
 
-## Why this matters in production
+Reviewed on **3 October 2026** against **google-adk 2.11.0** and its installed public APIs. Examples require Python 3.12+ and were exercised with **Python 3.14.7**. Python 3.14.8 is the current stable patch release; it was not the local test interpreter. Use the supplied lockfile for the verified dependency resolution, and repeat the checks before upgrading.
 
-A lot of AI systems fail not because the first pass is wrong, but because there is no control over iteration. Without a clear quality gate and loop limit, the system can spin, waste cost, or produce increasingly noisy results.
+Sources: [ADK release](https://pypi.org/project/google-adk/2.11.0/) and [Python 3.14.8 release](https://www.python.org/downloads/release/python-3148/). “Current” is dated verification, not a promise that a dependency will never change.
 
-A strong enterprise workflow treats self-correction as a controlled operating pattern rather than an unbounded hallucination loop.
+## Continue the story
 
-## Best practices for real customer work
+Module 19 composed advisory results. This module bounds revision of an evidence memo. Module 21 moves one specialist behind a real protocol boundary.
 
-### 1. Define a clear exit condition
-Stop only when the result is accepted, not merely because the loop has run a few times.
+[Previous module](../module19-collaborative-teams/README.md) · [Lab](./lab.md) · [Solution](./lab-solution.md) · [Enterprise playbook](./enterprise-playbook.md) · [Next module](../module21-distributed-graphs/README.md)
 
-### 2. Add a maximum iteration cap
-Use a fixed limit such as 3–5 iterations to ensure cost and latency stay under control.
+## Instructor acceptance: demonstrate transfer
 
-### 3. Keep review criteria explicit
-The critic should follow a clear rubric, not vague “is this good?” logic.
+Ask the learner to explain this derivation without looking at the implementation: “Up to three” becomes range(1, 4). “Identify this case” becomes an equality check. “Cite both records” becomes a set comparison. “Return for manual review” becomes an explicit exhaustion status, never reuse of the last failed draft as accepted.
 
-### 4. Keep the loop narrow and purposeful
-Do not build a large, open-ended self-correction loop if the real business task is simple and one pass is enough.
+Then assign: Design a semantic gate for contradicted evidence. Decide whether its failure consumes a revision attempt and how the bank reviews disagreement between structural and semantic checks.
 
-### 5. Log intermediate output
-This is essential for debugging, evaluation, and quality tracking.
+Accept the explanation only when it names the native ADK execution boundary, identifies a trusted source, predicts a failure and proposes evidence that could disprove the design. A copied successful trace does not establish independent understanding.
 
-## Common enterprise anti-patterns
+## Official sources
 
-### Anti-pattern 1: infinite or unbounded iteration
-Without a hard stop, the workflow becomes expensive and unpredictable.
+- [Dynamic workflows](https://adk.dev/graphs/dynamic/)
+- [Graph cycles and routes](https://adk.dev/graphs/routes/)
+- [ADK evaluation criteria](https://adk.dev/evaluate/criteria/)
 
-### Anti-pattern 2: vague quality criteria
-If the critic cannot articulate the condition, the system will not reliably know when to stop.
-
-### Anti-pattern 3: using the loop to hide weak prompts
-A loop should improve quality, not compensate for poor structure or unclear task definition.
-
-### Anti-pattern 4: ignoring observability
-You need to see what changed between iterations to evaluate whether the loop actually improves the output.
-
-## Cyclic workflows as an operational pattern
-
-This module is best understood as a production reliability pattern. It turns an AI process into a reviewable, inspectable loop that improves output under guardrails.
-
-This is a very practical pattern for customer delivery, especially in content generation, analysis, and decision-support workflows that benefit from refinement.
-
-## Related modules
-
-- [Module 16 Enterprise Playbook](../module16-static-orchestration/enterprise-playbook.md)
-- [Module 17 Enterprise Playbook](../module17-structured-routing/enterprise-playbook.md)
-- [Module 18 Enterprise Playbook](../module18-dynamic-orchestration/enterprise-playbook.md)
-- [Module 24 Evaluation](../module24-evaluation/README.md)
-- [Module 25 Observability](../module25-observability/README.md)
-
-## Recommended next move in the learning path
-
-After mastering iterative loops, the next step is to move into collaborative teams and higher-level coordination patterns, where multiple specialized agents work together across a longer process and shared context.
-
-## Final enterprise takeaway
-
-Module 20 shows that AI workflows are not only about one-time generation. They are often about controlled improvement over time.
-
-The strongest enterprise systems use loops with clear termination criteria, structured review, and operational guardrails. That is how iterative systems become trustworthy rather than noisy.
-
-## Official ADK / Google references
-
-- ADK documentation home: https://google.github.io/adk-docs/
-- ADK workflows and orchestration docs: https://google.github.io/adk-docs/workflows/
-- ADK agent and runtime docs: https://google.github.io/adk-docs/agents/
-- Gemini API docs: https://ai.google.dev/gemini-api/docs
-- Vertex AI generative AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
-
-These are the official sources to validate workflow behavior, orchestration patterns, and future changes to iterative execution design.
-
----
-
-## Related roadmap
-
-- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
-- [Module 20 README](./README.md)
----
-
-## Official References
-
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
-
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. -->

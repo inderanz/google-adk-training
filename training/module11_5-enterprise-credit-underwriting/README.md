@@ -5,6 +5,34 @@ title: "Module 11.5: Enterprise Credit Underwriting & Commercial Loan Triage"
 
 # Module 11.5: Enterprise Credit Underwriting & Commercial Loan Triage
 
+## Before you begin: what this module teaches
+
+**ADK concept: an end-to-end API integration contract for a banking review.**
+
+A functional requirement describes what the user should receive. A non-functional requirement states properties such as latency, access restrictions and recovery. A contract defines request fields, response fields and failures. Normalization translates legacy data into an agreed shape; it must preserve meaning and expose missing information rather than silently manufacture it.
+
+**Where you would use this in real work.**
+
+A relationship manager wants a commercial review prepared from existing records. The engineering task is to identify the required facts, their owners and the next human review step—not to let a model invent lending policy.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+ADK orchestrates the language/tool interaction; approved APIs and Google-hosted integration services own data access. An underwriting-themed lab is not a validated credit-decision model or regulatory approval. Carry forward the exact source/version and human responsibility for consequential decisions.
+
+**By the end, you should be able to:**
+
+- Translate one business sentence into input, operation, rule and acceptance evidence.
+- Separate required data collection from optional explanatory reasoning.
+- Document missing-source and ambiguous-request outcomes.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Explain one requirement row before reading the full solution.
+- **Experienced engineer:** Challenge the normalizer with missing fields, conflicting versions and duplicate requests.
+- **Bank FDE:** Confirm rule ownership, monetary units, permitted decisions and review responsibilities with the bank.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
 ## 🏛️ Enterprise Engagement: Commercial Credit Underwriting & Risk Triage Agent
 
 * **Client:** Sovereign Horizon Bank (Tier-1 Commercial & Corporate Bank)
@@ -242,36 +270,12 @@ def load_and_normalize_spec(
 ## 🔬 Architecture Flow Diagram
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor Officer as Senior Credit Officer
-    participant Agent as Commercial Credit Agent (Gemini 2.5 Flash)
-    participant MathTools as Financial Math Tools (Pydantic)
-    participant Toolset as OpenAPIToolset (Core Banking)
-    participant CoreAPI as Sovereign Core Banking Gateway
-
-    Officer->>Agent: "Triage loan application for Acme Industrial (TAX-99214). Requesting $10M facility. NOI: $3.2M, Debt Service: $2.1M, Debt: $8M, EBITDA: $3M, Assets: $5M, Liab: $3.5M."
-
-    Agent->>Toolset: Call get_borrower_exposure(tax_id="TAX-99214")
-    Toolset->>CoreAPI: GET /v1/borrowers/TAX-99214/exposure
-    CoreAPI-->>Toolset: 200 OK (Current Limit: $15M, Utilized: $8M, Headroom: $7M)
-    Toolset-->>Agent: Exposure Data Returned
-
-    Agent->>Toolset: Call get_borrower_risk_profile(tax_id="TAX-99214")
-    Toolset->>CoreAPI: GET /v1/borrowers/TAX-99214/risk-profile
-    CoreAPI-->>Toolset: 200 OK (Risk Tier: "Tier 1 Prime", KYC: "VERIFIED", Restricted: false)
-    Toolset-->>Agent: Risk Profile Verified
-
-    Agent->>MathTools: Call calculate_dscr(net_operating_income=3.2M, total_debt_service=2.1M)
-    MathTools-->>Agent: Return DscrResult(dscr_ratio=1.52, is_compliant=True)
-
-    Agent->>MathTools: Call calculate_debt_to_ebitda(total_debt=8M, ebitda=3M)
-    MathTools-->>Agent: Return DebtToEbitdaResult(leverage_ratio=2.67, is_compliant=True)
-
-    Agent->>MathTools: Call evaluate_covenant_policy(...)
-    MathTools-->>Agent: Return CovenantEvaluationResult(overall_status="PASS", is_approved=True)
-
-    Agent-->>Officer: Generate Structured Credit Memorandum (Recommendation: APPROVE_FOR_COMMITTEE)
+flowchart TB
+  A[Review request and identified case] --> B[Read authorized records]
+  B --> C[Validate numeric inputs]
+  C --> D[Calculate explicit teaching rules]
+  D --> E[Draft evidence and limitations]
+  E --> F[Human review remains required]
 ```
 
 ---
@@ -283,3 +287,8 @@ sequenceDiagram
 - Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
 - OpenAPI 3.0 Specification: https://spec.openapis.org/oas/v3.0.3
 - Federal Reserve SR 11-7 (Model Risk Management): https://www.federalreserve.gov/supervisionreg/srletters/sr1107.htm
+## Continue the course story
+
+Previous: [Module 11](../module11-openapi-tools/README.md) · Next: [Module 11.6](../module11_6-enterprise-apigee-gateway-auth/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.

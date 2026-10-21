@@ -5,6 +5,46 @@ title: "Module 32: Deployment to Cloud Run"
 
 # Module 32: Deployment to Cloud Run
 
+## Before you begin: what this module teaches
+
+**ADK concept: containerized ADK hosting on Cloud Run.**
+
+An image packages code and dependencies. A revision identifies a deployed configuration. An instance is a running copy that can be replaced. Concurrency describes requests handled by an instance; autoscaling changes instance count. These are different from ADK agents and sessions. A conversation cannot rely on a particular instance remaining alive.
+
+**Where you would use this in real work.**
+
+The bank wants a managed HTTP service for its analyst application. The same tested code should run as a packaged revision, with an attached identity and a controlled endpoint.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Cloud Run hosts the container; Artifact Registry stores images; the selected session/artifact providers store durable data. Configure authenticated invocation and dependency IAM explicitly. An HTTPS URL is not automatically public, and a successful deployment is not a complete banking release test.
+
+**By the end, you should be able to:**
+
+- Identify what the build produces and what a revision runs.
+- Explain why durable state must survive instance replacement.
+- Test allowed and denied callers at the deployed endpoint.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Trace source → image → revision → request.
+- **Experienced engineer:** Test concurrent requests, timeout and restart behavior using external storage.
+- **Bank FDE:** Agree ingress, identity, cost/latency budgets, rollback and incident ownership.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
+## Draw the execution boundary
+
+Deployment lifecycle: each revision still needs authenticated integration tests.
+
+```mermaid
+flowchart TB
+  A[Tested code and dependency lock] --> B[Build container image]
+  B --> C[Store image in Artifact Registry]
+  C --> D[Deploy Cloud Run revision]
+  D --> E[Test identity, data access and recovery]
+```
+
 ## Theory
 
 ### From Localhost to the World
@@ -43,7 +83,7 @@ When you run this command, it performs a series of steps behind the scenes:
 5.  **Deploys the Image:** It configures the service to run the container image it just pushed.
 6.  **Configures the Environment:** It passes necessary environment variables (like your Google Cloud Project ID) to the running container so the ADK can function correctly.
 
-The result is a publicly accessible HTTPS endpoint for your agent, all from a single command. This streamlined process allows you to focus on building your agent's logic, not on the complexities of cloud infrastructure.
+The result is a Cloud Run HTTPS service endpoint. Whether unauthenticated callers may invoke it depends on the configured access policy. A banking deployment should explicitly configure and test permitted callers, ingress and backend record authorization.
 
 In the lab for this module, you will use the `uv run adk deploy cloud_run` command to deploy the multi-agent customer support system you'll build in this lab.
 
@@ -51,10 +91,16 @@ In the lab for this module, you will use the `uv run adk deploy cloud_run` comma
 - **Deployment** is the process of packaging an agent into a **container** and running it on a production server.
 - **Google Cloud Run** is a fully managed, serverless platform that is ideal for deploying ADK agents due to its simplicity, automatic scaling (including to zero), and pay-per-use cost model.
 - The `uv run adk deploy cloud_run` command automates the entire deployment workflow, including containerization, pushing to a registry, and configuring the Cloud Run service.
-- This streamlined command allows you to deploy a production-ready, publicly accessible agent with a single command.
+- The deployment command automates packaging and hosting steps. Production readiness still needs evaluation, identity, authorized data access, persistence and operational verification.
 - **Scale-to-Zero Implications:** Cloud Run's ability to scale to zero instances is highly cost-effective for agents with infrequent traffic, as you are not billed for idle time. However, this comes with a performance trade-off: the first request to a scaled-down service will experience a "cold start," resulting in higher latency as a new container instance is provisioned. Subsequent requests will be fast until the instance scales down again.
 - **Omitting `--with_ui` in Production:** In a headless production scenario where the agent is consumed by another application via its API, the `--with_ui` flag should be omitted. This is for two main reasons: **security** (the Dev UI exposes internal agent details like the full instruction and tool trajectory that should not be public) and **efficiency** (the UI adds unnecessary overhead to the container size and resource consumption).
 - **Automation of `uv run adk deploy`:** The `uv run adk deploy cloud_run` command automates a multi-step process that would otherwise be manual and complex: packaging the code, building a container image (like `docker build`), pushing the image to a registry (like Artifact Registry), and creating/updating the Cloud Run service with the correct permissions and configuration. Without this command, each of these steps would need to be performed manually using `gcloud` or `docker` commands.
+
+## Continue the course story
+
+Previous: [Module 31](../module31-production-deployment-strategies/README.md) · Next: [Module 33](../module33-deployment-gke/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module32-deployment-cloud-run-README -->
 ---

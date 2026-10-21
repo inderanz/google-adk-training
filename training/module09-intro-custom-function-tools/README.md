@@ -5,6 +5,34 @@ title: "Module 9: Creating Custom Function Tools"
 
 # Module 9: Creating Custom Function Tools
 
+## Before you begin: what this module teaches
+
+**ADK concept: Python function tools and explicit input/output contracts.**
+
+def declares a function; parameters receive values; type hints describe expected types; a docstring explains purpose and usage; return supplies the result. ADK can adapt supported functions from the tools list. Type hints help describe the interface but do not replace business validation. A dictionary makes named fields explicit; its presence does not certify the values.
+
+**Where you would use this in real work.**
+
+The bank already has a function that reads a record. To let an agent request it, the engineer must describe the arguments clearly and return a result that distinguishes success, missing data and failure.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Keep the tool implementation in trusted application code and use official clients for its Google dependencies. Gemini proposes business arguments; verified user identity and credentials must come from trusted context. The railway analogy below teaches the call pattern, not access to an actual railway service.
+
+**By the end, you should be able to:**
+
+- Explain each line of one function signature and return dictionary.
+- Validate IDs and represent not_found separately from unavailable.
+- Inspect the model-visible schema and actual runtime arguments.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Predict the returned dictionary before running the function.
+- **Experienced engineer:** Test direct calls as well as calls through ADK so validation cannot depend only on prompting.
+- **Bank FDE:** Ask which operation is read-only, which changes a record and who may perform it.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
 ## Theory
 
 ### Unlocking Unlimited Capabilities
@@ -76,30 +104,11 @@ Based on this information, the LLM can intelligently decide when to use your fun
 Here is the exact technical roundtrip that executes across the network:
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor User as User (Client App)
-    participant ADK as ADK 2.0 Runner (Your Python Server)
-    participant LLM as Gemini 2.5 Flash
-    participant Tool as Custom Python Function (Local Tool)
-
-    User->>ADK: "Check PNR status for 4521890234"
-    Note over ADK,LLM: Step 1: Send prompt + Auto-generated Tool Schemas
-    ADK->>LLM: Prompt + Tools Schema [check_pnr_status]
-
-    Note over LLM: Step 2: Model decides it needs a tool.<br/>Emits FunctionCall JSON (does NOT execute code!)
-    LLM-->>ADK: event.content = FunctionCall(name="check_pnr_status", args={"pnr": "4521890234"})
-
-    Note over ADK,Tool: Step 3: ADK intercepts the call and runs your local Python function!
-    ADK->>Tool: check_pnr_status(pnr="4521890234")
-    Tool-->>ADK: Returns dict/Pydantic: {"status": "CNF", "coach": "B2", "berth": 18}
-
-    Note over ADK,LLM: Step 4: ADK feeds the tool result back to Gemini
-    ADK->>LLM: FunctionResponse(name="check_pnr_status", response={"status": "CNF", "coach": "B2", "berth": 18})
-
-    Note over LLM: Step 5: Gemini reads the raw data and drafts the final user response
-    LLM-->>ADK: "Good news! Your ticket is Confirmed in Coach B2, Berth 18."
-    ADK-->>User: Streams the final response to the user
+flowchart TB
+  A[User asks for a status] --> B[Gemini requests named tool]
+  B --> C[ADK validates and invokes function]
+  C --> D[Function returns structured result]
+  D --> E[Gemini explains the result]
 ```
 
 ### The Anatomy of a Well-Defined Tool Function
@@ -159,38 +168,11 @@ def get_weather(city: str) -> WeatherReport:
     return WeatherReport(status="success", temperature=22.0, conditions="Sunny")
 ```
 
-#### 5. Defensive Error Handling (Never Crash the Agent!)
+#### 5. Make expected outcomes and execution failures distinguishable
 
-In traditional programming, when something goes wrong (e.g., bad inputs, database timeouts, network failures), developers often let Python raise an unhandled exception:
+A missing record is an expected business outcome: return a bounded result such as `{"status": "not_found"}`. A temporary service outage is a different outcome. Decide whether the caller should receive an explicit unavailable result or a typed exception handled by the configured runtime policy.
 
-```python
-# The ANTI-PATTERN: Crashing the agent
-def fetch_account_balance(account_number: str):
-    if len(account_number) != 10:
-        raise ValueError("Invalid account number!")  # Fatal Crash!
-```
-
-> [!CAUTION]
-> **Why Uncaught Exceptions Break Agents:**
-> If your tool raises an uncaught exception, the entire Python ADK runner aborts, the HTTP/WebSocket connection drops, and the user sees a raw internal server error.
-
-**The Enterprise Solution: Return an Error Dictionary or Error Model**
-Instead of raising an exception, catch the error and return a clean, descriptive message:
-
-```python
-# The ENTERPRISE PATTERN: Graceful recovery
-def fetch_account_balance(account_number: str) -> dict:
-    if len(account_number) != 10:
-        return {
-            "success": False,
-            "error": "The account number must be exactly 10 digits. Please prompt the user to double-check their bank passbook or statement.",
-        }
-```
-
-When Gemini receives `{"success": False, "error": ...}` in the `FunctionResponse`, the model does not crash. Instead, it reads the message and speaks politely to the user:
-> *"I noticed your account number has only 8 digits. Could you please check your statement and provide the complete 10-digit account number?"*
-
----
+Do not catch every exception and report success. Conversely, raising an exception is not always a fatal process crash: an invocation can fail, or a configured supported retry/error hook may handle it. Preserve framework interruption signals needed for confirmation/resume. Only retry operations that are safe to repeat, using a bounded policy. Modules 18, 26 and 38 explain these boundaries.
 
 ### Advanced: The `ToolContext`
 
@@ -387,6 +369,12 @@ The solution is to use **separate agents**, each with its own single tool type, 
 3.  Either a coordinating agent, or your own Python code, that calls each one in turn and combines their results.
 
 You'll learn exactly how to build these multi-agent architectures in **Module 15**. Module 12 revisits this same constraint hands-on, once you've seen `google_search` and the other built-in tools in more depth.
+
+## Continue the course story
+
+Previous: [Module 08](../module08-intro-to-tools/README.md) · Next: [Module 10](../module10-advanced-function-tools/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module09-intro-custom-function-tools-README -->
 ---

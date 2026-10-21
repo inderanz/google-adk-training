@@ -5,6 +5,9 @@ title: "Challenge Lab"
 
 # Lab 1 Challenge: Your First Interaction
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 
 The goal of this first lab is to familiarize yourself with the available resources for learning and using the Google Agent Development Kit (ADK). You won't be writing any code yet; instead, you'll be exploring the official documentation and code repositories to understand where to find information and inspiration.

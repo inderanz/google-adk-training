@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 35: Deploying an Agent to Agent Runtime Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 In this lab, you will deploy the same multi-agent Customer Support system from Modules 32 and 33 to Google Cloud's Agent Runtime, using both the recommended Accelerated method and the manual Standard method — completing the "same application, three platforms" arc for Part 6.
 

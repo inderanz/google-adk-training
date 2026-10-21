@@ -5,6 +5,34 @@ title: "Module 2: Setting Up Your Development Environment (ADK 2.0)"
 
 # Module 2: Setting Up Your Development Environment
 
+## Before you begin: what this module teaches
+
+**ADK concept: a reproducible Python and authenticated Google development environment.**
+
+An interpreter executes Python. A virtual environment isolates installed packages. A dependency declaration states what the project needs; a lockfile records a resolved set of versions. uv manages these pieces. Authentication establishes who calls a service, while authorization determines whether that identity may perform the requested operation. A project ID is configuration, not a credential.
+
+**Where you would use this in real work.**
+
+Two engineers at the bank should be able to run the same exercise and obtain the same software behavior. One engineer's successful laptop setup is not enough. The first deliverable is a reproducible environment with a clear identity and selected Google project.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Use the bank-approved Google enterprise backend, project/location and Application Default Credentials or workload identity appropriate to the environment. A personal API-key exercise is a separate learning option, not proof of enterprise IAM behavior. Follow each module's declared Python requirements and lockfile instead of assuming every example has the same minimum.
+
+**By the end, you should be able to:**
+
+- Identify the interpreter and locked package versions actually running.
+- Explain the difference between a missing package, failed authentication and denied permission.
+- Keep local configuration and secret delivery outside model prompts.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Explain why uv run can behave differently from an unrelated global python command.
+- **Experienced engineer:** Reproduce installation in a clean environment using the lockfile.
+- **Bank FDE:** Agree project ownership, region, quotas and developer access with the platform team.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
 ## Theory
 
 ### The Importance of a Clean Environment
@@ -306,18 +334,11 @@ LEVEL 1: LIBRARY / PACKAGE          (The Whole Mall / District)
 #### How They Hang Together in `google.adk` and `google.genai`
 
 ```mermaid
-flowchart TD
-    L1["<b>Level 1: Library / Package</b><br/><code>google.adk</code> & <code>google.genai</code>"]
-
-    L1 --> L2["<b>Level 2: Base Class</b><br/><code>BaseAgent</code> (Parent Class)"]
-
-    L2 -->|Inherits from| L3["<b>Level 3: Subclass</b><br/><code>Agent</code> (Specialized Class in ADK)"]
-
-    L3 -->|Instantiated via ()| L4["<b>Level 4: Object / Instance</b><br/><code>root_agent = Agent(name='calculator_agent')</code>"]
-
-    L4 --> L5A["<b>Data Attribute</b><br/><code>root_agent.name</code><br/><i>(Stored Noun: 'calculator_agent')</i>"]
-    L4 --> L5B["<b>Method</b><br/><code>root_agent.run_async(...)</code><br/><i>(Action Verb with ())</i>"]
-    L4 --> L5C["<b>Property</b><br/><code>tool_context.user_id</code><br/><i>(Smart Computed Noun)</i>"]
+flowchart TB
+  A[Import Agent from google.adk] --> B[Agent is a Python class]
+  B --> C[Construct root_agent instance]
+  C --> D[Read name<br/>attribute]
+  C --> E[Runner invokes<br/>configured behavior]
 ```
 
 #### Detailed Level-by-Level Breakdown with Real Code
@@ -539,6 +560,12 @@ Avoid bare `pip install ...` commands unless you are deliberately working outsid
 - Missing ADK features usually mean a missing optional extra, and the fix is almost always `uv add "google-adk[<extra>]"`.
 - Always validate imports with `uv run python -c "..."` before debugging application logic.
 
+## Continue the course story
+
+Previous: [Module 01](../module01-intro-to-ai-agents/README.md) · Next: [Module 03](../module03-first-agent-echo/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
+
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module02-environment-setup-README -->
 ---
 
@@ -550,4 +577,3 @@ Avoid bare `pip install ...` commands unless you are deliberately working outsid
 - Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
 - Vertex AI generative guidance: https://cloud.google.com/vertex-ai/generative-ai
 - Cloud Vision and OCR: https://cloud.google.com/vision
-

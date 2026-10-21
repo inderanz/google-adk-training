@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 29: Building a Simple Custom Chat UI Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 
 In this lab, you will build a simple, standalone HTML file with JavaScript that acts as a custom chat client for an ADK agent, demonstrating how to connect a UI to the ADK's native API server.

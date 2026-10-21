@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 33: Manually Deploying an Agent to GKE Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 
 In this lab, you will learn the fundamental process of deploying an ADK agent to Google Kubernetes Engine (GKE), by deploying the same multi-agent Customer Support system from Module 32 — this time to GKE instead of Cloud Run. Walking through the manual steps of creating a `Dockerfile`, building a container, and writing Kubernetes manifests provides a deep understanding of the deployment process, and seeing the same application move between platforms makes the trade-offs concrete.

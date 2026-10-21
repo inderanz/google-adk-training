@@ -20,10 +20,28 @@ npx wrangler d1 migrations apply gyanhq-training-local --local --env local
 npm run dev
 ```
 
-Visit `http://localhost:8787/adk-training/`. A development server is not an auth
-bypass: Google sign-in needs the local OAuth configuration below. Automated
-browser tests seed sessions only in their own in-memory database, never in the
-deployed Worker. `npm run test:browser` runs against this disposable test server.
+Visit `http://localhost:8787/adk-training/`. To inspect every module and solution
+without configuring Google OAuth, leave the development server running and run
+this in a second terminal:
+
+```sh
+cd portal # from the repository root
+npm run preview:login
+```
+
+Open the printed local link and click **Open local workspace**. This signs you
+in as **Local preview administrator** (`admin@example.com` by default, from
+`env.local.vars.ADMIN_EMAIL`). No password is required. The session lasts 12
+hours; use **Sign out** to end it, or rerun the command for a new login link.
+The link is single-use, expires after 30 minutes, and requires that second
+terminal to stay open until sign-in. Use the same browser for the portal.
+
+The utility writes a hashed session only to Wrangler's local D1 database and
+sets an HttpOnly cookie through a temporary loopback server. It does not release
+modules, add a Worker authentication endpoint, or modify cloud databases.
+Google sign-in still needs the OAuth configuration below. Automated browser
+tests seed sessions only in their own in-memory database, never in the deployed
+Worker. `npm run test:browser` runs against this disposable test server.
 Install Chrome locally or install Playwright Chromium with `npx playwright install chromium`.
 Set `PLAYWRIGHT_CHANNEL=chromium` when using Playwright's bundled Chromium.
 

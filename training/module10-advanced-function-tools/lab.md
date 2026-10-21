@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 10: Building an Enterprise "Stateful Banking" Agent Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 
 In this lab, you will build an enterprise-grade banking agent (`banking_agent`) that uses **`ToolContext`** to persist customer preferences, enforce zero-trust identity verification, and accumulate multi-turn loan application drafts across conversation turns.

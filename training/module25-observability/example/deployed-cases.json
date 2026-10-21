@@ -1,0 +1,18 @@
+[
+  {
+    "id": "healthy",
+    "prompt": "Read the checklist for CASE-001.",
+    "expected": {
+      "tool": "read_checklist",
+      "status": "ok"
+    }
+  },
+  {
+    "id": "outage",
+    "prompt": "Simulate an outage reading CASE-001. Call read_checklist with simulate_outage=true.",
+    "expected": {
+      "tool": "read_checklist",
+      "status": "unavailable"
+    }
+  }
+]

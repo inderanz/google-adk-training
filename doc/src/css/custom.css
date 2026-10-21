@@ -61,3 +61,51 @@
 .footer--dark {
   --ifm-footer-background-color: #10162b;
 }
+
+/* ==========================================================================
+   Mermaid Architecture Diagrams - Precision Anti-Clipping Styles
+   ========================================================================== */
+
+.docusaurus-mermaid-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: 2rem 0;
+  padding: 1rem 0.5rem;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+}
+
+[data-theme='dark'] .docusaurus-mermaid-container {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.docusaurus-mermaid-container svg {
+  max-width: 100%;
+  height: auto !important;
+  overflow: visible !important;
+}
+
+/* Prevent foreignObject inside SVG from clipping node labels */
+.docusaurus-mermaid-container .node foreignObject {
+  overflow: visible !important;
+}
+
+.docusaurus-mermaid-container .node foreignObject div {
+  overflow: visible !important;
+  line-height: 1.4 !important;
+  text-align: center !important;
+  white-space: normal !important;
+  word-break: normal !important;
+}
+
+/* Ensure clean font rendering for diagram text elements */
+.docusaurus-mermaid-container .label,
+.docusaurus-mermaid-container .node text {
+  font-family: var(--adk-sans) !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+}
+

@@ -5,6 +5,9 @@ title: "Challenge Lab"
 
 # Lab 2: Environment Setup Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Prerequisites
 Before you begin, ensure you have the following tools ready:
 *   **Code Editor (IDE):** You need a good environment to write your code. We recommend:

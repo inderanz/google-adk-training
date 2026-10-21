@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 4 Challenge: Customer Support Analyzer
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 Your task is to build a **"Support Analyzer"** agent. Instead of returning plain text, the agent must analyze the user's support ticket and return a JSON object containing the categorization, sentiment, and a brief summary of the issue.
 

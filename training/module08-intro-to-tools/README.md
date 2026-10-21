@@ -5,6 +5,46 @@ title: "Module 8: Introduction to Tools"
 
 # Module 8: Introduction to Tools
 
+## Before you begin: what this module teaches
+
+**ADK concept: tool declarations, model requests and runtime execution.**
+
+A tool declaration describes a capability and its arguments to the model. A function call is the model's request to use it. ADK resolves the request and runs application code. A function response returns the result for subsequent reasoning. The tool is like the branch records desk: the assistant can request a lookup, but the desk must still check access and report unavailable/missing records honestly.
+
+**Where you would use this in real work.**
+
+Meera asks, “Has the ownership register arrived?” The model cannot know the current answer from its training. It needs a narrowly defined operation that reads the authorized case record.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Use native ADK function tools or an appropriate supported integration. The bank API or Google-backed record service owns the facts; Gemini explains their returned meaning. An instruction to use a tool is behavior to evaluate, not a guarantee that every request invokes it.
+
+**By the end, you should be able to:**
+
+- Draw declaration, function call, execution and result as separate stages.
+- Choose a read-only tool before adding a consequential write.
+- Explain why a plausible answer is not evidence of a tool call.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Identify arguments and results in one trace.
+- **Experienced engineer:** Test out-of-order, missing and invalid tool requests.
+- **Bank FDE:** Agree the smallest permitted operation and its source of truth.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
+## Draw the execution boundary
+
+A tool call is proposed by the model and executed by trusted application code.
+
+```mermaid
+flowchart TB
+  A[Gemini receives tool declaration] --> B[Model requests named tool]
+  B --> C[ADK resolves the call]
+  C --> D[Tool validates and performs operation]
+  D --> E[Result returns to model context]
+```
+
 ## Theory
 
 ### Beyond Conversation
@@ -76,6 +116,12 @@ Use the official Google and ADK documentation as the current source of truth for
 - Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
 
 These references should be checked whenever new tool behavior, grounding capabilities, or function-calling changes are introduced by the platform.
+
+## Continue the course story
+
+Previous: [Module 07](../module07-multimodal-and-images/README.md) · Next: [Module 09](../module09-intro-custom-function-tools/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module08-intro-to-tools-README -->
 ---

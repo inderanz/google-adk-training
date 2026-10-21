@@ -5,6 +5,46 @@ title: "Module 39: ADK Plugins"
 
 # Module 39: Advanced Recovery with Built-In Plugins
 
+## Before you begin: what this module teaches
+
+**ADK concept: App plugins and bounded tool-call repair.**
+
+A plugin registers hooks across local App execution. ReflectAndRetryToolPlugin can feed supported tool failures back to the model for another attempt. The model proposes a repair; it is not guaranteed to fix the problem. Plugin scope and return contracts determine what is intercepted, replaced or allowed to continue.
+
+**Where you would use this in real work.**
+
+The assistant requests a tool with invalid arguments. The bank wants it to correct a recoverable request while keeping limits and validation intact. Repeating a payment because an error occurred would be a very different design.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Use the native ADK plugin for the supported repair behavior rather than inventing an unbounded retry loop. Keep validation and authorization in the tool/backend. Native observability can show repeated attempts; sensitive exception details must not be exposed indiscriminately.
+
+**By the end, you should be able to:**
+
+- Distinguish a model repair attempt from an HTTP retry.
+- Identify App-level scope and the configured repair limit.
+- Explain why writes need destination-enforced duplicate protection.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Trace the failed call, returned feedback and subsequent call.
+- **Experienced engineer:** Test exhausted repair, plugin ordering and errors outside the supported hook.
+- **Bank FDE:** Agree which failures are recoverable and which require an analyst or operator.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
+## Draw the execution boundary
+
+A repair attempt is bounded and still passes tool/backend validation.
+
+```mermaid
+flowchart TB
+  A[Supported tool failure] --> B[Plugin returns bounded error feedback]
+  B --> C[Model may propose corrected call]
+  C --> D[Validate and authorize again]
+  D --> E[Result or exhausted repair outcome]
+```
+
 ## Theory
 
 ### Building on Custom Plugins
@@ -43,20 +83,6 @@ The **`ReflectAndRetryToolPlugin`** is a powerful built-in plugin designed to so
 
 To use a plugin, you instantiate it and add it to your `App` configuration.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.apps.app import App
 from google.adk.runners import Runner
@@ -80,8 +106,14 @@ runner = Runner(app=app, session_service=...)
 ### Key Takeaways
 - **Plugins** provide global, cross-cutting functionality (logging, retries, security) across your entire application.
 - They inherit from `BasePlugin` and use three patterns: **Observing**, **Intervening**, and **Amending**.
-- Plugins are registered globally on the `App` object, running before any agent-level callbacks.
-- The **`ReflectAndRetryToolPlugin`** makes agents robust by automatically catching tool errors, feeding them back to the model, and allowing it to self-correct without crashing.
+- App plugins apply across local App execution. At overlapping supported hooks, plugin processing precedes agent callbacks and a replacement may bypass the agent callback; verify the particular hook path.
+- The **`ReflectAndRetryToolPlugin`** can return supported tool failures to the model for a bounded repair attempt. It does not guarantee correction, catch every execution failure or make repeating a side effect safe.
+
+## Continue the course story
+
+Previous: [Module 38](../module38-best-practices/README.md) · Next: [Module 39.5](../module39_5-agent-skills/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module39-plugins-README -->
 ---

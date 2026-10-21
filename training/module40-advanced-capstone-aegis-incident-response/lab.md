@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 40: Aegis Incident Response & AgentOps Multi-Agent System Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 In this advanced capstone lab, you will build a sophisticated, distributed threat intelligence and incident remediation coordinator called **Aegis Guard**. You will implement three cooperative agents communicating via the Agent-to-Agent (A2A) protocol, an MCP server, and an **AgentOps** observability pattern.
 
@@ -237,17 +240,10 @@ threat_intel_service = ...
 mitigation_service = ...
 
 # TODO 2: Create the main Aegis Orchestrator Agent.
-# IMPORTANT: wire the two remote agents in as `tools=[AgentTool(agent=...), ...]`,
-# NOT as `sub_agents=[...]`. `sub_agents` wires ADK's `transfer_to_agent`
-# mechanism, which is a *permanent*, one-way handoff: once the orchestrator
-# transfers control to threat_intel_agent, threat_intel_agent becomes the
-# active agent for the rest of the run and has no way to transfer onward to
-# mitigation_agent or back to the orchestrator (it's a separate process with
-# no knowledge of that agent tree) — so the documented 4-step flow would
-# silently stop after step 1. `AgentTool` gives proper call-and-return
-# semantics instead: the orchestrator calls each remote agent like a
-# function, gets its result back, and stays in control to make the next call
-# and synthesize the final combined answer.
+# Use AgentTool for this lab's call-and-return consultations.
+# The coordinator receives each remote result and can continue.
+# sub_agents uses a different, mode-dependent delegation contract;
+# do not describe all delegation as a permanent transfer (see Module 19).
 root_agent = Agent(
     model="gemini-3.5-flash",
     name="aegis_orchestrator",

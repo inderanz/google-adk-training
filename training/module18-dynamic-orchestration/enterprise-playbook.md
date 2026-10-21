@@ -1,151 +1,87 @@
 ---
-sidebar_position: 18.1
-title: "Module 18 Enterprise Playbook: Dynamic Orchestration as Programmable Business Logic"
+sidebar_position: 4
+title: "Enterprise Banking Playbook"
 ---
 
-# Module 18 Enterprise Playbook: Dynamic Orchestration as Programmable Business Logic
+# Module 18 enterprise playbook
 
-This module is where the ADK workflow becomes truly programmable. Static edges and structured routing are powerful, but they are designed for known process shapes. Dynamic orchestration adds a more expressive layer: Python-based control flow that can branch, loop, resume, and integrate stateful business logic.
+## Start from the bank’s requirement
 
-For a forward-deployed engineer, this is the point where the agentic system moves beyond static process maps and becomes a real operational decision engine.
+> Always check the documents. Add the specialist check only for cases above the agreed threshold. Tell me which checks actually ran.
 
-## The forward-deployed engineer lens
+The employee needs this result: A list containing the required checklist result and, when applicable, the exposure-check result. A check that was skipped must not be described as completed. A failed required check must remain visible.
 
-In customer environments, real workflows often don’t fit neatly into fixed edges. They require logic like:
+Read the [plain-English task and term explanations](./README.md#read-this-as-a-bank-employees-task) before the implementation details.
 
-- “If a tool says result A, do branch X; otherwise do branch Y.”
-- “Retry if this external service fails.”
-- “Pause for human confirmation in a high-risk case.”
-- “Collect more context before deciding which workflow to follow.”
 
-These are not abstract technicalities. They are business-process realities.
+## Architecture decision: bounded dynamic work
 
-## Business translation
+A customer may ask to “check every subsidiary.” Translate that into an authorized source of subsidiary IDs, a maximum item count, per-item contracts, concurrency limits and an explicit partial-failure policy. Do not hand an unbounded list to a model or use model-created URLs as execution targets.
 
-Dynamic orchestration means the workflow can respond to runtime conditions using Python code. In enterprise terms, that means:
+Read-only children can often be retried under a bounded policy. State-changing children require idempotency and outcome reconciliation. If a child times out after a write, repeating the entire dynamic node may duplicate work unless the destination service enforces the operation key.
 
-- business rules are encoded as executable logic
-- the route can adapt to data and context
-- the system can handle exceptions and retries
-- operations can pause and resume under controlled conditions
+Treat the parent’s elapsed deadline and each child’s timeout as different budgets. Capture scheduled check names, case/version correlation, attempts and failure category. Avoid logging full financial documents to explain which branch ran.
 
-This is the pattern used when the decision process is too nuanced for a simple fixed graph.
+## Translate the prototype into a customer implementation
 
-## Core ADK concept
+| Concern | Concrete implementation decision | Acceptance evidence |
+|---|---|---|
+| Identity | Authenticate ingress; derive caller/tenant context in trusted code | Wrong-user and wrong-tenant requests are denied |
+| Business truth | Use authorized case and ledger adapters | Freshness, provenance and record version are preserved |
+| Hosting | Choose supported Agent Runtime or Cloud Run based on ownership and operations | Staging deployment and recovery checks on the chosen target |
+| Persistence | Use a native ADK provider suitable for the environment | Restart and concurrent-session behavior tested |
+| Secrets | Workload identity and Secret Manager where a secret is needed | No credentials in prompts, source or normal logs |
+| Failure | Bound calls; report failure/unknown outcomes; reconcile writes | Timeout and duplicate-operation scenarios tested |
+| Quality | Evaluate grounded explanations and capability selection | Recorded per-case results, including held-out cases |
+| Operations | Cloud Logging/Trace with deliberate data capture policy | Case correlation, error categories and access controls verified |
 
-ADK allows orchestration to be expressed via `@node` functions and `ctx.run_node()`. This enables the workflow author to write business logic in Python while still integrating other agents, tools, and workflow nodes.
+Reuse the authorized Firestore case pattern from Module 13.5 and bounded evidence adapters from Module 14. Do not replace them with prompt-only access checks. The standalone examples isolate this module’s concept; their fixture values must be replaced with authorized records before customer use.
 
-This pattern is powerful because it brings several advantages:
+Keep a release record containing the dependency lock, model version/configuration, rule/contract versions, test results, evaluation results and known limitations. Google-native components reduce custom infrastructure work, but do not certify a solution’s security, compliance or business correctness.
 
-- standard Python control flow
-- explicit branching and loops
-- error handling and step recovery
-- explicit state and resume semantics
-- a better match for real enterprise process complexity
+## Failure and acceptance review
 
-## Enterprise pattern
+| Scenario | Required reasoning |
+| --- | --- |
+| Use exactly the threshold amount | Only the checklist child runs. |
+| Increase by one cent | Both checklist and exposure children run. |
+| Use an invalid case ID | Validation stops the request before any child is scheduled. |
+| Replace a child with a controlled failure in a copy | A success result must not silently omit the failed required check. |
 
-### Pattern 1: Decision-driven workflow
-The orchestrator inspects intermediate outputs and chooses the next step based on them.
+## Explain the native Google integration
 
-Examples:
+ADK owns child scheduling and events. Real read-only children can call Google-backed evidence adapters. Agent Runtime hosting and durable Sessions remain separate configuration; @node alone does not deploy or persist the application.
 
-- risk score below threshold → proceed normally
-- risk score above threshold → escalate or request review
-- tool returns no data → retry or gather fallback information
+Use the [shared customer integration specification](../module15-intro-to-multi-agent-systems/fde-learning-guide.md#a-concrete-integration-boundary-after-module-215) to identify the exact earlier-course adapters and missing bank-owned fields. Keep ADK control logic, managed hosting and business data services as separate responsibilities.
 
-### Pattern 2: Retry and recovery pattern
-A node fails or returns unexpected output, and the orchestrator handles the failure path.
+**Review challenge:** Extend the requirement to a bounded list of subsidiaries. Define authorization per subsidiary, maximum item count, concurrency budget and whether one failed child invalidates the whole pack.
 
-Examples:
+## Evidence available in this revision
 
-- retry the lookup with fallback data
-- re-run a specialist when the first pass was incomplete
-- request more context from the user before continuing
+3 offline tests passed, including real ADK dynamic scheduling on both sides of the threshold. External retries and durable human approval are design extensions, not implemented by this fixture.
 
-### Pattern 3: Resume-aware workflow
-In sensitive or interactive processes, the orchestrator may pause and wait for approval or additional input before continuing.
+Reviewed on **3 October 2026** against **google-adk 2.11.0** and its installed public APIs. Examples require Python 3.12+ and were exercised with **Python 3.14.7**. Python 3.14.8 is the current stable patch release; it was not the local test interpreter. Use the supplied lockfile for the verified dependency resolution, and repeat the checks before upgrading.
 
-This is especially relevant in customer support, operational approvals, and workflow-critical decisions.
+Sources: [ADK release](https://pypi.org/project/google-adk/2.11.0/) and [Python 3.14.8 release](https://www.python.org/downloads/release/python-3148/). “Current” is dated verification, not a promise that a dependency will never change.
 
-## Why this matters in production
+## Continue the story
 
-Dynamic orchestration is often the difference between a prototype and a real business system. Fixed graphs are good for stable, known processes, but real enterprise operations regularly contain branching that depends on the actual data and the circumstances at runtime.
+Module 17 selected a single destination. This module schedules a variable set of known checks. Module 19 will let a conversational coordinator consult advisory specialists.
 
-A forward-deployed engineer’s job is to design the correct amount of flexibility so the system is controlled enough to be trusted and flexible enough to handle real-world variance.
+[Previous module](../module17-structured-routing/README.md) · [Lab](./lab.md) · [Solution](./lab-solution.md) · [Enterprise playbook](./enterprise-playbook.md) · [Next module](../module19-collaborative-teams/README.md)
 
-## Best practices for real customer work
+## Instructor acceptance: demonstrate transfer
 
-### 1. Keep the control flow explicit
-Use Python logic deliberately. Avoid hiding too much in model behavior or unclear orchestration state.
+Ask the learner to explain this derivation without looking at the implementation: “Always” places checklist outside the if. “Only above the threshold” puts exposure inside it. “A bounded list of checks” means the callables are developer-defined; no model-generated import or function name is accepted.
 
-### 2. Prefer small decisions over giant orchestrators
-A large dynamic workflow can become hard to reason about. Break it into smaller orchestrator steps and specialist nodes when possible.
+Then assign: Before implementing resumability, write an interruption matrix: before child, after child, before external commit, after commit with lost response. Give each external write a destination-enforced idempotency key; do not claim resume verification from the ordinary lab run.
 
-### 3. Handle failure paths intentionally
-Every dynamic workflow needs a defined degradation or retry path.
+Accept the explanation only when it names the native ADK execution boundary, identifies a trusted source, predicts a failure and proposes evidence that could disprove the design. A copied successful trace does not establish independent understanding.
 
-### 4. Use resumability carefully
-Pause points are powerful but should be reserved for meaningful human approval or system recovery points.
+## Official sources
 
-## Common enterprise anti-patterns
+- [Dynamic workflows](https://adk.dev/graphs/dynamic/)
+- [Graph data handling](https://adk.dev/graphs/data-handling/)
+- [Resume agents](https://adk.dev/runtime/resume/)
 
-### Anti-pattern 1: overusing dynamic control when a fixed flow would be simpler
-Not every workflow needs flexible orchestration. Excess complexity reduces clarity and testing simplicity.
-
-### Anti-pattern 2: making the orchestrator do all the business work
-The orchestrator should coordinate, not become the home of every rule and every decision.
-
-### Anti-pattern 3: unclear resume semantics
-If the workflow can pause and continue later, the resume path must be explicit and safe.
-
-## Dynamic orchestration as a strategic pattern
-
-This module is best understood as the place where enterprise AI becomes genuinely programmable. It gives the architecture the flexibility to behave like a real operating process while retaining the benefits of agent-based reasoning and tool use.
-
-This is a major step toward customer-grade systems that must manage complexity, exceptions, and a real business context instead of just generating plausible outputs.
-
-## Related modules
-
-- [Module 16 Enterprise Playbook](../module16-static-orchestration/enterprise-playbook.md)
-- [Module 17 Enterprise Playbook](../module17-structured-routing/enterprise-playbook.md)
-- [Module 21 Distributed Graphs](../module21-distributed-graphs/README.md)
-- [Module 24 Evaluation](../module24-evaluation/README.md)
-- [Module 25 Observability](../module25-observability/README.md)
-
-## Recommended next move in the learning path
-
-Once dynamic orchestration becomes familiar, the next step is to think about how distributed graphs and larger graph-based systems coordinate across many agents and processes.
-
-## Final enterprise takeaway
-
-Module 18 teaches that a real AI workflow is not static. It is programmable, adaptable, and operationally aware.
-
-That is precisely the kind of capability enterprises need when they move from basic demos to systems that must handle real uncertainty and decision-making under business constraints.
-
-## Official ADK / Google references
-
-- ADK docs home: https://google.github.io/adk-docs/
-- ADK workflows and orchestration: https://google.github.io/adk-docs/workflows/
-- ADK tools and execution docs: https://google.github.io/adk-docs/tools/
-- Gemini API docs: https://ai.google.dev/gemini-api/docs
-- Google Cloud generative AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
-
-These are the authoritative references for dynamic workflow behavior, execution patterns, and future changes in ADK orchestration APIs.
-
----
-
-## Related roadmap
-
-- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
-- [Module 18 README](./README.md)
----
-
-## Official References
-
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
-
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. -->

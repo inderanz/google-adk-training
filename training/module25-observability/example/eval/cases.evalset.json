@@ -1,0 +1,66 @@
+{
+  "eval_set_id": "banking_25",
+  "name": "Bank review acceptance",
+  "eval_cases": [
+    {
+      "eval_id": "healthy",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Read the checklist for CASE-001."
+              }
+            ]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "read_checklist",
+                "args": {
+                  "case_id": "CASE-001",
+                  "simulate_outage": false
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    },
+    {
+      "eval_id": "outage",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Simulate an outage reading CASE-001. Call read_checklist with simulate_outage=true."
+              }
+            ]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "read_checklist",
+                "args": {
+                  "case_id": "CASE-001",
+                  "simulate_outage": true
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    }
+  ]
+}

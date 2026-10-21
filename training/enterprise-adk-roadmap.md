@@ -52,6 +52,7 @@ The enterprise playbooks tie these together so that an agent, engineer, or assis
 | [Module 10](./module10-advanced-function-tools/README.md) | Advanced tools | Robust tool orchestration | Modules 11-15 |
 | [Module 11](./module11-openapi-tools/README.md) | API integration | External systems integration | Modules 12-18 |
 | [Module 11.5](./module11_5-enterprise-credit-underwriting/README.md) | Commercial Credit Triage | OpenAPI Milestone: Underwriting & Drawdowns | Modules 12-18 |
+| [Module 11.6](./module11_6-enterprise-apigee-gateway-auth/README.md) | Apigee X Banking Gateway | Transport Security: mTLS, OAuth2 & Zero-Trust Auth | Modules 12-18 |
 | [Module 12](./module12-built-in-tools-grounding/README.md) | Grounding and retrieval | Knowledge-backed agents | Modules 18-24 |
 | [Module 13](./module13_5-firestore-persistence/README.md) | Persistence | Enterprise memory and state | Modules 17-22 |
 | [Module 15](./module15-intro-to-multi-agent-systems/README.md) | Multi-agent systems | Distributed reasoning | Modules 16-21 |
@@ -151,6 +152,8 @@ flowchart LR
 
 ### 2. Spec-Driven Tool Synthesis
 - **Zero-Adapter REST Integration:** Feed enterprise OpenAPI 3.0 specs directly into `OpenAPIToolset(spec_str=..., spec_str_type="json")` or `OpenAPIToolset.from_file(...)`.
+- **Zero-Adapter REST Integration (Module 11 & 11.5):** Feed enterprise OpenAPI 3.0 specs directly into `OpenAPIToolset(spec_str=..., spec_str_type="json")` or `OpenAPIToolset.from_file(...)`.
+- **Zero-Trust API Gateway Transport Security (Module 11.6):** Decouple credentials from LLM prompts by injecting OAuth2 Bearer tokens, API keys, and mTLS certificates at the HTTP transport layer via `header_provider` and `httpx_client_factory`.
 - **Typed Custom Tools:** Define return models using Pydantic `BaseModel` and extract identity securely from `tool_context.user_id`.
 
 ### 3. Empirical Verification (Zero Trust)

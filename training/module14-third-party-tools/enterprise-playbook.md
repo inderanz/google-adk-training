@@ -1,283 +1,192 @@
 ---
 sidebar_position: 14.1
-title: "Module 14 Enterprise Playbook: Third-Party Tools & Ecosystem Governance"
+title: "Module 14 Enterprise Playbook: Customer Discovery to Delivery"
 ---
 
-# Module 14 Enterprise Playbook: Third-Party Tools and Ecosystem Interoperability
-# Module 14 Enterprise Playbook: Third-Party Tools & Ecosystem Governance
+# Module 14 Enterprise Playbook: Customer Discovery to Delivery
 
-This module is a practical reminder that enterprise AI work rarely begins from a blank slate. Most customer environments already have well-tested libraries, integrations, and operational tooling. The ADK is designed to work with that reality by allowing teams to reuse third-party tools rather than rebuilding everything from scratch.
-## 🏛️ Executive Advisory: The Enterprise Composition Mandate
+## A design proposal is not production evidence
 
-In forward-deployed engineering terms, this is a classic integration pattern: identify the best existing capability, wrap it in a controlled interface, and keep the rest of the system governed, explainable, and production-safe.
-In enterprise software engineering for global institutions like **Sovereign Horizon Bank**, the most effective forward-deployed teams rarely build every component from scratch. Instead, high-performing Google Forward-Deployed Engineers (FDEs) operate on a core principle:
+This playbook explains what the bank must arrange before putting the LangChain-to-ADK example into use. The executable example demonstrates a narrow, read-only tool; this page identifies the additional controls and evidence needed to operate it for a customer.
 
-## The forward-deployed engineer lens
-> **"Build the proprietary core; compose the peripheral commodity."**
+Use [Gemini Enterprise Agent Platform](https://docs.cloud.google.com/gemini-enterprise-agent-platform/agents) terminology in new designs. Some SDK symbols, environment variables, IAM roles, and resource names retain historical Vertex AI or Agent Engine names. A product rename is not a reason to invent new API identifiers.
 
-A customer usually does not ask, “Can we plug in a library?” They ask for outcomes such as:
-When building autonomous agents for complex business problems—such as corporate credit underwriting, compliance auditing, or M&A intelligence—an agent frequently needs access to public data sources:
-- Encyclopedic corporate profiles (Wikipedia, Wikidata)
-- Academic and patent disclosures (arXiv, PubMed, USPTO)
-- Financial directories and open registries (SEC EDGAR, Companies House)
-- Web search engines (DuckDuckGo, Brave Search)
+## State the bank employee's expected result first
 
-- “Can the agent look up public context or search the web using an existing ecosystem?”
-- “Can we reuse an established tool or library rather than rebuilding it?”
-- “Can we combine known tools with our internal business workflow?”
-- “How do we avoid dependency sprawl while still moving quickly?”
-Re-implementing custom API clients, pagination scrapers, and rate-limit backoff logic for these external data providers wastes hundreds of engineering hours and generates technical debt. Third-party ecosystems like **LangChain** already maintain robust, community-tested tools for these exact workloads.
+The analyst needs a short introduction to one company before a customer meeting. The answer must show the source record and review date. A missing, old or unusable record must lead to an explanation of the problem, not an invented profile.
 
-The real design question is no longer “can the model use a tool?” It is: “which existing tool ecosystem gives us the best operational leverage without introducing brittle integration or dependency risk?”
-However, an enterprise AI team cannot simply `pip install` arbitrary open-source libraries into a regulated production environment without governance. This playbook establishes the official Google FDE operational and security framework for integrating third-party tools into Google ADK 2.0 architectures.
+The technology team has a separate reuse requirement: call its existing LangChain lookup from an ADK agent. The main lab implements this with LangchainTool. The source record lives in BigQuery; the adapter connects tool interfaces and does not approve the source itself. See the [plain-English task](./README.md#first-understand-the-bank-employees-task) before considering the deployment choices below.
 
-## Business translation
----
+## 1. Conduct discovery in the customer's language
 
-The lesson in this module is that enterprise AI should compose, not merely invent. That means:
-## 🎯 The Forward-Deployed Engineer Lens: Core Business Translation
+Start with: “What decision will an analyst make after reading the profile?” Then resolve the questions that change the implementation.
 
-- reuse proven integrations where they already exist
-- wrap them behind a clear tool contract
-- keep the business logic specific to the customer problem
-- avoid unnecessary dependency coupling
-When presenting agentic tool architecture to bank stakeholders, C-suite executives, and risk committees, translate technical integration details into business value and risk mitigation:
-
-A third-party tool is valuable when it reduces engineering cost and increases reliability. It becomes a problem when the dependency chain is too heavy, too opaque, or too tightly coupled to a fragile environment.
-| Stakeholder Question | Novice / Academic Answer | Google FDE Enterprise Answer |
+| Ask the customer | Why the answer changes the design | Example exercise assumption |
 |---|---|---|
-| *"Why are we using an external library instead of building our own tools?"* | *"Because LangChain has cool tools that are easy to copy-paste."* | *"Reusing community-maintained adapters for non-proprietary public data shortens our delivery timeline by 4 weeks while freeing engineering resources to focus on Sovereign Horizon Bank's proprietary credit scoring algorithms."* |
-| *"Does this expose customer data or bank secrets to third-party code?"* | *"We just pass the queries through the tool."* | *"No. We enforce Zero-Trust parameter isolation. The external tool runs in a restricted sub-agent that only receives public corporate entity names. No customer PII, internal account numbers, or authentication tokens ever touch the third-party adapter."* |
-| *"What happens if the external package breaks or updates maliciously?"* | *"We'll update our requirements.txt when it happens."* | *"We enforce package version pinning, hash-checking in `pyproject.toml`, and wrap the adapter in an Enterprise Policy Controller that clips outputs, strips injection payloads, and enforces circuit breakers."* |
-| *"Can the agent use Google Search and this tool at the same time?"* | *"Yes, we just put both in the tools list." (Fails at runtime)* | *"The Gemini API isolates search grounding from custom tools. We deploy a multi-agent sequential pipeline: a search agent identifies real-time corporate events, followed by a research agent that queries encyclopedic records."* |
+| Which sources may support a claim? | Public encyclopedia, filings, and approved internal research have different authority and licensing | A reviewed profile table maintained by a data owner |
+| How do we identify the exact company? | Names collide and subsidiaries differ | A canonical ID supplied by the analyst |
+| How fresh must evidence be? | A company history and a sanctions result need different refresh rules | No more than 90 days old for background only |
+| Who may see which records? | Service-account access is not end-user authorization | All authorized analysts may read the same non-sensitive profile corpus |
+| Is public-web access permitted? | Changes egress, query privacy, sources, and operating terms | No public-web calls during lookup |
+| What must the agent never decide? | Sets authority boundaries and evaluation cases | No loan approval or sanctions clearance |
+| What does a useful failure look like? | Determines abstention and recovery behavior | Distinguish missing, stale, invalid, and unavailable evidence |
+| Where may data and logs reside? | Model, runtime, dataset, and telemetry locations must be chosen deliberately | Customer-approved locations; no universal default |
+| How will success be measured? | Prevents unsupported ROI claims | Analyst acceptance, source fidelity, latency, and cost measured in a pilot |
 
-## Core ADK concept
----
+Capture answers in a short decision record: **requirement → chosen design → rejected alternative → evidence needed → owner**. The assumptions above belong to the exercise; confirm them before applying this design to a real bank.
 
-The ADK supports interoperability through wrapper patterns such as `LangchainTool`. This lets a tool from a third-party ecosystem be adapted into the ADK tool model without rewriting the underlying library.
-## 🛡️ Enterprise Security & Compliance Checklist: OWASP for LLMs
+## 2. Propose alternatives and justify the choice
 
-That matters because it allows teams to align with a broader engineering ecosystem while still preserving ADK-native orchestration, session context, and agent composition patterns.
-Integrating third-party libraries introduces external code into your runtime. Before deploying wrapped tools to production, ensure compliance with the following operational gates:
+| Candidate | Benefits | Trade-offs | Decision for this brief |
+|---|---|---|---|
+| Retain LangChain + Wikipedia | Reuses an existing connector | External data and dependencies; source quality and network behavior need review | Optional migration study only |
+| Google Search grounding | Public research with grounding metadata | Query data leaves the internal corpus; terms, suggestions, model support, and freshness need evaluation | Separate requirement if the customer wants public news |
+| Agent Search over approved documents | Managed retrieval over a document corpus | Requires ingestion, indexing, access-control design, and retrieval evaluation | Good when evidence is primarily documents |
+| Narrow BigQuery lookup | Explicit schema, fixed query, scoped IAM, review date and provenance | Requires a maintained structured corpus; no free-form discovery | Data source used by the existing LangChain lookup in this module |
 
-## Enterprise pattern
-```mermaid
-flowchart LR
-    A["1. Dependency Scan<br/>(Artifact Registry & Snyk)"] --> B["2. Zero-Trust Token<br/>Isolation"]
-    B --> C["3. Input Sanitization<br/>& Prompt Guardrails"]
-    C --> D["4. Context Budget<br/>& Output Clipping"]
-    D --> E["5. Architectural<br/>Tool Separation"]
+The selected teaching path uses ADK’s LangchainTool around the existing company lookup, with BigQuery as its data source. LangChain Core is therefore a runtime dependency; Wikipedia is not. It still depends on reviewed data; moving text into BigQuery does not establish its truth.
 
-### Pattern 1: Reuse proven operational tools
-Use an established third-party tool when the capability is general, mature, and widely used.
-    style A fill:#e1f5fe,stroke:#0288d1,stroke-width:2px
-    style B fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    style C fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    style D fill:#ede7f6,stroke:#512da8,stroke-width:2px
-    style E fill:#fce4ec,stroke:#c2185b,stroke-width:2px
-```
+## 3. Separate preparation, runtime, and governance
 
-Examples:
-### 1. Dependency Hardening (OWASP LLM05: Supply Chain Risk)
-- [ ] **Hash-Pinned Dependencies:** Never use floating package versions (`langchain-community>=0.1.0`). Always pin exact versions with SHA-256 hashes using `uv` or `pip-tools`.
-- [ ] **Automated Container Scanning:** Ensure all container base images are scanned in Google Cloud Artifact Registry for known CVEs before deployment to Cloud Run or GKE.
-- [ ] **Minimalist Tool Selection:** Do not import mega-packages if a lightweight alternative exists. For example, use `langchain-community` with explicit imports rather than bundling unnecessary vector store dependencies.
+The diagram is a **target deployment**, not a claim that the lab has provisioned these services. Solid arrows show requests or data flow. Dashed arrows show supporting services or policies that require configuration.
 
-- search or lookup utilities
-- content extraction services
-- data enrichment tools
-- widely adopted integrations from the Python ecosystem
-### 2. Zero-Trust Identity & Token Isolation
-- [ ] **No Ingestion of Session Secrets:** Ensure `tool_context.user_id` or session state tokens are never passed into third-party tool arguments.
-- [ ] **Environment Secret Isolation:** Store external API keys (e.g., WolframAlpha, SEC EDGAR) in Google Cloud Secret Manager, mounting them as environment variables only within the specific microservice container that executes the tool.
-
-This is often faster and more maintainable than custom building from scratch.
-### 3. Context Budget & Cost Control
-- [ ] **Enforce `doc_content_chars_max`:** External scraping and encyclopedic tools can return dozens of pages of text. Always configure character limits (e.g., 2,000–3,000 characters) on the underlying API wrapper.
-- [ ] **Output Truncation Guardrail:** Subclass `LangchainTool` to enforce an absolute ceiling on returned strings, preventing runaway token costs or context window exhaustion.
-
-### Pattern 2: Wrap, then constrain
-When using external tools, add operational discipline around the boundary.
-### 4. Wikimedia & Public API Hygiene
-- [ ] **Distinctive User-Agent:** Wikimedia and other public APIs actively block default library user agents. Configure an explicit, traceable `User-Agent` header containing the application name, version, and security contact URL.
-
-Examples:
----
-
-- limit the tool to a narrow domain
-- standardize inputs and outputs
-- validate outputs before passing them onward
-- log calls for traceability and debugging
-## 🏗️ Production Architecture: The Multi-Container Sidecar Pattern
-
-The wrapper is not just an adapter; it is a governance boundary.
-In complex enterprise environments, third-party libraries often introduce conflicting transitive dependencies (e.g., requiring conflicting versions of Pydantic, NumPy, or gRPC).
-
-### Pattern 3: Integrate with internal business logic
-Third-party tools are most useful when they sit inside a larger workflow.
-To maintain pristine, enterprise-grade isolation, Google FDEs use the **Container Sidecar Pattern**:
-
-Examples:
 ```mermaid
 flowchart TD
-    subgraph AgentContainer["Cloud Run: Primary Agent Service"]
-        Agent["Google ADK Agent<br/>(gemini-2.5-flash)"]
-        OpenAPITool["OpenAPIToolset<br/>(Module 11 Pattern)"]
-        Agent --> OpenAPITool
-    end
-
-- search or research tool + internal policy or pricing rules
-- external lookup + internal case workflow
-- retrieval tool + business validation + recommendation layer
-    subgraph SidecarContainer["Cloud Run: Isolated Tool Microservice"]
-        FastAPI["Lightweight FastAPI Service"]
-        WrappedTool["LangChain Tool<br/>(Wikipedia / Community Tools)"]
-        FastAPI --> WrappedTool
-    end
-
-This pattern is how real customer systems move beyond demo-like tool use.
-    OpenAPITool -- "Private VPC / mTLS HTTP" --> FastAPI
-    WrappedTool -- "Public Internet (Rate-Limited)" --> ExternalAPI["Wikimedia / External API"]
-
-## Why this matters in production
-    style AgentContainer fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
-    style SidecarContainer fill:#fff3e0,stroke:#e65100,stroke-width:2px
-    style ExternalAPI fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    Analyst["Authorized analyst"] --> Entry["Authenticated app or<br/>Gemini Enterprise entry"]
+    Entry --> Runtime["ADK application<br/>on Agent Runtime"]
+    Runtime <-->|"model requests and results"| Gemini["Gemini on<br/>Agent Platform"]
+    Runtime --> Tool["ADK LangchainTool adapter"]
+    Tool <-->|"query and evidence"| BQ["Approved<br/>BigQuery table"]
+    Data["Approved ingestion<br/>and data review"] --> BQ
+    Controls["Configured identity, sessions,<br/>telemetry and gateway policies"] -.-> Runtime
 ```
 
-Third-party integrations can accelerate delivery, but they also create risk. A forward-deployed engineer must think about:
-### Benefits of the Sidecar Architecture:
-1. **Zero Dependency Contamination:** The primary ADK agent container remains ultra-lightweight and clean, with zero risk of dependency collisions or version locks.
-2. **Independent Scaling:** The external research tool can be scaled independently of the reasoning agent, allowing separate CPU and memory resource allocations.
-3. **Fine-Grained Network Policies:** The sidecar service can be placed in an egress-controlled VPC that is restricted to specific external domains, preventing unauthorized network egress.
+The Python example implements the lookup, result checks, and agent configuration. It does not implement the entry application's authentication, data ingestion, managed sessions, gateway policies, deployment, or telemetry configuration. The platform provides services for these concerns; selecting a service does not enable it automatically.
 
-- dependency conflicts and library version drift
-- packaging and environment consistency
-- operational reliability of third-party services
-- security and data handling boundaries
-- how the tool output will be validated inside the business flow
----
+The supporting configuration means a dedicated runtime identity with IAM, a selected session backend such as Agent Platform Sessions, Cloud Logging/Trace/Monitoring instrumentation, and Agent Gateway binding if required. These have distinct configuration and authorization requirements; the combined diagram node is not a single automatically enabled feature.
 
-The goal is not “use more libraries.” The goal is to use the right library at the right boundary.
-## ⚠️ Anti-Patterns to Avoid in Enterprise Production
+[Agent Runtime deployment](https://docs.cloud.google.com/gemini-enterprise-agent-platform/scale/runtime/deploy-an-agent) supports several packaging paths. Choose one supported path and test its runtime contract. [Agent Gateway](https://docs.cloud.google.com/gemini-enterprise-agent-platform/govern/gateways/agent-gateway-overview) requires explicit setup and binding; putting its name on a diagram does not govern traffic.
 
-## Best practices for real customer work
-### Anti-Pattern 1: Mixing Built-in Search with Wrapped Tools in One Agent
-- **The Symptom:** An engineer configures `Agent(tools=[google_search, wrapped_wikipedia_tool])`. The agent instantiates fine, but crashes during execution with `400 INVALID_ARGUMENT: Multiple tools are supported only when they are all search tools`.
-- **The Remedy:** Separate grounding and function execution into sequential specialized agents (Sequential Agent Composition).
+## 4. Make identities and permissions explicit
 
-### 1. Prefer mature, stable integrations
-Use tools from ecosystems that are active, documented, and compatible with your runtime.
-### Anti-Pattern 2: Ungoverned Raw Tool Passthrough
-- **The Symptom:** Wrapping an external tool directly with `LangchainTool` without an input/output policy wrapper. A rogue query returns 45,000 characters of raw HTML, exhausting the token budget and corrupting the agent's reasoning.
-- **The Remedy:** Implement the `GovernedCorporateResearchTool` pattern, validating input length, stripping prompt injection delimiters, and truncating return payloads.
+| Identity | Purpose | Access boundary |
+|---|---|---|
+| Analyst | Use the application | Verified by the entry application or enterprise entry point |
+| Runtime identity | Call Gemini and submit/read profile queries | Only the approved model/service and BigQuery resources |
+| Data ingestion identity | Publish reviewed records | Separate write access to the evidence corpus |
+| Deployment identity | Build and deploy revisions | Separate from the runtime's data permissions |
 
-### 2. Keep the tool boundary narrow
-Do not expose an entire external framework when the agent only needs a small capability.
-### Anti-Pattern 3: Omitting the API User-Agent Header
-- **The Symptom:** The Wikipedia tool works in local tests but fails intermittently in staging or CI/CD with `requests.exceptions.JSONDecodeError` or HTTP 403 Forbidden.
-- **The Remedy:** Explicitly invoke `wikipedia.set_user_agent("MyApp/1.0 (contact@company.com)")` during container bootstrapping before any tool call executes.
+For the BigQuery lookup, a typical starting point is `roles/bigquery.jobUser` on the query project and `roles/bigquery.dataViewer` on the approved table or an appropriately scoped dataset. Grant model invocation permissions separately. Validate the exact permissions for your project and organization policies using [BigQuery IAM documentation](https://docs.cloud.google.com/bigquery/docs/access-control).
 
-### 3. Validate outputs before business use
-External tools may return noise, partial data, or unexpected shapes. Normalize and validate before using the result in a decision or workflow.
-### Anti-Pattern 4: Using Third-Party Tools for Proprietary Core Data
-- **The Symptom:** Attempting to use generic open-source database tools to query core banking ledgers or credit databases.
-- **The Remedy:** Use native ADK typed function tools (`@tool`) with explicit Pydantic return schemas or zero-adapter `OpenAPIToolset` endpoints with OAuth2 authentication.
+Use Application Default Credentials locally and the configured workload identity in production. Do not distribute service-account private key files. Do not assume `gcloud auth login` also configures local ADC.
 
-### 4. Keep dependency management disciplined
-Third-party libraries may introduce conflicts. Treat package management as an architectural concern, not just a setup detail.
----
+**Per-user confidential records change the design.** A shared runtime service account can read everything its IAM grants permit. User-specific row filtering must derive from verified application identity or a reviewed access mechanism, never a model-supplied `user_id` or tenant name. This example intentionally uses a corpus readable by every authorized analyst.
 
-### 5. Keep the business workflow explicit
-The tool should support the workflow, not become the workflow itself.
-## 📈 Real-World Case Study: Sovereign Horizon Bank (Project Sentinel)
+## 5. Define controls by what they actually enforce
 
-## Common enterprise anti-patterns
-### Context & Challenge
-The Commercial Credit Underwriting team at Sovereign Horizon Bank evaluates mid-market corporate loan syndications. Underwriters were spending 6+ hours per deal compiling public background files on borrowers, historical joint ventures, corporate spinoffs, and executive track records.
+| Control | Implemented in the example | Production evidence still needed |
+|---|---|---|
+| Narrow authority | One company ID; fixed read-only query | IAM denial tests and no alternative broad-access tools |
+| SQL injection resistance | Company ID is a query parameter; table identifier is validated deployment configuration | Review ingestion/config ownership and any future dynamic queries |
+| Source freshness | UTC date check; stale evidence returns no summary | Refresh owner, refresh SLA, and policy agreement |
+| Provenance | Source URI and review date retained | Accessible source records, retention, licensing, and source quality |
+| Bounded output | Summary character cap, metadata caps, serialized UTF-8 byte cap | Whole-conversation token budget and model cost measurements |
+| Query resource control | Maximum billed bytes, one result, SDK timeout settings, automatic query retries disabled | Workload tests, query plans, quotas, and endpoint concurrency |
+| Error handling | Stable statuses; no raw exception messages returned | Alert routing, runbook, and recovery verification |
+| Supply chain | Exact direct pins plus transitive versions and hashes in `uv.lock` | Vulnerability review, update policy, build provenance and artifact scanning |
+| Prompt-injection resistance | No arbitrary SQL, URL, shell command, or write capability exposed | Adversarial model tests and any approved content screening |
+| Logging minimization | Tool logs only failure category | Review ADK/model tracing configuration, payload collection, retention, and reader IAM |
 
-### Anti-pattern 1: dependency chaos
-A large set of loosely managed libraries can make the agent environment unstable and harder to support.
-### The Solution Architecture
-The FDE team deployed a 2-stage multi-agent pipeline:
-1. **Stage 1 (Grounding Agent):** Uses native `google_search` to detect real-time corporate news, recent earnings call highlights, and regulatory filings from the past 90 days.
-2. **Stage 2 (Due Diligence Agent):** Ingests Stage 1 findings and queries an enterprise-governed `LangchainTool(WikipediaQueryRun)` to extract verified historical corporate formation dates, parent holding companies, and major M&A milestones.
-3. **Stage 3 (Synthesis & Underwriting Memo):** Merges the external intelligence with internal financial ratios (from Module 11's OpenAPI credit service), producing an audit-ready credit dossier.
+The timeout is not a guaranteed whole-request deadline. BigQuery's `wait_timeout` governs query waiting and attempts cancellation; transport calls, scheduling, and model turns have their own behavior. A maximum billed-bytes limit is useful for on-demand query cost control, not a universal cap on every service charge.
 
-### Anti-pattern 2: wrapper without governance
-If a wrapped tool is exposed without clear contract or validation, it becomes an uncontrolled extension of the system.
-### Business Impact
-- **Time to Initial Underwriting Memorandum:** Reduced from 6 hours to 18 minutes.
-- **Engineering Acceleration:** Leveraged pre-built Wikipedia wrappers, saving 3 weeks of custom API client development.
-- **Operational Reliability:** 99.98% tool execution success rate achieved by enforcing custom `User-Agent` headers and output truncation guardrails.
+This example uses a synchronous BigQuery call for a readable first implementation. Do not assume that an asynchronous ADK runner makes blocking I/O concurrent. Verify the selected runtime's execution behavior and load-test it; introduce a bounded worker strategy or separately managed connector when required. Setting an SDK timeout does not provide queue limits or backpressure.
 
-### Anti-pattern 3: overusing third-party tools when internal tools are better
-Sometimes a small internal custom function is actually more trustworthy and easier to maintain than a heavy external library.
----
+If adding [Model Armor](https://docs.cloud.google.com/model-armor/overview), configure and test its inspection path, blocking behavior, and failure policy. It does not replace IAM or establish that prompt injection is impossible. This example does not enable Model Armor.
 
-### Anti-pattern 4: ignoring the built-in search constraint
-Built-in tools like `google_search` cannot share the same tool list with custom or wrapped third-party tools. This is a hard API-level constraint, so sequential composition is the safer design pattern.
-## 🔗 Related Modules & Next Steps
+## 6. Know when to isolate a third-party connector
 
-## Third-party integration as a design layer
-- **[Module 11: OpenAPI Tools](../module11-openapi-tools/README.md):** Learn zero-adapter REST synthesis for internal corporate microservices.
-- **[Module 12: Built-in Grounding Tools](../module12-built-in-tools-grounding/README.md):** Understand native `google_search` tools and the Gemini multi-tool isolation constraint.
-- **[Module 13: Advanced Tool Context](../module13-tool-context/README.md):** Master `ToolContext`, Human-in-the-Loop approval, and `skip_summarization`.
-- **[Module 15: Intro to Multi-Agent Systems](../module15-intro-to-multi-agent-systems/README.md):** Discover how to coordinate multiple specialist agents using workflow routers and sequential pipelines.
+When retaining a foreign dependency, determine whether its code can share the agent process and identity. A separate service offers a stronger independently managed boundary, at the cost of authentication, deployment, networking, and failure handling.
 
-The best way to think about this module is as an interoperability layer.
+```mermaid
+flowchart TD
+    A["Agent service and its identity"] -->|"HTTPS with audience-bound ID token"| B["Separate Cloud Run connector service"]
+    B -->|"approved outbound request"| C["External provider"]
+    C --> B
+    B -->|"bounded structured result"| A
+```
 
-The ADK is not trying to be the only ecosystem. It is designed to work with other tool ecosystems responsibly and to preserve a clear interface between external capabilities and the agent’s core business logic.
+This is **two services**, not a sidecar. Use [Cloud Run service-to-service authentication](https://docs.cloud.google.com/run/docs/authenticating/service-to-service), grant invocation permission to the caller, and configure ingress and outbound controls. HTTPS plus an identity token is not automatically mutual TLS. An `OpenAPIToolset` does not mint the correct identity token merely because the URL is private.
 
-That is a highly practical enterprise pattern: consume proven building blocks, keep system boundaries explicit, and focus custom development on the customer-specific difference.
+A true multi-container sidecar shares the Cloud Run service instance and scales with it. Separate containers can separate Python environments, but do not imply independently scaled services or complete secret isolation. See [Cloud Run container configuration](https://docs.cloud.google.com/run/docs/configuring/services/containers).
 
-## Related modules
+Neither pattern is needed for the primary BigQuery example. Introduce it only when the dependency and trust requirements justify it.
 
-- [Module 12 Enterprise Playbook](../module12-built-in-tools-grounding/enterprise-playbook.md)
-- [Module 13.5 Enterprise Playbook](../module13_5-firestore-persistence/enterprise-playbook.md)
-- [Module 15 Intro to Multi-Agent Systems](../module15-intro-to-multi-agent-systems/README.md)
-- [Module 08 Intro to Tools](../module08-intro-to-tools/README.md)
-- [Module 09 Intro to Custom Function Tools](../module09-intro-custom-function-tools/README.md)
+## 7. Review the legacy Wikipedia integration honestly
 
-## Recommended next move in the learning path
+Before reusing the earlier prototype, inspect the currently selected library's source and test its request path.
 
-After mastering third-party tools, the natural next step is to explore multi-agent orchestration, where different specialist agents collaborate using role separation, tool boundaries, and workflow logic. That is where the design becomes more dynamic and operationally rich.
+| Question | Required evidence |
+|---|---|
+| Does it send an identifiable client header? | Actual outbound User-Agent with real application/contact information |
+| Can it enforce a request timeout? | Configured transport timeout, including retries and cancellation behavior |
+| Does it return provenance? | Stable page URL/title and retrieval time, not only an unattributed string |
+| Are ambiguous or missing pages handled? | Explicit disambiguation and no-result cases |
+| Does truncation hide qualifying facts? | A truncation flag and access to source evidence |
+| Could queries disclose customer information? | Minimized arguments and a reviewed egress policy |
+| Does a library error expose credentials or request bodies? | Error-path tests and protected operational diagnostics |
 
-## Final enterprise takeaway
+The [Wikimedia User-Agent policy](https://meta.wikimedia.org/wiki/User-Agent_policy) is an identification requirement, not authentication. A JSON decoding error may indicate an HTML error page, throttling, proxy behavior, or another upstream problem. Do not promise that one header fixes every failure, and do not blindly retry a permanent policy denial.
 
-Module 14 is a reminder that enterprise AI engineering is often composition engineering. The strongest solutions do not always begin with a brand-new implementation; they begin by understanding which proven capabilities already exist and how to integrate them safely.
+The old regex approach removed phrases such as “ignore previous instructions.” This neither neutralizes instructions hidden in retrieved pages nor preserves every legitimate company name. Validate the business input you actually need and treat all retrieved text as untrusted data.
 
-That is a forward-deployed mindset: use the ecosystem wisely, govern the boundaries, and build the customer-specific logic where it matters most.
+## 8. Evaluate before deployment
 
-## Official ADK / Google references
+Use three separate evidence layers:
 
-- ADK documentation home: https://google.github.io/adk-docs/
-- ADK tools documentation: https://google.github.io/adk-docs/tools/
-- ADK agent and runtime docs: https://google.github.io/adk-docs/agents/
-- Gemini API docs: https://ai.google.dev/gemini-api/docs
-- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
-- LangChain tool and integration ecosystem: https://python.langchain.com/docs/integrations/tools/
+| Layer | Example cases | What a passing result establishes |
+|---|---|---|
+| Deterministic tests | Invalid IDs, empty result, old/future dates, missing fields, SQL parameterization, timeout errors, native/adapter parity | The tested Python branches and SDK contracts behave as intended |
+| Model evaluation | Known ID, name without ID, no evidence, attempted loan approval, malicious retrieved instructions | Observed agent behavior for the evaluated model and prompts |
+| Staging integration | IAM denial, supported model/location, real query, refresh job, client citations, concurrency, telemetry | Tested deployment behavior in that environment |
 
-These references should be used as the current source of truth for tool interoperability, ecosystem integration, and any future changes in ADK tool behavior.
+The example includes `eval/cases.evalset.json` and `eval/eval_config.json` using ADK's evaluation schemas and rubric-based criteria. Schema validation is not a scored evaluation. Select an approved judge model/location, run the evaluation against controlled fixtures, and retain scores and traces.
 
----
+Additional adversarial scenarios should include an approved test row whose text asks the agent to reveal secrets, run a new tool, or drop its source citation. Verify the **agent's response**, not a regex's output. Use synthetic content and a development dataset.
 
-## Related roadmap
-## 📚 Official References
+Suggested acceptance targets are proposals, not measured outcomes: all deterministic checks pass; every displayed claim has matching evidence; no scope-violating action succeeds in the test set; missing evidence produces abstention. Agree latency, cost, and availability targets with the customer and measure them under representative load.
 
-- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
-- [Module 14 README](./README.md)
----
+## 9. Prepare a deployable release
 
-## Official References
+1. **Choose locations and the model.** Verify runtime, model, dataset, and telemetry availability and residency requirements. Keep `BIGQUERY_LOCATION` separate from `GOOGLE_CLOUD_LOCATION`; they configure different services.
+2. **Create reviewed infrastructure.** Use the organization's IaC process for the evidence table, identities, IAM, runtime, managed session service, and telemetry. The fixture SQL is not a full ingestion pipeline.
+3. **Build reproducibly.** Use the committed lock, a supported patched Python base image, and an immutable release artifact. The adapted release must include LangChain Core as well as ADK and the BigQuery client; all three are declared project dependencies.
+4. **Package for Agent Runtime.** Follow the current [deployment guide](https://docs.cloud.google.com/gemini-enterprise-agent-platform/scale/runtime/deploy-an-agent). Add the required server/entrypoint and health behavior for the chosen source/container path; the example directory alone is not a production server.
+5. **Configure identity and controls.** Bind the runtime identity, scoped IAM, managed sessions, and any required gateway/content policies. Validate how the entry point authenticates callers.
+6. **Deploy to a development environment.** Run the integration and model evaluations. Confirm that unauthorized calls fail and citations can be opened by intended readers.
+7. **Promote through a reviewed release process.** Use Cloud Build and Artifact Registry where appropriate, retain the previous artifact/configuration, and rehearse rollback.
+8. **Publish if needed.** Register the tested deployment with the organization's Gemini Enterprise entry point using its supported registration flow. Deployment and publication are separate steps.
 
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+If your team uses Google's `agents-cli`, enhance a **separate deployment checkout**, inspect the generated changes, and configure `agent_runtime`. Do not run infrastructure commands against a teaching directory without reviewing their effects. This module intentionally does not provision a project or publish an agent.
 
-- **Google ADK Documentation:** [https://google.github.io/adk-docs/](https://google.github.io/adk-docs/)
-- **LangChain Integration Tools:** [https://python.langchain.com/docs/integrations/tools/](https://python.langchain.com/docs/integrations/tools/)
-- **Google Cloud Run Microservices Architecture:** [https://cloud.google.com/run/docs/tutorials](https://cloud.google.com/run/docs/tutorials)
-- **OWASP Top 10 for Large Language Models:** [https://owasp.org/www-project-top-10-for-large-language-model-applications/](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+## 10. Operate and improve
+
+Monitor request counts, tool status rates, evidence age, query bytes/cost, latency, model tokens, and citation failures. Log correlation IDs and error categories; decide separately whether prompts/results may be retained.
+
+| Symptom | Investigate first | Recovery |
+|---|---|---|
+| `unavailable` after a release | Configuration, IAM changes, dataset location, dependency changes | Roll back the known artifact/configuration or repair the missing permission |
+| Increase in `stale` | Ingestion and review job health | Refresh evidence; do not quietly extend the freshness limit |
+| Query budget failures | Table growth, clustering, query plan, pricing mode | Adjust the design/budget using measured costs |
+| Unsupported company ID | Entity-directory coverage and usability | Add a reviewed resolver; preserve ambiguity handling |
+| Unsourced model statements | Prompt, model version, test coverage, client rendering | Stop promotion, expand evaluation, and fix the observed failure |
+| Provider warning/deprecation | Dependency changelog and supported Python versions | Review and test an upgrade; do not suppress all warnings |
+
+Deliver a customer handover containing the architecture, source ownership, identity map, tested versions, evaluation results, SLO definitions, runbook, and rollback procedure. Do not replace this evidence with claims of “100% secure,” “audit-ready,” or invented savings.
+
+## Capstone
+
+A customer changes the request: “We need private, per-region supplier risk data and the latest adverse news.”
+
+Identify which assumptions no longer hold. Explain the new authorization boundary, approved public-query inputs, source comparison policy, regional deployment decisions, and evaluation cases. Then propose a staged delivery plan and measurable acceptance criteria before adding tools.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module14-third-party-tools-enterprise-playbook -->

@@ -5,83 +5,101 @@ title: "Module 38: Best Practices & Production Patterns (ADK 2.0)"
 
 # Module 38: Best Practices & Production Patterns
 
-## Theory
+## Before you begin: what this module teaches
 
-### From Prototype to Production
+**ADK concept: reliability budgets, failure classification and production boundaries.**
 
-Building a working agent is the first step. Building a **production-ready** agent requires a focus on architecture, performance, security, and reliability. This module summarizes the essential best practices for taking your agent from a prototype to a robust, scalable, and maintainable application, aligned with the **ADK 2.0 Workflow Runtime**.
+Retry repeats an operation; revision changes a candidate using feedback; model repair asks for a corrected tool call. Idempotency prevents a repeated operation from repeating its business effect. A timeout limits waiting but may leave a write outcome uncertain. These concepts must be assigned to the boundary capable of enforcing them.
 
-### 1. Architectural Best Practices: Thinking in Graphs
+**Where you would use this in real work.**
 
-In ADK 2.0, every component is a **Node** in a **Workflow Graph**. Choosing the right structure is your most critical design decision.
+The bank asks, “What happens when a dependency fails during a busy morning?” A useful answer identifies the failed operation, whether it is safe to repeat, the waiting budget and the outcome the analyst receives.
 
-| Pattern | When to use it | Key Characteristics |
-| :--- | :--- | :--- |
-| **`Agent`** | Natural language reasoning and dynamic tool calling. | Non-deterministic, flexible. Best for high-level decision making. |
-| **`Workflow` (Static) ** | Fixed, predictable pipelines (Sequential/Parallel). | Deterministic. Reduced latency and cost by avoiding LLM routing where logic is known. |
-| **`@node` (Dynamic)** | Complex, code-based orchestration (Loops, If/Else). | Maximum control. Allows arbitrary Python logic between agent executions. |
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
 
-*   **Small, Focused Tools:** Design your tools to follow the single-responsibility principle. A tool should do one thing well.
-*   **Progressive Disclosure with Skills:** Don't overload an agent with 50 tools. Group related tools into **Skills** and only activate them when needed.
-*   **Deterministic Routing:** If you *know* that Step B always follows Step A, don't ask an LLM to decide. Use a `Workflow` or a Dynamic `@node`.
+Reuse ADK control mechanisms and official Google clients. Agent Runtime/Cloud Run/GKE provide hosting controls, while the bank service enforces writes and authorization. Monitoring and evaluation supply evidence; neither replaces the failure contract.
 
-### 2. Resilience: Framework-Level Error Handling
+**By the end, you should be able to:**
 
-ADK 2.0 changes the way we handle failures. Instead of writing complex `try...except` logic inside every tool, we now leverage the **Workflow Runtime**.
+- Classify not_found, denied, transient failure and uncertain write outcomes.
+- Compute the combined attempt/deadline budget.
+- Choose caching and concurrency rules that preserve authorization and freshness.
 
-#### The "Let it Fail" Pattern
-In ADK 1.x, you were taught to catch all exceptions in tools. In ADK 2.0, you should **allow standard exceptions to propagate** out of your tools. 
+### Review this lesson through three perspectives
 
-**Why?**
-1.  **Automatic Retries:** If a tool fails with an exception, the ADK framework can automatically retry the execution based on a `RetryConfig`.
-2.  **Human-in-the-Loop (HITL):** Broad `except Exception:` blocks can accidentally trap `NodeInterruptedError`, which the framework uses to pause workflows for user input.
+- **Python/ADK beginner:** Explain why three attempts means at most two retries in RetryConfig.
+- **Experienced engineer:** Inject partial failures and prove no duplicate business effect.
+- **Bank FDE:** Agree operational outcomes and recovery ownership with the bank before promising availability.
 
-#### Configuring Retries
-You configure retry logic per-node, on the node itself (either as a constructor argument like `Agent(..., retry_config=...)`, or via `@node(retry_config=...)` for function nodes):
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-```python
-from google.adk.workflow import RetryConfig
+## Draw the execution boundary
 
-# Framework handles retries for you!
-my_agent_node = Agent(
-    ...,
-    retry_config=RetryConfig(max_attempts=3, initial_delay=2.0)
-)
+Classify before retrying; uncertain writes require reconciliation rather than blind repetition.
+
+```mermaid
+flowchart TB
+  A[Operation did not complete normally] --> B[Identify business and technical outcome]
+  B --> C[Choose permitted recovery]
+  C --> D[Enforce deadline and attempt budget]
+  D --> E[Return verified success or explicit failure]
 ```
 
-**Important:** `retry_config` does not cascade from a container to the nodes inside it. Setting `retry_config` on a `Workflow(...)` only governs retries of that `Workflow` *as a node* (relevant if it's nested inside a parent graph) — it has no effect on the nodes in its own `edges`. If you want a specific node inside a `Workflow` to retry, put `retry_config` directly on that node.
+## Theory: design reliability at the boundary that can enforce it
 
-### 3. Performance Optimization
+### Choose composition from the requirement
 
-*   **Model Selection Hierarchy:** Use `gemini-3.5-flash` for routing, classification, and simple tool calling. Save `gemini-3.1-pro-preview` for complex multi-step reasoning.
-*   **Caching with `before_agent_callback`:** Implement a caching layer to skip LLM calls entirely if a similar request was recently processed.
-*   **Async Everything:** Always use `async` tool definitions to prevent blocking the event loop during I/O-bound tasks (API calls, DB queries).
+An ordinary ADK Agent may be sufficient. Use AgentTool for a useful consultation, graph edges for required dependencies, explicit routes for policy choices and bounded loops for revisions. A more complex graph or more agents is not evidence of a better customer solution.
 
-### 4. Security & Safety
+### Classify a failure before choosing recovery
 
-*   **Fail-Closed Validation:** Use Pydantic schemas for both `input_schema` and `output_schema`. If validation fails, the node fails immediately (preventing prompt injection or malformed data from propagating).
-*   **Secrets Management:** Use Google Secret Manager or `.env` files. **Never** log sensitive data or return it in an agent response.
-*   **HITL for Side Effects:** Any tool that performs a destructive action (deleting data, making a payment) **must** yield a `RequestInput` for human confirmation.
+| Failure | Appropriate question | Typical design direction |
+|---|---|---|
+| Unknown case | Is this an expected domain outcome? | Return `not_found`; never substitute another case. |
+| Invalid credentials/denied access | Can a retry change permission? | Deny and fix authorized configuration; do not repeatedly retry. |
+| Temporary read-service failure | Is the operation safe to repeat? | Bounded retry with a deadline and explicit exhausted outcome. |
+| Write timeout | Could the effect already have committed? | Reconcile using a destination-enforced operation ID. |
+| Bad model tool arguments | Can the model correct the request? | Bounded model repair, with tool validation still authoritative. |
 
-### Key Takeaways
-- **Think in Nodes:** Break logic into discrete, testable nodes orchestrated by a Workflow.
-- **Framework Resilience:** Propagate exceptions to enable ADK 2.0 automatic retries and HITL.
-- **Model Efficiency:** Match the model capability to the task complexity.
-- **Strict Schemas:** Use Pydantic to enforce "fail-closed" security at every node boundary.
+The runtime can retry supported node failures when configured. It cannot make an arbitrary bank operation safe to repeat. Preserve framework interruption/resume behavior rather than catching every exception as an ordinary business error.
+
+### Read retry configuration precisely
+
+```python
+from google.adk.workflow import RetryConfig, node
+
+
+# Annotated example: the caller supplies a known read_service implementation.
+# Keep the timeout/error contract in that adapter, not in model-generated code.
+def make_read_node(read_service):
+    @node(retry_config=RetryConfig(
+        max_attempts=3,  # Includes the first attempt: at most two retries.
+        initial_delay=1.0,
+        exceptions=[TimeoutError],  # The adapter's explicit transient category.
+    ))
+    async def read_record(node_input: dict) -> dict:
+        return await read_service(node_input)
+
+    return read_record
+```
+
+This construction example does not supply a bank service. It shows where the verified `RetryConfig` belongs and why retry categories must be deliberate. Node attempts, SDK HTTP retries, model repair attempts, token limits and whole-request deadlines are different budgets. Measure the combined behavior.
+
+### Performance with correct scope
+
+Use supported nonblocking clients for asynchronous I/O; `async def` around blocking code still blocks. Cache only when identity, data versions, policy versions, expiry and invalidation permit reuse. A cache keyed only by the question can disclose another user's answer or reuse stale evidence. Gemini context caching is a separate optimization from caching a business answer.
+
+### Structure, policy and authorization are separate
+
+A Pydantic schema validates shape and configured constraints. It does not prevent all prompt injection, establish factual truth or authorize a record read. A model safety control, Model Armor inspection, callback and backend authorization each have a different boundary. Test combinations and denied/unavailable paths.
+
+Use supported confirmation/resume mechanisms for the intended approval experience, then revalidate authorization and the exact approved operation at execution. A confirmation prompt is not a transaction, and a retry is not a rollback. These are the same principles established in Modules 13, 18, 25.5 and 26.
+
+## Continue the course story
+
+Previous: [Module 37](../module37-advanced-personalized-shopping-agent/README.md) · Next: [Module 39](../module39-plugins/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module38-best-practices-README -->
 ---

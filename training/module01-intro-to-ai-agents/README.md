@@ -7,7 +7,45 @@ title: "Module 1: Introduction to AI Agents"
 
 ![Introduction to AI Agents](img/module01-header.png)
 
-# Module 1: Introduction to AI Agents & Google ADK
+## Before you begin: what this module teaches
+
+**ADK concept: agents, models and bounded capabilities.**
+
+A model generates text or proposes a tool call. An agent combines that model with instructions and permitted tools. A tool is application code that performs a defined operation. ADK coordinates execution and records events. The model proposing “read this case” is different from trusted code authorizing and performing the read. A workflow is a composition of steps; its nodes need not all be AI agents.
+
+**Where you would use this in real work.**
+
+Meera at a fictional Pune bank branch wants help preparing a company meeting. Some work is language work: explaining why documents are needed. Some work is exact: checking whether the case service recorded their receipt. Start by separating those tasks before deciding to build an agent.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+ADK is the application framework, Gemini supplies model reasoning, and Agent Runtime is a managed hosting choice introduced later. Firestore or a bank API owns the actual case facts. A local agent definition does not provision those services.
+
+**By the end, you should be able to:**
+
+- Explain model, agent, tool and workflow using four different responsibilities.
+- Separate a language task from an exact rule in the customer request.
+- Draw one input, one permitted operation and one observable result.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Trace a question about documents without claiming they were received.
+- **Experienced engineer:** Compare a plain function, a single agent and an agent-plus-tool design.
+- **Bank FDE:** Ask what employee task should improve and what the assistant must never decide.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
+## Draw the execution boundary
+
+One tool-using request; the model can also answer without requesting a tool.
+
+```mermaid
+flowchart TB
+  A[User question] --> B[ADK agent with Gemini]
+  B --> C[Proposed tool call]
+  C --> D[Trusted code validates and executes]
+  D --> E[Tool result used in the answer]
+```
 
 ## Theory
 
@@ -40,21 +78,27 @@ The ADK is built on a philosophy of **modularity, flexibility, and scalability**
 
 #### Core Concepts of ADK 2.0: The Graph Architecture
 
-ADK 2.0 represents a major evolution in how we build AI systems. It moves away from monolithic agents and rigid hierarchies toward a flexible **Graph-based Architecture**.
+ADK supports ordinary agents, agent teams, template workflows and explicit graph workflows. Learn a single agent first, then choose a composition when the task requires it. A graph is a useful way to describe dependencies; it is not a compulsory wrapper around every application.
 
 *   **Node:** The fundamental building block. A node is a discrete unit of work. It can be an **Agent** (powered by an LLM), a **Function Tool** (pure code), or even another nested **Workflow**.
 *   **Edge:** Defines the flow of control and data between nodes. Edges can be linear (sequential), branched (conditional), or even cyclic (loops).
 *   **Workflow:** The container and orchestrator. A Workflow defines the structure of your graph and manages the transitions between nodes using the **Workflow Runtime**.
 *   **App & Runner:** The infrastructure layer. An **App** wraps your root agent or workflow, and a **Runner** (like the `InMemoryRunner`) executes it, handling session state and telemetry.
 *   **Tool:** Capability interfaces that can be assigned to Agent nodes (e.g., Search, Database access).
-*   **Session & State:** Manages the context and memory of an interaction, ensuring continuity across the graph.
+*   **Session & State:** Record a scoped conversation and its working values. A separate memory service can retrieve selected past context; neither replaces the current business record.
 
 In this course, you will learn to think in **Graphs and Nodes**, mastering ADK 2.0 to build scalable, production-grade AI applications.
 
 ### Key Takeaways
 - AI Agents are autonomous systems that perceive, reason, and act using tools.
-- **ADK 2.0** uses a **Graph Architecture** where Agents and Tools are **Nodes** connected by **Edges**.
+- ADK offers graph composition as well as agent and template composition. Nodes can be ordinary functions; multiple nodes do not automatically mean multiple AI agents.
 - The **Workflow Runtime** is the engine that orchestrates complex multi-agent interactions on the **Gemini Enterprise Agent Platform**.
+
+## Continue the course story
+
+Previous: [Course introduction](../README.md) · Next: [Module 02](../module02-environment-setup/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module01-intro-to-ai-agents-README -->
 ---

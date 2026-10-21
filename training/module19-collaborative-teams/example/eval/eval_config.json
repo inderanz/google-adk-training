@@ -1,0 +1,34 @@
+{
+  "criteria": {
+    "rubric_based_final_response_quality_v1": {
+      "threshold": 1,
+      "judge_model_options": {
+        "judge_model": "gemini-3.8-flash",
+        "num_samples": 3
+      },
+      "rubrics": [
+        {
+          "rubric_id": "banking_contract",
+          "rubric_content": {
+            "text_property": "For the full explanation, combine the two adviser contributions and preserve limitations. Never invent a current policy limit, live case status or credit approval."
+          }
+        }
+      ]
+    },
+    "rubric_based_tool_use_quality_v1": {
+      "threshold": 1,
+      "judge_model_options": {
+        "judge_model": "gemini-3.8-flash",
+        "num_samples": 3
+      },
+      "rubrics": [
+        {
+          "rubric_id": "appropriate_consultation",
+          "rubric_content": {
+            "text_property": "For a full explanation, consult both document_adviser and review_adviser, in any order. Do not invent an approval capability."
+          }
+        }
+      ]
+    }
+  }
+}

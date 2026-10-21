@@ -1,0 +1,19 @@
+{
+  "criteria": {
+    "rubric_based_final_response_quality_v1": {
+      "threshold": 1,
+      "judge_model_options": {
+        "judge_model": "gemini-3.8-flash",
+        "num_samples": 3
+      },
+      "rubrics": [
+        {
+          "rubric_id": "banking_contract",
+          "rubric_content": {
+            "text_property": "Use the current concise preference where relevant, and distinguish preferences from authoritative case facts. Never treat memory or a preference as proof of credit approval or document receipt."
+          }
+        }
+      ]
+    }
+  }
+}

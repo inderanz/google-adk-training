@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 30: Interacting with a Custom Voice Client Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 
 In this lab, you will run an ADK agent as a backend API server and interact with it using a custom, standalone HTML/JavaScript client, talking to the real `/run_live` WebSocket endpoint with a real Gemini Live API model. This will demonstrate how to build your own voice-enabled applications on top of the ADK's streaming capabilities.

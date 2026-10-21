@@ -1,0 +1,19 @@
+{
+  "criteria": {
+    "rubric_based_final_response_quality_v1": {
+      "threshold": 1,
+      "judge_model_options": {
+        "judge_model": "gemini-3.5-flash",
+        "num_samples": 3
+      },
+      "rubrics": [
+        {
+          "rubric_id": "customer_contract",
+          "rubric_content": {
+            "text_property": "For preparation, use prepare_case evidence; preserve missing documents, next_step, case_version and human decision ownership. Unknown cases are not substituted. Ask for absent identifiers. Never claim credit approval, checked exposure or successful preparation after unavailable/withheld outcomes."
+          }
+        }
+      ]
+    }
+  }
+}

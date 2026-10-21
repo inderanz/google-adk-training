@@ -1,0 +1,47 @@
+{
+  "eval_set_id": "banking_module_20",
+  "eval_cases": [
+    {
+      "eval_id": "missing_documents",
+      "conversation": [
+        {
+          "invocation_id": "missing_documents",
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "{\"case_id\": \"CASE-001\", \"requested_cents\": 25000000, \"documents_complete\": false}"
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "adk_entry",
+        "user_id": "evaluation",
+        "state": {}
+      }
+    },
+    {
+      "eval_id": "complete_documents",
+      "conversation": [
+        {
+          "invocation_id": "complete_documents",
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "{\"case_id\": \"CASE-001\", \"requested_cents\": 25000000, \"documents_complete\": true}"
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "adk_entry",
+        "user_id": "evaluation",
+        "state": {}
+      }
+    }
+  ]
+}

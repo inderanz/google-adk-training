@@ -7,6 +7,9 @@ import { ChainSetup } from '../_chain-setup-snippet.mdx';
 
 # Lab 4.5 Challenge: Professional Model Configuration, Resiliency & Portability
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 In this lab, you will upgrade your **"Support Analyzer"** agent to a production-ready state, in place -- keeping its Module 4 structured-output contract (`SupportAnalysis`, `output_schema`, `output_key`) fully working. You will learn how to implement advanced retry logic using a custom `Gemini` subclass and how to provide a multi-model fallback using `LiteLlm`, layered on top of the agent you already built.
 

@@ -5,6 +5,45 @@ title: "Module 37: Advanced - Building a Personalized Shopping Agent"
 
 # Module 37: Advanced - Building a Personalized Shopping Agent
 
+## Before you begin: what this module teaches
+
+**ADK concept: combining remote specialists, preferences and action boundaries.**
+
+A coordinator synthesizes specialist results. A remote adapter crosses a network boundary. Preference state is an exact current setting; remote conversation context is execution history. They need not share a lifetime. A prompt describing ordered actions is not the same as a graph enforcing prerequisites. A simulated purchase is not evidence of a real authorized transaction.
+
+**Where you would use this in real work.**
+
+The shopping scenario is a transfer exercise: the same questions arise when a bank assistant combines a preference service and a document service. Which component owns the current fact, which conversation continues remotely, and which operation changes the outside world?
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Use ADK and supported A2A adapters for the described composition; Google hosting and durable service choices are separate integrations. The historical ADK 2.8.0 context observations below must be rechecked against the chosen version before customer use.
+
+**By the end, you should be able to:**
+
+- Trace one request across the local and remote responsibilities.
+- Demonstrate preference continuity across two turns and process restart.
+- Separate advisory browsing from an approved external write.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Explain who owns the current preference and who answers the user.
+- **Experienced engineer:** Test lost remote context, stale preferences and partial specialist failure.
+- **Bank FDE:** Translate the pattern into a bank use case without copying shopping-specific permissions.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
+## Draw the execution boundary
+
+Illustrative model-selected consultations; arrows do not enforce that both specialists run.
+
+```mermaid
+flowchart TB
+  A[User request] --> B[Shopping coordinator]
+  B <-->|A2A consultation| C[Preference specialist]
+  B <-->|A2A consultation| D[Web specialist]
+```
+
 ## Theory
 
 ### Introduction
@@ -46,7 +85,7 @@ By combining these components, we can create a powerful agent that can navigate 
 
 ### Known Limitation: Preferences Don't Persist Across Orchestrator Turns
 
-This is a genuine, verified architectural constraint of the current ADK 2.8.0 A2A stack — worth understanding rather than hiding, since it's exactly the kind of real-world limitation you'll hit building distributed agent systems.
+This section records a historical observation made with ADK 2.8.0, not a newly verified guarantee about the course's ADK 2.11.0 baseline — worth understanding rather than hiding, since it's exactly the kind of real-world limitation you'll hit building distributed agent systems.
 
 **What works:** if you talk to `personalization_agent` directly (bypassing the orchestrator), `save_preference` on one turn and `get_preferences` on a later, separate turn of the *same session* correctly returns the saved value. State persistence itself is fine.
 
@@ -59,7 +98,7 @@ We looked for a supported fix in `google-adk==2.8.0` and didn't find one for thi
 - `RemoteA2aAgent.__init__` has no way to pin a fixed `context_id`; it only ever discovers one by reading session event history.
 - The SDK does have a separate, newer "task mode" delegation path (`RemoteA2aAgent(mode="task")` wired via `sub_agents=[...]` instead of `AgentTool`), which runs through the parent's *own* session instead of a throwaway one. We tried it live: it does reach the remote agent through the shared session, but the finish-task handshake it depends on is fragile in this SDK version — one run returned no text to the user at all, and the very next call failed the task outright ("Task failed."). It is not a reliable fix in this version and isn't used in this lab's solution.
 
-**Bottom line:** if your application genuinely needs preferences to survive across orchestrator turns, don't rely on `AgentTool` + `RemoteA2aAgent` for it today. Either call `personalization_agent` directly for anything that must persist, or track this as a known gap to revisit once ADK's A2A support graduates out of experimental status.
+**Customer design:** give exact preferences a durable, authorized owner and test continuity across two orchestrator turns, restart and user change against the chosen SDK version. Do not derive persistence guarantees from the historical trace. Module 22 explains preference state separately from conversational recall; Module 21 explains remote context boundaries.
 
 ### Key Takeaways
 - This advanced challenge project integrates many concepts from the course: distributed multi-agent systems (A2A), state management, and tool abstraction.
@@ -70,6 +109,12 @@ We looked for a supported fix in `google-adk==2.8.0` and didn't find one for thi
 - **Observability via Callbacks:** Using a `before_tool_callback` for logging separates the concern of observability from the agent's business logic. The orchestrator's core instruction remains focused on delegation, while the callback transparently intercepts and logs the action. This makes the system more maintainable, as the monitoring logic can be updated independently of the agent's reasoning.
 - **Advantages of Distributed Architecture:** This distributed A2A architecture offers significant advantages over a monolithic agent. It allows for **independent scalability** (the Web Agent can be scaled separately if it's under heavy load), **modular maintenance** (changes to the website's logic only require updating the Web Agent), and **reusability** (the Personalization Agent could be reused by other agents in the organization).
 - **Known limitation — `AgentTool` resets remote A2A context every call:** preferences saved via the orchestrator do *not* currently survive across separate orchestrator turns, because `AgentTool` creates and discards a fresh session on every invocation, which breaks `RemoteA2aAgent`'s mechanism for resuming the same remote conversation. Direct calls to `personalization_agent` are unaffected. See "Known Limitation" above for the full explanation and what we checked for a fix.
+
+## Continue the course story
+
+Previous: [Module 36](../module36-gemini-enterprise/README.md) · Next: [Module 38](../module38-best-practices/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module37-advanced-personalized-shopping-agent-README -->
 ---

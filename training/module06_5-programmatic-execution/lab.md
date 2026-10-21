@@ -5,6 +5,9 @@ title: "Challenge Lab"
 
 # Lab 6.5: Programmatic Types & Advanced Content Modeling
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 
 In this lab, you will step into the shoes of a **Forward-Deployed Engineer (FDE)** building a programmatic intake pipeline for an enterprise customer support system.

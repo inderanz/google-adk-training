@@ -1,0 +1,25 @@
+[
+  {
+    "id": "valid",
+    "prompt": "Read CASE-001 with max_items=1.",
+    "expected": {
+      "tool": "read_checklist",
+      "status": "ok"
+    }
+  },
+  {
+    "id": "invalid",
+    "prompt": "Read CASE-001 with max_items=99. Pass the value exactly.",
+    "expected": {
+      "tool": "read_checklist",
+      "status": "invalid_limit"
+    }
+  },
+  {
+    "id": "short_circuit",
+    "prompt": "LAB:REQUEST_CREDIT_APPROVAL",
+    "expected": {
+      "contains": "A human analyst must make the credit decision."
+    }
+  }
+]

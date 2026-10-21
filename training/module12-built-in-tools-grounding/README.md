@@ -5,6 +5,34 @@ title: "Module 12: Built-in Tools and Grounding"
 
 # Module 12: Built-in Tools and Enterprise Grounding
 
+## Before you begin: what this module teaches
+
+**ADK concept: grounding, source metadata and evidence-backed answers.**
+
+Grounding supplies external evidence for a response. A citation points to a source or supporting segment; it is not proof that every sentence is correct. Public web grounding, retrieval over approved private content and a transactional case lookup serve different needs. Freshness, source authority and user access must be evaluated for the actual question.
+
+**Where you would use this in real work.**
+
+Meera asks for current public background about a company and then asks whether the bank received its documents. The first may fit public search; the second requires a private authorized case lookup. Calling both “search” hides a crucial data-ownership distinction.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Use the supported Gemini/ADK grounding capability for the chosen source. Google Search grounding is not an authorization path into bank records. Tool coexistence and metadata vary by model/API configuration; verify supported combinations rather than assuming every built-in tool mixes with every custom function.
+
+**By the end, you should be able to:**
+
+- Choose the correct evidence source for two different analyst questions.
+- Inspect available grounding metadata without assuming every turn contains it.
+- Identify unsupported claims despite the presence of citations.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Follow a cited claim back to its source.
+- **Experienced engineer:** Evaluate missing, stale and contradictory evidence and tool-combination compatibility.
+- **Bank FDE:** Ask what makes a source approved and how an analyst should see uncertainty.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
 ## 🧭 Executive Overview & The Grounding Imperative
 
 In production AI applications, a large language model's greatest operational vulnerability is its **static knowledge cutoff**. Left ungrounded, an LLM generates responses based exclusively on weights frozen during pre-training. When an enterprise analyst asks about real-time market developments, a corporate borrower's recent lawsuits, breaking regulatory changes, or current inventory pricing, an ungrounded model will either plead ignorance or, worse, **confidently hallucinate plausible fiction**.
@@ -25,15 +53,11 @@ Grounding transforms an LLM from a closed-box next-token predictor into an **ope
 4. Generates a response strictly rooted in those verified sources, accompanied by structured citation metadata.
 
 ```mermaid
-flowchart LR
-    User["User Query"] --> LLM["Gemini 2.5 Flash"]
-    LLM --> Check{"Information<br/>Gap?"}
-    Check -- "No" --> Direct["Generate Response"]
-    Check -- "Yes" --> Search["Built-in google_search"]
-    Search --> Google["Google Web Index"]
-    Google --> Facts["Ranked Sources & Snippets"]
-    Facts --> LLM
-    LLM --> Grounded["Grounded Response + Citations"]
+flowchart TB
+  A[Question requiring public evidence] --> B[Supported Gemini search grounding]
+  B --> C[Retrieved public sources]
+  C --> D[Model response and available metadata]
+  D --> E[Check claim support and citations]
 ```
 
 ### Built-in Tools vs. Custom Code
@@ -52,7 +76,7 @@ In Google ADK 2.0, **built-in tools** eliminate this operational burden:
 Implementing web grounding in ADK 2.0 requires only importing `google_search` and passing it to the `Agent`:
 
 ```python
-from google.adk import Agent
+from google.adk.agents import Agent
 from google.adk.tools import google_search
 
 # Minimal Web-Grounded Agent
@@ -89,7 +113,7 @@ A common mistake made by developers is attempting to place `google_search` and c
 
 ```python
 # ❌ THIS WILL FAIL AT RUNTIME!
-from google.adk import Agent
+from google.adk.agents import Agent
 from google.adk.tools import google_search
 
 
@@ -117,73 +141,188 @@ This is a fundamental architecture boundary in the **underlying Gemini API** (no
 
 ---
 
-## 🏛️ Level 3: Advanced Architecture — Sequential Multi-Agent Composition
+## 🔍 Level 3: Grounding Metadata Deep-Dive & Citation Lineage (ADK 2.0)
 
-To combine the live power of `google_search` with enterprise custom business logic (e.g., Pydantic calculators, internal database queries, or compliance policy engines), Google Forward-Deployed Engineers use **Sequential Multi-Agent Composition**.
+### What is Grounding Metadata? (The Mental Model)
 
-### The Two-Tier Agent Architecture
-Instead of forcing one agent to juggle incompatible tool types, we decouple the workflow into two specialized agent nodes:
+In an ordinary ungrounded LLM interaction, the model returns a single block of text. You have to take the model's word for it, with zero proof of where the facts came from.
 
-1. **Tier 1: Grounding Specialist (`SearchSpecialist`):**
-   - Configured with `tools=[google_search]`.
-   - Dedicated exclusively to finding current, factual web evidence.
-2. **Tier 2: Business Logic & Compliance Analyst (`RiskAnalyst`):**
-   - Configured with **Typed Pydantic Custom Tools** (e.g., `evaluate_adverse_risk`, `extract_sanction_citations`).
-   - Ingests the findings from Tier 1, validates data structures, applies internal policy rules, and formats auditable reports.
+When an ADK 2.0 agent is grounded with `google_search`, the model acts like an **investigative researcher presenting a formal dossier**:
+1. **The Briefing Text (`event.content`):** The synthesized, human-readable answer.
+2. **The Evidence Packet (`event.grounding_metadata`):** The complete forensic audit trail containing the search queries the AI formulated, the web pages it visited, and the exact links connecting each sentence to its source.
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User as Risk Officer
-    participant Runner as ADK Orchestrator / Runner
-    participant Agent1 as AdverseMediaAgent (Gemini + google_search)
-    participant Agent2 as RiskAnalystAgent (Gemini + Pydantic Tools)
-    participant Tools as Custom Risk Scoring Tools (Python)
-
-    User->>Runner: "Screen Acme Corp for adverse news & lawsuits"
-
-    Note over Runner,Agent1: Tier 1: Web Grounding Specialist
-    Runner->>Agent1: Inquire recent litigation and sanctions
-    Agent1->>Agent1: Execute google_search("Acme Corp litigation fraud")
-    Agent1-->>Runner: Return grounded research findings + citations
-
-    Note over Runner,Agent2: Tier 2: Business Logic & Scoring
-    Runner->>Agent2: Pass grounded findings + company metadata
-    Agent2->>Tools: Invoke classify_adverse_findings(findings)
-    Tools-->>Agent2: Return AdverseFindingReport(severity="HIGH", citations=[...])
-    Agent2-->>Runner: Synthesize final Adverse Media Risk Briefing
-    Runner-->>User: Present audit-compliant briefing with verifiable URLs
+```text
+ADK 2.0 Response Event (Final Response)
+├── event.content (What the human reads)
+│   └── "Acme Industrial Corp settled an EPA civil penalty in Ohio in 2025..."
+│
+└── event.grounding_metadata (The receipts / verifiable evidence)
+    ├── web_search_queries (The AI's search strategy)
+    │   └── ["Acme Industrial Corp EPA penalty Ohio 2025", "Acme litigation dockets"]
+    ├── grounding_chunks (The authoritative web documents retrieved)
+    │   ├── Chunk 0: title="EPA Region 5 Enforcement Docket", uri="https://epa.gov/..."
+    │   └── Chunk 1: title="Reuters Legal News", uri="https://reuters.com/..."
+    └── grounding_supports (Sentence-level proof & confidence)
+        └── Sentence 1 ("Acme settled...") ──maps to──> Chunk 0 (Confidence: 0.95)
 ```
 
-### Typed Inter-Agent Data Contracts
-In enterprise production, data passed between agents must never be unstructured free-form text. We enforce **Typed Pydantic Schemas** to govern the transition:
+---
+
+### Anatomy of `types.GroundingMetadata`
+
+In ADK 2.0, when you execute an agent programmatically using **`InMemoryRunner`** (from Module 6), the final `Event` contains `event.grounding_metadata` with three critical attributes:
+
+| Attribute | Python Type | What It Represents | Why Enterprises Need It |
+|---|---|---|---|
+| **`web_search_queries`** | `list[str]` | The exact search queries Gemini formulated dynamically. | **Search Observability:** Proves *what* the AI searched for and whether it asked the right questions. |
+| **`grounding_chunks`** | `list[GroundingChunk]` | Web pages retrieved from Google's index. Contains `chunk.web.title`, `chunk.web.uri`, and `chunk.web.domain`. | **Verifiable Lineage:** Provides clickable, primary-source URLs required by auditors (Fed SR 11-7). |
+| **`grounding_supports`** | `list[GroundingSupport]` | Mappings connecting specific sentences in `event.content` to indices in `grounding_chunks`. | **Citation Accuracy:** Powers UI footnote numbers (`[1]`, `[2]`) and allows verifying individual claims. |
+
+---
+
+### Why Enterprises Must Extract Metadata Programmatically
+
+Why not just let the model output text and ignore the metadata?
+
+1. **Building Rich User Interfaces:**
+   Modern applications display **search chips** (*"Searched: Acme Corp EPA penalties"*) and **clickable source cards** at the bottom of the response, just like Gemini and Google Search. This is only possible if your application parses `event.grounding_metadata`.
+2. **Regulatory Audit Logging (Fed SR 11-7 & APRA CPS 234):**
+   In commercial banking, an AI summary stating *"Borrower has no lawsuits"* cannot be stored without proof. Compliance systems must persist the exact query strings and source URLs alongside the credit decision.
+3. **Automated Hallucination Detection:**
+   By comparing `event.content` against `grounding_supports`, downstream validation logic can verify whether a high-stakes claim is backed by high-confidence source chunks before presenting it to an executive.
+
+---
+
+### Step-by-Step: How to Extract Grounding Metadata in Code
+
+Building directly on **Module 6 (`InMemoryRunner`)**, here is the 4-step mental model for extracting metadata:
+
+#### Step 1: Wait for the Final Response Event
+During streaming execution (`runner.run_async()`), intermediate token events are emitted. The complete grounding envelope is attached to the **final turn event** where `event.is_final_response()` is `True`.
+
+#### Step 2: Guard Against Non-Search Turns
+If a user submits a conversational prompt (e.g., *"Hello"* or *"Thank you"*), Gemini answers directly from internal knowledge without querying Google Search. In those turns, `event.grounding_metadata` is `None`. Always check `if event.grounding_metadata:` before accessing child attributes.
+
+#### Step 3: Extract the Queries & Sources
+Iterate over `grounding_chunks` to extract `chunk.web.title` and `chunk.web.uri`.
+
+---
+
+### Complete Programmatic Extraction Example
+
+Here is the complete, pedagogical Python implementation:
 
 ```python
-from typing import List
-from pydantic import BaseModel, Field
+"""Module 12 Concept: Programmatic Grounding Metadata Extraction.
+
+Demonstrates how to run a grounded agent and extract citation lineage.
+"""
+
+import asyncio
+from google.adk.agents import Agent
+from google.adk.runners import InMemoryRunner
+from google.adk.tools import google_search
+from google.genai import types
+
+# 1. Define the Grounded Agent
+research_agent = Agent(
+    name="market_researcher",
+    model="gemini-2.5-flash",
+    instruction=(
+        "You are a research analyst. Use google_search to investigate the entity"
+        " and summarize key regulatory or market developments."
+    ),
+    tools=[google_search],
+)
 
 
-class AdverseFinding(BaseModel):
-    """Structured risk signal extracted from grounded search results."""
+# 2. Execute and Extract Lineage
+async def run_grounded_research(topic: str):
+    app_name = "grounding_demo_app"
+    runner = InMemoryRunner(agent=research_agent, app_name=app_name)
 
-    headline: str = Field(description="Summary of adverse event or lawsuit")
-    source_domain: str = Field(
-        description="Verifiable publisher domain from grounding metadata"
+    # Create session (Module 6 review)
+    await runner.session_service.create_session(
+        app_name=app_name,
+        user_id="analyst_01",
+        session_id="session_market_check",
     )
-    risk_category: str = Field(
-        description="LITIGATION, FRAUD, SANCTIONS, REGULATORY, or ESG"
+
+    print(f"🔍 Submitting query: '{topic}'...")
+
+    # Stream events from the agent
+    async for event in runner.run_async(
+        user_id="analyst_01",
+        session_id="session_market_check",
+        new_message=types.Content(
+            role="user",
+            parts=[types.Part.from_text(text=topic)],
+        ),
+    ):
+        # We only inspect the final response event
+        if event.is_final_response():
+            # A. Extract the final text response
+            final_text = ""
+            if event.content and event.content.parts:
+                final_text = "".join(p.text for p in event.content.parts if p.text)
+
+            print("\n" + "=" * 50)
+            print("📝 AGENT RESPONSE:")
+            print("=" * 50)
+            print(final_text)
+
+            # B. Inspect Grounding Metadata
+            print("\n" + "=" * 50)
+            print("🔎 GROUNDING EVIDENCE PACKET:")
+            print("=" * 50)
+
+            if event.grounding_metadata:
+                # Extract search queries formulated by Gemini
+                queries = event.grounding_metadata.web_search_queries or []
+                print(f"Executed Search Queries ({len(queries)}):")
+                for q in queries:
+                    print(f"  • {q}")
+
+                # Extract web chunks (sources & URLs)
+                chunks = event.grounding_metadata.grounding_chunks or []
+                print(f"\nRetrieved Web Sources ({len(chunks)}):")
+                for chunk in chunks:
+                    if chunk.web and chunk.web.uri:
+                        print(f"  • [{chunk.web.title}]({chunk.web.uri})")
+            else:
+                print("No search was triggered (answered directly from memory).")
+
+
+if __name__ == "__main__":
+    asyncio.run(
+        run_grounded_research(
+            "What were the major FAA regulatory actions regarding Boeing in 2026?"
+        )
     )
-    severity: str = Field(description="CRITICAL, ELEVATED, or LOW")
+```
 
+### Expected Output
 
-class AdverseMediaReport(BaseModel):
-    """Consolidated due diligence assessment for Credit Committee."""
+When this script runs, notice how cleanly the **human answer** and the **evidence packet** are separated:
 
-    company_name: str
-    overall_risk_level: str
-    findings: List[AdverseFinding]
-    is_eligible_for_lending: bool
-    compliance_officer_review_required: bool
+```text
+🔍 Submitting query: 'What were the major FAA regulatory actions regarding Boeing in 2026?'...
+
+==================================================
+📝 AGENT RESPONSE:
+==================================================
+In 2026, the Federal Aviation Administration (FAA) expanded its oversight of Boeing's manufacturing processes, capping 737 MAX production rates pending quality audits and mandating updated safety management protocols...
+
+==================================================
+🔎 GROUNDING EVIDENCE PACKET:
+==================================================
+Executed Search Queries (2):
+  • FAA regulatory actions Boeing 2026 production cap
+  • Boeing safety oversight directives FAA 2026
+
+Retrieved Web Sources (2):
+  • [FAA Press Release: Boeing Production Oversight Update](https://faa.gov/newsroom/boeing-oversight-2026)
+  • [Reuters: FAA Maintains Oversight Capping 737 Output](https://reuters.com/business/aerospace-defense/...)
 ```
 
 ---
@@ -215,7 +354,7 @@ Every automated finding must possess a **defensible lineage**:
 2. **Verifiable Linkage:** The exact article URL must be preserved so compliance officers can verify the claim in one click.
 3. **Temporal Validity:** Search findings must record the timestamp of the retrieval turn to prove when the adverse check was conducted.
 
-By deploying `google_search` within a sequential multi-agent pipeline, enterprises achieve both **autonomous research capabilities** and **uncompromising regulatory auditability**.
+By deploying `google_search` and capturing structured grounding metadata, enterprises achieve both **autonomous research capabilities** and **uncompromising regulatory auditability**.
 
 ---
 
@@ -226,3 +365,8 @@ By deploying `google_search` within a sequential multi-agent pipeline, enterpris
 - Vertex AI Search & Grounding: https://cloud.google.com/vertex-ai/generative-ai/docs/grounding/overview
 - Federal Reserve SR 11-7 (Model Risk Management): https://www.federalreserve.gov/supervisionreg/srletters/sr1107.htm
 - Google GenAI Python SDK: https://googleapis.github.io/python-genai/
+## Continue the course story
+
+Previous: [Module 11.6](../module11_6-enterprise-apigee-gateway-auth/README.md) · Next: [Module 13](../module13-tool-context/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.

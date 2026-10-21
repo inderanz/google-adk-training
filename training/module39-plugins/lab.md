@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 39: Fixing a "Hallucinating" Agent with Plugins
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 
 In this lab, you will work with an agent that has been given misleading instructions. It will try to call a tool by the wrong name. Your task is to use the `ReflectAndRetryToolPlugin` to allow the agent to self-correct and succeed *without* changing the misleading instruction.

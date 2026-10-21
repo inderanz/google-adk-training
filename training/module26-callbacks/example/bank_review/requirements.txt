@@ -1,0 +1,4 @@
+google-adk[gcp,a2a]==2.11.0
+google-cloud-modelarmor==0.7.1
+google-cloud-firestore==2.33.0
+google-cloud-aiplatform[agent_engines]==1.165.1

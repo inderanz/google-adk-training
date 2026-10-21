@@ -1,0 +1,85 @@
+{
+  "eval_set_id": "banking_26",
+  "name": "Bank review acceptance",
+  "eval_cases": [
+    {
+      "eval_id": "valid",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Read CASE-001 with max_items=1."
+              }
+            ]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "read_checklist",
+                "args": {
+                  "case_id": "CASE-001",
+                  "max_items": 1
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    },
+    {
+      "eval_id": "invalid",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Read CASE-001 with max_items=99. Pass the value exactly."
+              }
+            ]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "read_checklist",
+                "args": {
+                  "case_id": "CASE-001",
+                  "max_items": 99
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    },
+    {
+      "eval_id": "short_circuit",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "LAB:REQUEST_CREDIT_APPROVAL"
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    }
+  ]
+}

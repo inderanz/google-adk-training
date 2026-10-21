@@ -5,6 +5,44 @@ title: "Module 30: Building a Custom Streaming Client"
 
 # Module 30: Building a Custom Streaming Client
 
+## Before you begin: what this module teaches
+
+**ADK concept: bidirectional live interaction and audio message handling.**
+
+A WebSocket carries traffic in both directions over an ongoing connection. PCM describes raw audio samples; sample rate tells how many samples represent one second. Encoding bytes for JSON is different from compressing audio. The client must capture, send, decode and schedule audio according to the selected Live API contract. A transcript and a spoken response are distinct outputs.
+
+**Where you would use this in real work.**
+
+A branch wants a voice-based assistant so an analyst can speak while reviewing documents. Speech changes the interaction: the user may interrupt, audio arrives in chunks and sensitive information can be spoken aloud.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+ADK live execution connects to a supported Gemini Live model. The graph Workflow API is not the same execution path as Runner.run_live. Verify model, region, formats and session limits; a working text agent does not establish live-audio compatibility.
+
+**By the end, you should be able to:**
+
+- Trace audio from microphone to model and back to playback.
+- Explain input/output format requirements and interruption handling.
+- Separate browser origin checks from authentication and session access.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Explain why playing 24 kHz samples at a different rate changes sound.
+- **Experienced engineer:** Test interruptions, dropped connections, playback queues and resource cleanup.
+- **Bank FDE:** Ask whether speech capture is permitted and how consent, retention and accessibility are handled.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
+## Draw the execution boundary
+
+Bidirectional audio path. Session creation and authentication must be established separately.
+
+```mermaid
+flowchart TB
+  A[Browser microphone and playback] <-->|WebSocket| B[ADK live API]
+  B <-->|Supported live model session| C[Gemini Live]
+```
+
 ## Theory
 
 ### Beyond the Dev UI
@@ -26,11 +64,11 @@ A custom streaming application consists of two main components that communicate 
     *   Receiving audio data back from the server.
     *   Playing the received audio through the user's speakers.
 
-> **A note on browser security:** since the client (a static HTML page) and the ADK server run on different ports, this is a **cross-origin** setup. You'll need to start the server with `--allow_origins` pointing at the client's origin, or the browser will refuse both the WebSocket connection and the session-creation request.
+> **A note on browser security:** since the client (a static HTML page) and the ADK server run on different ports, this is a **cross-origin** setup. You'll need to start the server with `--allow_origins` pointing at the client's origin, for the session-creation HTTP request. WebSocket origin validation is a separate server concern; browser CORS rules do not secure WebSocket connections in the same way. Authentication is required independently of origin configuration.
 
 ### WebSockets: The Key to Real-time Communication
 
-Standard HTTP is a request-response protocol. The client sends a request, and the server sends a response. This is not suitable for real-time, continuous conversation.
+An ordinary non-streaming HTTP request waits for a response. HTTP can also stream, as the SSE lesson showed. This lab uses a WebSocket because the selected Live API interaction needs ongoing traffic in both directions.
 
 **WebSockets** solve this problem. A WebSocket is a protocol that provides a persistent, **full-duplex** (two-way) communication channel over a single TCP connection. Once a WebSocket connection is established between the client (your browser) and the server (the ADK `api_server`), both sides can send data to each other at any time.
 
@@ -66,6 +104,12 @@ In the lab for this module, you'll implement the pieces of this flow that are sp
 - **Impact of Audio Chunk Interval:** How often the client sends captured audio chunks is critical for perceived latency. Batching a full second of audio before sending it would introduce a full second of dead air before the server can start processing speech, leading to unnatural pauses and a sluggish, non-real-time conversational flow.
 - **WebSockets vs. SSE for Voice:** While SSE (used in the previous lab) is excellent for one-way streaming (server to client), WebSockets are necessary for voice applications because they provide a **full-duplex** (bidirectional) channel. This allows the client to continuously stream microphone audio *to* the server while simultaneously receiving the agent's audio response *from* the server, which is not possible with SSE.
 - **Handling Audio Playback:** Unlike a compressed audio file, raw PCM has no container format to decode — you can't hand it to `audioContext.decodeAudioData()`. Instead, you manually convert the 16-bit samples to normalized `Float32` values, copy them into an `AudioBuffer` via `copyToChannel`, and schedule an `AudioBufferSourceNode` to start exactly when the previous chunk ends — that scheduling is what keeps consecutive chunks sounding like one continuous voice instead of overlapping or gapping.
+
+## Continue the course story
+
+Previous: [Module 29](../module29-ui-integration-intro/README.md) · Next: [Module 31](../module31-production-deployment-strategies/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module30-custom-streaming-client-README -->
 ---

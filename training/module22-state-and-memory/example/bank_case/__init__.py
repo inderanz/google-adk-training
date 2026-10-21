@@ -1,0 +1,1 @@
+"""Fictional bank training example."""

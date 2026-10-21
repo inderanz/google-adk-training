@@ -1,0 +1,35 @@
+{
+  "eval_set_id": "banking_25_5",
+  "name": "Bank review acceptance",
+  "eval_cases": [
+    {
+      "eval_id": "allowed",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Read the checklist for CASE-001."
+              }
+            ]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "read_checklist",
+                "args": {
+                  "case_id": "CASE-001"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    }
+  ]
+}

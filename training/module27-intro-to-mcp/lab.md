@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 27: Using a Stateful File System Tool Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 
 In this lab, you will learn how to connect your ADK agent to an external, stateful tool using the Model Context Protocol (MCP). You will use the `McpToolset` to connect to a pre-built, open-source MCP server that provides file system operations. This will allow your agent to list files and read their contents from your local machine.

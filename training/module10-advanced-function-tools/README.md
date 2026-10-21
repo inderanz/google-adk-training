@@ -5,6 +5,34 @@ title: "Module 10: Stateful Tools & ToolContext"
 
 # Module 10: Stateful Tools & ToolContext
 
+## Before you begin: what this module teaches
+
+**ADK concept: ToolContext injection, tracked state and runtime identity.**
+
+Dependency injection means the runtime supplies a dependency when calling the function. ADK supplies ToolContext while the model supplies the public business arguments. context.state tracks working-value changes; its key scope and provider determine lifetime. context.user_id reflects runtime identity supplied upstream; it is trusted only when the application authenticated and bound it correctly.
+
+**Where you would use this in real work.**
+
+Meera tells the assistant to use a concise explanation for this conversation. The tool needs access to the active session but should not ask the model to supply an internal session object or impersonate a user.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Use ADK's context and service interfaces instead of a global dictionary for every analyst. Case authorization stays in the bank service or repository. Saving a proposed seat or transfer in state does not reserve a seat or move money in an external system.
+
+**By the end, you should be able to:**
+
+- Distinguish model-supplied arguments from runtime-supplied context.
+- Choose a state scope and explain its persistence requirements.
+- Follow identity from the authenticated application into the backend check.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Read and update one state key and inspect the resulting event behavior.
+- **Experienced engineer:** Test user separation, nested mutation and direct backend access.
+- **Bank FDE:** Ask whether the value is a conversational hint, a durable preference or an official case fact.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
 ## Theory: Beyond Stateless Functions
 
 In [Module 09](../module09-intro-custom-function-tools/README.md), you built **stateless tools**: functions that take arguments, compute a result, and immediately return it. They have no memory of prior turns.
@@ -77,22 +105,11 @@ When ADK registers your function:
 4. **Runtime Injection:** When Gemini calls the function, ADK automatically injects the live, active `ToolContext` instance as the second argument.
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    actor User as User Prompt
-    participant Gemini as Gemini Model
-    participant ADK as ADK Runtime
-    participant Tool as Custom Tool Function
-    participant State as Session State
-
-    User->>Gemini: "Please update my language to Hindi"
-    Gemini->>ADK: FunctionCall: update_customer_preference(preferred_language="Hindi")
-    Note over ADK: ADK injects live ToolContext instance
-    ADK->>Tool: update_customer_preference(preferred_language="Hindi", tool_context=ctx)
-    Tool->>State: tool_context.state["preferred_language"] = "Hindi"
-    Tool-->>ADK: returns {"status": "success"}
-    ADK-->>Gemini: FunctionResponse payload
-    Gemini-->>User: "Your preferred language has been updated to Hindi."
+flowchart TB
+  A[User requests preference change] --> B[Model proposes public arguments]
+  B --> C[ADK supplies ToolContext]
+  C --> D[Tool validates and assigns state]
+  D --> E[Result and tracked state update]
 ```
 
 > [!CRITICAL]
@@ -108,7 +125,7 @@ In ADK 2.0, `ToolContext` is much more than a state dictionary. It provides full
 ```python
 # Key properties available inside ToolContext:
 tool_context.state  # Session state dictionary (read/write across turns)
-tool_context.user_id  # Verified ID of the current user
+tool_context.user_id  # Runtime user ID; trust depends on upstream authentication
 tool_context.session  # Active Session object & session metadata
 tool_context.agent_name  # Name of the executing Agent node
 tool_context.save_artifact()  # Save binary files (PDFs, images, dataframes)
@@ -124,7 +141,7 @@ tool_context.load_artifact()  # Load stored binary artifacts
 #### Writing to State:
 ```python
 def select_flight_seat(seat_number: str, tool_context: ToolContext) -> dict:
-    """Reserves a seat for the active booking.
+    """Records a proposed seat in session state; it does not reserve an airline seat.
 
     Args:
         seat_number: The seat code selected by the passenger (e.g., '12A', '14F').
@@ -137,7 +154,7 @@ def select_flight_seat(seat_number: str, tool_context: ToolContext) -> dict:
 #### Reading from State:
 ```python
 def confirm_booking(tool_context: ToolContext) -> dict:
-    """Finalizes the booking using previously selected seat and passenger details."""
+    """Returns the proposed booking details; no external booking is committed."""
     # Read from session state with fallback safety
     selected_seat = tool_context.state.get("selected_seat")
 
@@ -338,7 +355,7 @@ When customer developers hit state or memory challenges, they often attempt cust
 **Google's Standardized ADK Approach:**
 - ✅ Use **`tool_context.state`** for session state persistence.
 - ✅ Use **`tool_context.save_artifact()`** for binary files, charts, and datasets.
-- ✅ Use **`tool_context.user_id`** for zero-trust runtime identity.
+- Use **`tool_context.user_id`** as runtime-supplied identity only after the application has authenticated and bound that identity; enforce case access in the backend.
 - ✅ Use **`tool_context.request_confirmation()`** for high-risk action guards.
 
 ---
@@ -362,14 +379,14 @@ uv run python -c "from google.adk.tools import ToolContext; print(ToolContext.sa
 
 ### C. Steering Antigravity AI Assistants for ADK 2.0 Compliance
 
-If you or your team use **Antigravity** (Google's agentic AI coding assistant), use these **Principal FDE Prompts** in your chat or project rules (`GEMINI.md`) to guarantee that Antigravity produces 100% compliant, production-grade ADK 2.0 code:
+If you or your team use **Antigravity** (Google's agentic AI coding assistant), use these **Principal FDE Prompts** in your chat or project rules (`GEMINI.md`) to state the intended ADK coding conventions. Generated code still requires review, contract checks, evaluation and integration testing:
 
 #### Master Antigravity Prompt Template for ADK Tool Development:
 > *"You are an expert Google ADK 2.0 Forward-Deployed Engineer. Write a Python custom tool and Agent node following strict Google ADK 2.0 standards:*
 > 1. *Use `from google.adk import Agent` and `from google.adk.tools import ToolContext`.*
 > 2. *Define all tool return types using typed Pydantic models (`BaseModel`). Do NOT return plain dictionaries.*
 > 3. *If the tool needs state or runtime identity, include `tool_context: ToolContext` in the function parameters. NEVER mention `tool_context` in the function docstring or parameter descriptions (ADK strips it from Gemini's JSON schema automatically).*
-> 4. *Read user identity from `tool_context.user_id` for zero-trust security. Do NOT accept `user_id` as an LLM argument.*
+> 4. *Read identity from trusted runtime context after authenticating the caller. Do NOT accept authorization identity as an LLM argument; the backend must enforce record access.*
 > 5. *In `Agent(...)`, use the singular `instruction="..."` parameter (not `instructions`). Use model `gemini-2.5-flash`.*
 > 6. *Access LLM response content using `event.content` or `response.content` (NEVER use legacy `.candidates`)."*
 
@@ -392,5 +409,11 @@ To dive deeper into production deployment architectures:
 - **Google ADK Docs - Session State:** https://google.github.io/adk-docs/sessions/
 - **Google GenAI Python SDK Reference:** https://googleapis.github.io/python-genai/
 - **Vertex AI Generative AI Guidance:** https://cloud.google.com/vertex-ai/generative-ai
+
+## Continue the course story
+
+Previous: [Module 09](../module09-intro-custom-function-tools/README.md) · Next: [Module 11](../module11-openapi-tools/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module10-advanced-function-tools-README -->

@@ -1,185 +1,87 @@
 ---
-sidebar_position: 15.1
-title: "Module 15 Enterprise Playbook: Multi-Agent Systems for Real-World Division of Labor"
+sidebar_position: 4
+title: "Enterprise Banking Playbook"
 ---
 
-# Module 15 Enterprise Playbook: Multi-Agent Systems for Real-World Division of Labor
+# Module 15 enterprise playbook
 
-This module is where the ADK architecture moves from single-agent execution toward coordinated multi-agent systems. In earlier modules, the emphasis was on one agent solving one area of work: runtime behavior, tool execution, memory, grounding, and external integration. Module 15 introduces the next layer: multiple agents, specialized roles, and structured collaboration.
+## Start from the bank’s requirement
 
-For a forward-deployed engineer, this is a critical transition. In customer work, large problems are rarely solved by one model with one prompt and one toolset. They are solved by decomposing the problem into clear roles, boundaries, and responsibilities.
+> Help me explain why these documents are needed. I want one clear answer. If you cannot check whether the documents have arrived, say that clearly.
 
-## The forward-deployed engineer lens
+The employee needs this result: An explanation from the coordinator, using advice from a document specialist when it calls that specialist. A receipt question must not receive an invented status; this example has no current-case lookup.
 
-A real customer problem often contains several distinct competencies:
+Read the [plain-English task and term explanations](./README.md#read-this-as-a-bank-employees-task) before the implementation details.
 
-- billing logic
-- technical support
-- diagnosis and troubleshooting
-- sales or recommendation workflows
-- policy or compliance review
-- escalation to human operators
 
-A single monolithic agent tries to do all of these things at once and typically becomes difficult to reason about, hard to tune, and fragile under real usage.
+## Architecture decision: start with the smallest useful team
 
-This is why multi-agent design is strategically valuable: it allows the system to mirror the way a business actually works.
+Record an ADR with the customer’s desired outcome, the one-agent baseline, the proposed two-role design and evidence for choosing it. Evaluate document explanations separately from routing. Adding an agent creates another interface to test; it does not inherently improve accuracy or make the deployment scale independently.
 
-## Business translation
+The production adapter can reuse Module 13.5’s authorized case lookup and Module 14’s bounded company-profile lookup. Add each capability only to the role that needs it. A prompt saying “use only your own customer” is not an access check. The service must derive analyst identity from authentication and verify case assignment before returning fields.
 
-The phrase “multi-agent system” means the application is organized like a team with specializations.
+If every requested explanation must include two independent sources, move required collection into Module 16’s workflow. Prompting a coordinator to “always consult everyone” is behavior to evaluate, not a deterministic scheduling guarantee.
 
-In enterprise terms, that may look like:
+## Translate the prototype into a customer implementation
 
-- a router or orchestrator that decides which specialist should handle the request
-- a billing specialist focused on financial logic and constraints
-- a technical support specialist focused on troubleshooting and diagnostics
-- a policy specialist focused on rules, guardrails, or escalation criteria
-- a final coordinator that synthesizes outputs into a single customer-facing answer
+| Concern | Concrete implementation decision | Acceptance evidence |
+|---|---|---|
+| Identity | Authenticate ingress; derive caller/tenant context in trusted code | Wrong-user and wrong-tenant requests are denied |
+| Business truth | Use authorized case and ledger adapters | Freshness, provenance and record version are preserved |
+| Hosting | Choose supported Agent Runtime or Cloud Run based on ownership and operations | Staging deployment and recovery checks on the chosen target |
+| Persistence | Use a native ADK provider suitable for the environment | Restart and concurrent-session behavior tested |
+| Secrets | Workload identity and Secret Manager where a secret is needed | No credentials in prompts, source or normal logs |
+| Failure | Bound calls; report failure/unknown outcomes; reconcile writes | Timeout and duplicate-operation scenarios tested |
+| Quality | Evaluate grounded explanations and capability selection | Recorded per-case results, including held-out cases |
+| Operations | Cloud Logging/Trace with deliberate data capture policy | Case correlation, error categories and access controls verified |
 
-This is not just a software pattern; it is a way to model complexity and responsibility.
+Reuse the authorized Firestore case pattern from Module 13.5 and bounded evidence adapters from Module 14. Do not replace them with prompt-only access checks. The standalone examples isolate this module’s concept; their fixture values must be replaced with authorized records before customer use.
 
-## Core ADK concept
+Keep a release record containing the dependency lock, model version/configuration, rule/contract versions, test results, evaluation results and known limitations. Google-native components reduce custom infrastructure work, but do not certify a solution’s security, compliance or business correctness.
 
-In ADK 2.0, multi-agent systems are built using graph-like workflow structures. Different agents are connected by edges and routing logic, and the runtime coordinates their interaction.
+## Failure and acceptance review
 
-The key architectural idea is that specialization improves clarity:
+| Scenario | Required reasoning |
+| --- | --- |
+| Ask for current receipt status | The response must explain that an authorized lookup is required; there is no receipt tool. |
+| Ask to approve a loan | No approval operation can run; evaluate that the response also avoids claiming approval. |
+| Remove the adviser description in a copy | The program still constructs, but tool-selection quality may change. Measure it with model evaluation. |
+| Merge the two roles | Compare quality, calls, latency and cost; the simpler design may be better for this requirement. |
 
-- each agent has a narrower responsibility
-- instructions are easier to maintain
-- tools are easier to scope
-- debugging is easier because the failure can be localized to one role
-- the overall system is more extensible as business needs evolve
+## Explain the native Google integration
 
-## Enterprise pattern
+ADK and Gemini implement the two reasoning roles. The local Runner is not Agent Runtime hosting. A live receipt capability would reuse Module 13.5’s authorized case adapter; this example has none.
 
-### Pattern 1: Router and specialist model
-The orchestrator receives the user request, classifies the task, and routes it to the correct specialized agent.
+Use the [shared customer integration specification](./fde-learning-guide.md#a-concrete-integration-boundary-after-module-215) to identify the exact earlier-course adapters and missing bank-owned fields. Keep ADK control logic, managed hosting and business data services as separate responsibilities.
 
-Examples:
+**Review challenge:** Propose a one-agent baseline and an independently maintained specialist alternative. Define a held-out question set and explain what measured improvement would justify the extra model call.
 
-- support request → technical agent
-- pricing request → billing agent
-- policy question → compliance or knowledge agent
+## Evidence available in this revision
 
-This is one of the most practical and scalable patterns in enterprise AI.
+2 offline tests passed, including a scripted model call through the real ADK AgentTool and Runner. Live Gemini response quality has not been evaluated.
 
-### Pattern 2: Human-in-the-loop escalation
-A specialist agent may identify that the request requires a human decision or a more sensitive review.
+Reviewed on **3 October 2026** against **google-adk 2.11.0** and its installed public APIs. Examples require Python 3.12+ and were exercised with **Python 3.14.7**. Python 3.14.8 is the current stable patch release; it was not the local test interpreter. Use the supplied lockfile for the verified dependency resolution, and repeat the checks before upgrading.
 
-Examples:
+Sources: [ADK release](https://pypi.org/project/google-adk/2.11.0/) and [Python 3.14.8 release](https://www.python.org/downloads/release/python-3148/). “Current” is dated verification, not a promise that a dependency will never change.
 
-- financial exceptions
-- legal or compliance questions
-- operational escalations
-- customer risk cases
+## Continue the story
 
-This pattern is essential when the business requires governance and accountability.
+Module 14 supplied bounded evidence tools. This module defines who should use a capability. Module 16 will decide which checks must run regardless of model choice.
 
-### Pattern 3: Sequential specialist workflow
-The output of one agent becomes the input to another agent.
+[Previous module](../module14-third-party-tools/README.md) · [Lab](./lab.md) · [Solution](./lab-solution.md) · [Enterprise playbook](./enterprise-playbook.md) · [Next module](../module16-static-orchestration/README.md)
 
-Examples:
+## Instructor acceptance: demonstrate transfer
 
-- research specialist gathers facts
-- internal rules agent checks policy
-- final response agent crafts the customer answer
+Ask the learner to explain this derivation without looking at the implementation: The customer wants one explanation with specialist advice, so use call-and-return. If the requirement changes to direct dialogue with the specialist, reconsider delegation. If the checklist explanation fits one instruction, compare the simpler one-agent baseline before paying for a second reasoning step.
 
-This is a strong pattern for combining grounded facts and domain-specific policy logic.
+Then assign: Design a second adviser whose output conflicts with the first. State which source is authoritative and how the coordinator should report disagreement.
 
-## Why this matters in production
+Accept the explanation only when it names the native ADK execution boundary, identifies a trusted source, predicts a failure and proposes evidence that could disprove the design. A copied successful trace does not establish independent understanding.
 
-A multi-agent system is useful when the enterprise workflow is actually multi-step and multi-domain. If the problem is simple, a single agent may be enough. But once a customer solution spans multiple business concerns, a single agent tends to become a failure point.
+## Official sources
 
-Forward-deployed engineers look for opportunities to decompose tasks by responsibility and to route work based on context. That reduces model overload, enables better tool scoping, and makes the overall system easier to maintain.
+- [ADK workflow choices](https://adk.dev/workflows/)
+- [Function tools and agent tools](https://adk.dev/tools-custom/function-tools/)
+- [Collaborative workflows](https://adk.dev/workflows/collaboration/)
 
-## Best practices for real customer work
-
-### 1. Define clear agent boundaries
-Each agent should have a specific role and a narrow set of tools. Avoid giving every agent every capability.
-
-### 2. Keep the orchestrator simple and deterministic
-The routing agent should decide where work should go, not try to perform every business function itself.
-
-### 3. Prefer specialization over cleverness
-A small number of well-scoped specialists is usually more reliable than a single all-purpose “smart agent.”
-
-### 4. Put governance in the workflow
-Escalation, review, and approval steps should be explicit, especially for high-impact decisions.
-
-### 5. Design for observability
-In multi-agent systems, you need to know which node made which decision and which tool or data source contributed to the result.
-
-## Common enterprise anti-patterns
-
-### Anti-pattern 1: one giant agent with every tool
-This looks simpler early on, but it becomes difficult to maintain and harder to understand under production load.
-
-### Anti-pattern 2: no clear routing logic
-If the orchestrator is vague or ambiguous, work gets routed unpredictably and customer trust erodes.
-
-### Anti-pattern 3: hidden dependencies between agents
-When agent behavior depends on silent assumptions, the system becomes brittle and difficult to debug.
-
-### Anti-pattern 4: ignoring human escalation paths
-In regulated or customer-impacting workflows, a human review step is not optional; it is a design requirement.
-
-## Multi-agent systems as an enterprise architecture pattern
-
-This module is not about trendy AI architecture alone. It is about creating a system that mirrors real organizational capabilities.
-
-A good multi-agent system follows the same principles as a strong business org chart:
-
-- clear roles
-- explicit responsibilities
-- well-defined handoffs
-- accountability for outcomes
-- the ability to scale and evolve over time
-
-That is why this is such an important module in the enterprise ADK journey.
-
-## Related modules
-
-- [Module 06 Enterprise Playbook](../module06-programmatic-execution/enterprise-playbook.md)
-- [Module 09 Enterprise Playbook](../module09-intro-custom-function-tools/enterprise-playbook.md)
-- [Module 10 Enterprise Playbook](../module10-advanced-function-tools/enterprise-playbook.md)
-- [Module 11 Enterprise Playbook](../module11-openapi-tools/enterprise-playbook.md)
-- [Module 12 Enterprise Playbook](../module12-built-in-tools-grounding/enterprise-playbook.md)
-- [Module 13.5 Enterprise Playbook](../module13_5-firestore-persistence/enterprise-playbook.md)
-- [Module 21 Distributed Graphs](../module21-distributed-graphs/README.md)
-
-## Recommended next move in the learning path
-
-After mastering multi-agent roles and orchestration, the next step is to understand how distributed agent graphs and stateful workflows evolve into deeper coordination patterns and more complex production systems.
-
-## Final enterprise takeaway
-
-Module 15 teaches a simple but powerful approach: instead of making one agent do everything, build a system that decomposes the business problem into specialized roles and workflows.
-
-That is a much more realistic and scalable pattern for customer-facing AI systems, and it is one of the most important architectural ideas in the ADK learning path.
-
-## Official ADK / Google references
-
-- ADK docs home: https://google.github.io/adk-docs/
-- ADK agents overview: https://google.github.io/adk-docs/agents/
-- ADK workflows and orchestration: https://google.github.io/adk-docs/workflows/
-- Gemini API docs: https://ai.google.dev/gemini-api/docs
-- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
-
-These official references should be treated as the canonical source for workflow design and agent collaboration patterns as the framework evolves.
-
----
-
-## Related roadmap
-
-- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
-- [Module 15 README](./README.md)
----
-
-## Official References
-
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
-
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. -->

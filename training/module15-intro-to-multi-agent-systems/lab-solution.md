@@ -1,117 +1,235 @@
 ---
 sidebar_position: 3
-title: "Lab Solution"
+title: "Explained Lab Solution"
 ---
 
-# Lab 15 Solution: Designing a Multi-Agent System
+# Lab 15 solution: Introduction to Multi-Agent Systems
 
-## Goal
+A coordinator consults a document adviser and then answers the analyst. Both roles are advisory; neither reads current case status.
 
-This lab was a conceptual design exercise. There is no single "correct" solution, but this file provides a more detailed example of the design planned in the lab, prioritizing the Python-first approach.
+The employee needs this result: An explanation from the coordinator, using advice from a document specialist when it calls that specialist. A receipt question must not receive an invented status; this example has no current-case lookup.
 
-### Python Design (Primary Approach)
+Read the [plain-English task and term explanations](./README.md#read-this-as-a-bank-employees-task) before the implementation details.
 
-Here is a more fleshed-out version of the agent designs as they would be implemented in Python files using ADK 2.0 patterns.
+## Explain why this code exists
 
-#### `greeting_system/agent.py` (The Router and Workflow)
+The customer wants one explanation with specialist advice, so use call-and-return. If the requirement changes to direct dialogue with the specialist, reconsider delegation. If the checklist explanation fits one instruction, compare the simpler one-agent baseline before paying for a second reasoning step.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-```python
-from google.adk import Agent, Workflow
-from . import spanish_greeter_agent
+Read the comments as a requirement-to-code explanation. Then trace one input through the ADK object, returned value and consuming operation. Reproducing the output is the first checkpoint; explaining the changed-input experiment is the mastery checkpoint.
 
-# The Router Node
-router = Agent(
-    name="router_agent",
-    model="gemini-3.5-flash",
-    instruction="""
-You are a language routing specialist. Your primary function is to identify the language requested by the user and delegate the task to the correct sub-node.
+**Design review:** Design a second adviser whose output conflicts with the first. State which source is authoritative and how the coordinator should report disagreement.
 
-Available specialists:
-- `spanish_greeter_agent`: Handles greetings in Spanish.
+## Why this implementation answers the customer
 
-Your rules:
-1.  If the user requests a greeting in Spanish, you MUST transfer control to the `spanish_greeter_agent`.
-2.  If the language is not supported, politely inform the user.
-""",
-    sub_agents=[spanish_greeter_agent.agent] # Crucial for discovery
-)
+| Requirement | Implementation | Check |
+| --- | --- | --- |
+| Explain required evidence | A narrowly instructed document adviser | The explanation covers financial statements and an ownership register. |
+| Keep one conversational owner | AgentTool call-and-return | The coordinator receives the specialist result and produces the response. |
+| Do not invent case status | No case-read capability in this example; state the limitation | A receipt/status question results in a request for an authorized lookup. |
+| Do not approve or execute | No approval or payment tool | No state-changing banking operation is available. |
 
-# The System Graph
-# In ADK 2.0, the Workflow orchestrates the nodes.
-root_agent = Workflow(
-    name="GreetingSystem",
-    edges=[("START", router)]
-)
+The files below match `example/`. They are complete teaching implementations with explicit fixture boundaries. Follow the [guided lab](./lab.md) for incremental construction and the [enterprise playbook](./enterprise-playbook.md) for the production extension.
+
+| Expression | Meaning for a new Python learner | Why the bank needs it |
+|---|---|---|
+| `from ... import Agent` | Import a public class from an installed package | Reuse ADK rather than implement an agent runtime |
+| `model=None` | Optional argument with a default value | The same factory supports a real or scripted model |
+| `selected_model = ...` | Assign a local variable | Both roles use explicit configuration |
+| `Agent(...)` | Construct an object using named fields | Make responsibility and capability visible |
+| `AgentTool(agent=...)` | Wrap an agent in ADK’s tool interface | Preserve call-and-return behavior |
+| `return Agent(...)` | Give the constructed coordinator to the caller | Runner owns execution; construction makes no model request |
+
+## `pyproject.toml`
+
+```toml
+[project]
+name = "banking-module-15"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = ["google-adk==2.11.0"]
+
+[tool.uv]
+package = false
 ```
 
-#### `greeting_system/spanish_greeter_agent.py` (The Specialist Node)
+## `.env.example`
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-```python
-from google.adk import Agent
-
-agent = Agent(
-    name="spanish_greeter_agent",
-    model="gemini-3.5-flash",
-    description="This agent is an expert at providing warm greetings in Spanish.",
-    instruction="""
-You are a friendly assistant who communicates ONLY in Spanish.
-Provide a single, warm greeting and then stop.
-"""
-)
+```dotenv
+GOOGLE_GENAI_USE_ENTERPRISE=true
+GOOGLE_CLOUD_PROJECT=your-project-id
+GOOGLE_CLOUD_LOCATION=global
+GEMINI_MODEL=gemini-3.8-flash
 ```
 
-### Self-Reflection Answers
+## `bank_case/agent.py`
 
-1.  **What is the most important piece of information that allows the `router_agent` to decide which specialist to delegate to?**
-    *   **Answer:** The **`description`** field of the sub-node. In the ADK 2.0 graph, when an agent performs a transfer, it looks at the descriptions of all registered `sub_agents` to decide where to route the request.
+```python
+"""Two advisory roles; the coordinator calls a specialist and resumes."""
+import os
+from google.adk.agents import Agent
+from google.adk.tools.agent_tool import AgentTool
 
-2.  **How would you extend this system to support a new language, like French? What new files or modifications would you need to make?**
-    *   **Answer:** 
-        1. Create `french_greeter_agent.py`.
-        2. Register it in the `router_agent`'s `sub_agents` list.
-        3. **Update the router's `instruction` text too, not just the `sub_agents` list.** As written, the instruction hardcodes the Spanish case ("If the user requests a greeting in Spanish, you MUST transfer control to the `spanish_greeter_agent`.") and never mentions French at all. Adding `french_greeter_agent` to `sub_agents` without touching the instruction means the router's LLM has no textual rule telling it when to use the new specialist -- it may never get routed to, even though it's technically registered. You either need to add an equivalent French rule to the instruction, or generalize the wording (e.g. "delegate to whichever specialist's description matches the requested language") so it scales without an instruction edit every time you add a language.
-        4. Since we are using LLM-driven delegation, the `Workflow` graph structure itself stays the same, but the "pool" of available nodes -- and the instruction that references them -- grows.
 
-3.  **This lab uses LLM-driven delegation (agent transfer). What might be the advantages or disadvantages of this approach compared to the `router_agent` using an `AgentTool` to explicitly call the `spanish_greeter_agent`?**
-    *   **Answer:** Agent Transfer (via `sub_agents`) hands control to `spanish_greeter_agent` with no *automatic* way back -- once transferred, `router_agent` doesn't regain control the way it would with `mode="task"`. In this lab that's fine: `spanish_greeter_agent`'s instruction is to give one greeting and stop, so it's never asked to hand anything back. It's not a mechanical dead end, though -- since neither agent sets `disallow_transfer_to_parent`, `spanish_greeter_agent` could call `transfer_to_agent` back to `router_agent` if its instructions told it to; nothing in the framework blocks that path for a *local* agent. The real failure mode shows up when `router_agent` needs to consult more than one specialist to answer a single request: unless every specialist is explicitly instructed to transfer back (and does), Agent Transfer can leave `router_agent` waiting on a specialist that never hands control back within that turn -- and that risk becomes a hard guarantee, not just a prompting risk, once a specialist is a *remote* agent (a `RemoteA2aAgent` has no framework-injected way to transfer back at all). An `AgentTool(agent=spanish_greeter_agent)` sidesteps this entirely: `router_agent` calls the greeter like a function, gets its greeting back, and stays in control to make further calls or compose a combined response -- at the cost of an extra LLM reasoning step to decide when to call the tool, versus the framework handling the transfer automatically. This distinction -- and exactly how it breaks for remote specialists -- is covered in depth in Module 19.
-    *   For a related question -- Agent Transfer vs. a fully **Deterministic Workflow** (extracting a routing key with no LLM reasoning at all) -- see the pattern-comparison table in Module 21.5: Agent Transfer suits natural language where the "key" isn't obvious and the LLM needs to understand intent, while a Deterministic Workflow (Module 16) is faster and more reliable when you can extract a clear key (like a language code) without an LLM reasoning step.
+def build_agent(model=None):
+    # Construct the ADK composition now; Runner executes it only after receiving a request.
+    selected_model = model or os.environ["GEMINI_MODEL"]
+    document_adviser = Agent(
+        name="document_adviser",
+        model=selected_model,
+        description="Explains the fictional commercial-review document checklist.",
+        instruction=(
+            "The training checklist requires financial statements and an ownership "
+            "register. Explain why each is useful. You have no case lookup tool, "
+            "so never claim that a document was received or that credit was approved."
+        ),
+    )
+    return Agent(
+        name="case_coordinator",
+        model=selected_model,
+        instruction=(
+            "Help a bank analyst prepare CASE-001 for Acme Robotics (fictional). "
+            "Consult document_adviser for checklist questions, then explain the "
+            "next step. For actual status, say an authorized case lookup is needed. "
+            "No agent here can approve credit or move funds."
+        ),
+        tools=[AgentTool(agent=document_adviser)],
+    )
+```
 
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module15-intro-to-multi-agent-systems-lab-solution -->
----
+## `runtime.py`
 
-## Official References
+```python
+"""Run one synthetic request through the real ADK runtime."""
+import asyncio
+import json
 
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+from google.adk.agents.run_config import RunConfig
+from google.adk.apps import App
+from google.adk.runners import InMemoryRunner
+from google.genai import types
 
+
+async def run_once(agent, payload):
+    # This identity is a fixture, never an authentication implementation.
+    async with InMemoryRunner(app=App(name="bank_case", root_agent=agent)) as runner:
+        session = await runner.session_service.create_session(
+            app_name="bank_case", user_id="analyst-demo"
+        )
+        message = types.Content(
+            role="user", parts=[types.Part.from_text(text=json.dumps(payload))]
+        )
+        events = []
+        # The deadline bounds the invocation; it cannot undo external writes.
+        async with asyncio.timeout(60):
+            async for event in runner.run_async(
+                user_id="analyst-demo", session_id=session.id,
+                new_message=message, run_config=RunConfig(max_llm_calls=12),
+            ):
+                events.append(event)
+        return events
+
+
+def display(events):
+    for event in events:
+        if event.output is not None:
+            print(json.dumps({"author": event.author, "output": event.output}))
+        if event.content and event.content.parts:
+            for part in event.content.parts:
+                if part.text:
+                    print(f"{event.author}: {part.text}")
+```
+
+## `run.py`
+
+```python
+"""Choose a real prompt; credentials are needed only after argument parsing."""
+import argparse
+import asyncio
+import os
+from bank_case.agent import build_agent
+from runtime import display, run_once
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Ask about fictional bank review preparation")
+    parser.add_argument("prompt", nargs="?", default="Explain how to prepare CASE-001 for review.")
+    args = parser.parse_args()
+    if not os.environ.get("GEMINI_MODEL"):
+        raise SystemExit("Load .env using: uv run --env-file .env python run.py")
+    agent = build_agent()
+    display(asyncio.run(run_once(agent, args.prompt)))
+```
+
+## Explain the implementation to a reviewer
+
+### `build_agent`
+
+`model=None` makes the argument optional. Tests pass a model object; live execution reads the required environment variable. The local `document_adviser` variable holds an Agent object, not its response. `AgentTool(agent=document_adviser)` passes that object to a wrapper. The returned Agent is the coordinator that Runner will execute. None of these constructor calls verifies a document or performs a model request; execution begins in `run_once`.
+
+### Expected reasoning for the prediction exercise
+
+No. A user statement and an explanatory role do not establish an authoritative case update. Add an authorized lookup capability only when that requirement is in scope.
+
+## Trace the implementation
+
+### Translate the customer sentence into responsibilities
+
+Underline “explain documents,” “keep consistent,” and “authorized bank process.” These become an advisory role, a coordinator and a capability restriction. Write the four acceptance checks above before changing a prompt. There is no reason to build a payment API for this request.
+
+### Read the agent factory
+
+`build_agent()` creates fresh agent objects. The optional `model` parameter lets the test supply a scripted model; live runs use `GEMINI_MODEL`. `os.environ["GEMINI_MODEL"]` fails clearly if configuration is missing instead of silently choosing a model.
+
+### Construct the document adviser
+
+`Agent(...)` calls a class constructor with named arguments. `name` is the machine-readable identifier; `description` describes its callable role; `instruction` is the specialist’s own guidance. Adjacent strings inside parentheses are combined by Python. No tool can read or change a case here.
+
+### Expose the adviser as a tool
+
+`AgentTool(agent=document_adviser)` wraps the existing agent object. The outer `tools=[...]` is a Python list of callable capabilities. The coordinator may call it, receive a tool result, and continue. This is different from giving it a `sub_agents` handoff target.
+
+### Trace an invocation rather than guessing
+
+Read `runtime.py`: create a synthetic session, serialize the request into a user message, consume the asynchronous event stream, then close the runner. In the test, follow coordinator function call → adviser result → coordinator response. The scripted fixture proves this wiring; it does not prove Gemini will choose the right tool.
+
+### Evaluate a real explanation
+
+When credentials are configured, ask about the checklist, then ask “Has the ownership register arrived?” The first should explain document purpose; the second must acknowledge the missing live lookup. Record the actual tool trajectory and response, not just whether the process exited successfully.
+
+## Verify the customer outcome
+
+| Experiment | What to observe |
+| --- | --- |
+| Ask for current receipt status | The response must explain that an authorized lookup is required; there is no receipt tool. |
+| Ask to approve a loan | No approval operation can run; evaluate that the response also avoids claiming approval. |
+| Remove the adviser description in a copy | The program still constructs, but tool-selection quality may change. Measure it with model evaluation. |
+| Merge the two roles | Compare quality, calls, latency and cost; the simpler design may be better for this requirement. |
+
+### Local evidence
+
+2 offline tests passed, including a scripted model call through the real ADK AgentTool and Runner. Live Gemini response quality has not been evaluated.
+
+Tests of strict schemas, routing, joins, budgets and service scope are software contract tests. Scripted model replies are transport fixtures; they cannot demonstrate whether Gemini understands a bank request or produces a faithful explanation.
+
+### Live model evaluation
+
+The example includes `eval/cases.evalset.json`, `eval/eval_config.json` and a small `adk_entry` package exporting `root_agent` for ADK’s native evaluator. The files are validated against the installed ADK schema; no passing live score is claimed.
+
+```bash
+uv run --with 'google-adk[eval]==2.11.0' --env-file .env adk eval adk_entry eval/cases.evalset.json --config_file_path eval/eval_config.json --print_detailed_results
+```
+
+This optional command resolves evaluation dependencies and uses model/judge calls. Its environment is separate from the base lockfile’s verified offline path. Inspect per-case scores and traces, preserve failing cases, and fix the agent or architecture rather than weakening acceptance criteria. The judge model is explicitly configured in `eval_config.json`; changing `GEMINI_MODEL` alone does not change it.
+
+The pinned ADK AgentTool implementation can emit a deprecation warning from its internal Runner plugins argument. The lesson itself uses the public AgentTool and App APIs; it does not pass that deprecated argument. Preserve this upstream warning in upgrade review rather than copying internal implementation code.
+
+## Answers to the design questions
+
+Why use the native ADK primitive? It already supplies the execution/service contract this lesson needs. Why keep fixture adapters small? They let you inspect orchestration before introducing credentials and external records. Why keep negative outcomes explicit? A bank must distinguish a completed preparation step from missing evidence, failed work or an unverified decision.
+
+## Official sources
+
+- [ADK workflow choices](https://adk.dev/workflows/)
+- [Function tools and agent tools](https://adk.dev/tools-custom/function-tools/)
+- [Collaborative workflows](https://adk.dev/workflows/collaboration/)
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. -->

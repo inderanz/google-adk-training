@@ -5,55 +5,69 @@ title: "Module 29: Introduction to UI Integration"
 
 # Module 29: Introduction to UI Integration
 
-## Theory
+## Before you begin: what this module teaches
 
-### Why UI Integration Matters
+**ADK concept: session-aware user interfaces and streamed ADK events.**
 
-While agents can be run from the command line or via an API, their full potential is unlocked when they are integrated into a user interface. A UI makes your agent accessible to non-technical users and enables rich, interactive experiences.
+The browser submits input; the trusted backend binds identity and session access; ADK produces events. SSE carries a server-to-client event stream over HTTP. A network chunk is not necessarily a complete event, and an event is not necessarily a final answer. Persisting a session reference helps continuity but does not authorize access to that session.
 
-### The UI Integration Landscape
+**Where you would use this in real work.**
 
-The ADK is flexible and supports several approaches for UI integration, each suited for different use cases:
+Meera needs a browser interface that shows whether the assistant is still working, has finished or could not retrieve a record. A spinning indicator and a text box are not enough if failures and partial answers look identical.
 
-| Approach | Best For | Key Features |
-| :--- | :--- | :--- |
-| **AG-UI Protocol** | Modern web apps (React/Next.js) | Pre-built components, official support |
-| **Native ADK API** | Custom frameworks (Vue, Angular) | Full control, no dependencies |
-| **Direct Python** | Data apps (Streamlit) | In-process, no HTTP overhead |
-| **Messaging Platforms**| Team bots (Slack, Teams) | Native platform UX |
-| **Event-Driven** | High-scale, async workflows | Decoupled, scalable (Pub/Sub) |
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
 
-### Understanding the AG-UI Protocol
+The lab teaches the native ADK API. The bank can build an approved web application or later publish a supported agent in Gemini Enterprise. Third-party UI adapters are optional integration choices, not necessary Google platform services.
 
-**AG-UI (Agent-Generative UI)** is an open protocol for agent-user interaction, developed through an **official partnership between the Google ADK and CopilotKit teams**. It provides a standardized, event-based way for AI agents to communicate with web UIs.
+**By the end, you should be able to:**
 
-**The Stack:**
-```text
-+---------------------------------+
-|   Frontend (React/Next.js)      |
-| - @copilotkit/react-core (SDK)  |
-| - <CopilotChat> (UI Component)  |
-+---------------------------------+
-                | (WebSocket/SSE)
-+---------------------------------+
-|   Backend (Python/FastAPI)      |
-| - ag_ui_adk (Protocol Adapter)  |
-| - Your ADK Agent                |
-+---------------------------------+
+- Map request, session, invocation and displayed answer.
+- Represent progress, failure and completion explicitly.
+- Explain why client storage of a session ID needs backend ownership checks.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Identify which received events should become visible text.
+- **Experienced engineer:** Test fragmented SSE frames, disconnects, cancellation and user changes.
+- **Bank FDE:** Agree the analyst experience for denied access, missing evidence and interrupted work.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
+## Theory: connect an analyst interface to ADK execution
+
+### A UI is another trust boundary
+
+The browser presents a request and displays results. The backend authenticates the analyst, checks access to the requested session/case and invokes ADK. A browser-supplied `user_id` is not trusted identity simply because the request contains the right field names.
+
+The lab uses the native ADK API and its `/run_sse` endpoint to make the mechanics visible. A client sends a request and reads a stream of events; not every event is final answer text. Some events describe tool work, partial output or state changes.
+
+```mermaid
+flowchart TB
+  A[Analyst browser] --> B[Application authentication and access checks]
+  B --> C[ADK session and invocation]
+  C --> D[Events streamed to client]
+  D --> E[Render approved text and status]
 ```
 
-By using the AG-UI protocol and the associated libraries, you can quickly build a production-ready chat interface with minimal front-end code, as the pre-built components handle the complexities of state management and streaming.
+The diagram is a customer application design; the local teaching server/client does not implement every production boundary.
 
-**A note on this module's scope:** the lab below builds against the **Native ADK API** instead of AG-UI — on purpose. Writing the raw `fetch`/SSE client by hand is more code than AG-UI would require, but it's what actually teaches you the underlying request/response and streaming mechanics that AG-UI's components abstract away for you. Once you understand what's happening under the hood, adopting AG-UI for a real React/Next.js project is a matter of swapping in `@copilotkit/react-core` and its adapter — see the [CopilotKit + ADK docs](https://docs.copilotkit.ai/adk) if you want to try that path hands-on.
+### SSE is a stream, not a complete message per network chunk
 
-### Key Takeaways
-- Integrating an agent with a UI makes it accessible to a wider audience and enables richer interactions.
-- The ADK supports multiple UI integration strategies, including the official **AG-UI Protocol**, the native ADK API, direct Python integration, and messaging platforms.
-- The **AG-UI Protocol**, developed in partnership with CopilotKit, is Google's officially supported path for production React/Next.js applications, providing pre-built components that handle streaming and state for you.
-- For other frameworks, custom needs, or to understand what AG-UI abstracts away, you can use the ADK's native API server (`uv run adk api_server`) and its `/run_sse` endpoint to build your own client — which is exactly what this module's lab does.
-- **Benefits of Higher-Level Frameworks:** For complex, production-ready applications, higher-level frameworks like the AG-UI Protocol and CopilotKit offer significant benefits over the native ADK API. They reduce boilerplate code by providing pre-built UI components that automatically handle stream parsing, state management, and tool interactions. They also offer more advanced tool integration and are the officially supported, standardized path for building modern web UIs with the ADK.
-- **Session ID Persistence:** Generating a new `sessionId` on every page load, as done in the simple lab, would cause a loss of conversational memory in a real application. The agent would forget the message history and any state associated with the previous session. The correct solution is to persist the `sessionId` on the client-side using `localStorage` or a cookie, ensuring that the same session is used across page reloads.
-- **Advantages of SSE for Chat:** Server-Sent Events (SSE) are highly advantageous for chat applications because they enable low-latency streaming. The text generated by the LLM can be sent to the client in real-time as it's generated, providing a much more responsive user experience compared to a traditional request-response model where the user would have to wait for the entire response to be completed. SSE is also more efficient for this one-way streaming scenario than bidirectional protocols like WebSockets.
+Server-Sent Events carry framed events over an HTTP response. Network chunks can split a frame or contain several frames. Buffer incomplete data, parse complete frames, and handle errors, cancellation and completion separately. A responsive interface can show progress while withholding unsupported or incomplete claims.
+
+Persisting the session ID lets an interface resume the same conversation, but the server must verify the analyst owns that session. A cookie or localStorage value is a reference, not authorization. Clear or re-scope client state on sign-out and user change according to the application's design.
+
+### Framework options
+
+AG-UI means **Agent–User Interaction**. It is an interoperability option with third-party adapters and UI libraries; it is not a mandatory ADK API or the sole Google-native production path. A custom native API client, an approved application framework or a supported enterprise surface may fit the customer better. Inspect the chosen adapter's maintenance, event coverage and authentication responsibilities before adopting it.
+
+A generated chat component does not supply case authorization, safety evaluation or operational readiness. Use the native lab to understand those responsibilities before placing a higher-level UI library around it. Module 30 then changes the transport and content requirements for bidirectional audio.
+
+## Continue the course story
+
+Previous: [Module 28](../module28-building-mcp-tools/README.md) · Next: [Module 30](../module30-custom-streaming-client/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module29-ui-integration-intro-README -->
 ---

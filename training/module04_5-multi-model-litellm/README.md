@@ -5,188 +5,96 @@ title: "Module 4.5: Professional Model Configuration, Resiliency & Portability"
 
 # Module 4.5: Professional Model Configuration, Resiliency & Portability
 
-## Theory
+## Before you begin: what this module teaches
 
-Until now, we've passed models to our agents using simple strings (e.g., `model="gemini-3.5-flash"`). While this is great for prototyping, building **production-grade** agents requires a more robust approach to handle network flakiness, rate limits, and regional deployments.
+**ADK concept: Gemini configuration, request retries and optional provider adapters.**
 
-In this module, we will explore the three levels of model configuration in the ADK, inspired by enterprise best practices.
+A model ID selects a model. A Gemini object exposes supported model-wrapper settings. Retry means attempting again; backoff delays later attempts; jitter spreads concurrent retries. These settings concern a particular request boundary. They do not repair invalid permissions, guarantee answer quality or make a repeated bank write harmless.
 
-### Level 1: Simple Strings (Prototype)
-The simplest way. Ideal for learning and quick tests.
+**Where you would use this in real work.**
 
-```python
-agent = Agent(model="gemini-3.5-flash", ...)
+The branch assistant works during a demonstration but a model request sometimes times out under load. The engineer must decide which failures may be retried and how long the analyst should wait. Creating a custom model subclass is not the starting requirement.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Use Gemini through the selected Google enterprise backend for this course. Project, location, credential and model access must agree. LiteLlm is an optional adapter for a deliberately chosen other provider; its presence does not preserve Google-specific data and identity guarantees.
+
+**By the end, you should be able to:**
+
+- Choose between a model ID and a configured Gemini instance for a stated need.
+- Explain retry count, delay and whole-request budget separately.
+- Prefer supported configuration over unnecessary client overrides.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Read the retry configuration and explain each named argument.
+- **Experienced engineer:** Measure behavior for transient failures versus denied access.
+- **Bank FDE:** Agree latency, location and evaluated model choices with the bank's platform owner.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
+## Draw the execution boundary
+
+Configuration choices feed execution; retry settings do not create a business recovery policy.
+
+```mermaid
+flowchart TB
+  A[Approved model and backend settings] --> B[Configure Gemini wrapper]
+  B --> C[ADK Agent invocation]
+  C --> D[Supported model request]
+  D --> E[Response or explicit failure]
 ```
 
-### Level 2: The `Gemini` Class (Professional)
-By importing `Gemini` from `google.adk.models`, you gain access to the model's underlying connection settings, most importantly **Retry Logic**.
+## Theory: configure a model without inventing a framework
 
-In production, LLM APIs can occasionally time out or return rate-limit errors (429). The `Gemini` class allows you to define a retry policy so the agent doesn't just crash when a request fails.
+### A model ID and a configured model object
 
+Passing a supported model ID as `Agent(model=...)` is valid in deployed applications as well as prototypes. Use a `Gemini` model object when you need supported configuration such as request retry options. Neither spelling is a maturity level or an automatic reliability guarantee.
 
 ```python
-from google.adk import Agent
+import os
+from google.adk.agents import Agent
 from google.adk.models import Gemini
 from google.genai import types
 
-resilient_model = Gemini(
-    model='gemini-3.5-flash',
-    # Automatically retry failed requests up to 3 times
-    retry_options=types.HttpRetryOptions(initial_delay=1, attempts=3)
+# Read the evaluated model choice from deployment configuration.
+# Configure enterprise backend, project, location and credentials separately.
+model = Gemini(
+    model=os.environ["GEMINI_MODEL"],
+    retry_options=types.HttpRetryOptions(attempts=3, initial_delay=1),
 )
-
-agent = Agent(model=resilient_model, ...)
-```
-
-### Level 3: Custom Subclasses (Enterprise Expert)
-
-In enterprise production environments, hardcoding region identifiers, project IDs, timeouts, and network retry parameters directly into every agent instance creates maintenance liability and architectural drift.
-
-The production standard for Google ADK is to **subclass** the `Gemini` model class (`google.adk.models.Gemini`). This pattern establishes a centralized, hardened model factory that guarantees:
-- Consistent **GCP Project and Region Governance** across all agent fleets.
-- Standardized **Enterprise Resiliency Policies** (Exponential backoff, bounded delays, jitter).
-- **Zero Resource Waste & Lazy Singleton Connection Pooling** via Python's `@cached_property`.
-
-```python
-from functools import cached_property
-import os
-from google.adk import Agent
-from google.adk.models import Gemini
-from google.genai import Client, types
-
-
-class ProductionGemini(Gemini):
-    """Enterprise-grade Gemini model wrapper.
-
-    Centralizes credential routing, regional endpoints, and network resilience
-    policies across microservice agents.
-    """
-
-    @cached_property
-    def api_client(self) -> Client:
-        """Instantiates and caches the underlying google-genai Client.
-
-        Using @cached_property guarantees lazy initialization and connection
-        pooling across agent execution cycles.
-        """
-        return Client(
-            project=os.environ.get("GOOGLE_CLOUD_PROJECT"),
-            location="us-central1",  # Centralize governance region (or read from infra config)
-            http_options=types.HttpOptions(
-                retry_options=types.HttpRetryOptions(
-                    max_delay=10.0,  # Cap retry delay to protect SLA budgets
-                    exp_base=2.0,  # Binary exponential backoff
-                    jitter=0.5,  # Randomized backoff interval to mitigate thundering-herd issues
-                )
-            ),
-        )
-
-
-# Deploy the hardened class across all agents in the fleet:
-agent = Agent(
-    name="customer_support",
-    model=ProductionGemini(model="gemini-3.5-flash"),
-    instruction="Resolve tier-1 support tickets in accordance with enterprise SOPs.",
+root_agent = Agent(
+    name="document_explainer",
+    model=model,
+    instruction="Explain the supplied document checklist; do not invent case status.",
 )
 ```
 
----
+`os.environ["GEMINI_MODEL"]` reads a required setting and fails if it is absent. `HttpRetryOptions` is a Google GenAI configuration object. The model wrapper uses it for supported HTTP retries; it does not make a business write duplicate-safe. Check total elapsed time and retryable errors for the SDK version in your lockfile.
 
-#### 🏛️ Deconstructing the Enterprise Subclass Pattern
+### Retries, backoff and jitter
 
-To write and maintain custom ADK infrastructure like a Senior Cloud & AI Architect, let's dissect the core language constructs driving this pattern:
+A retry is another attempt after failure. Backoff increases the delay between attempts. Jitter varies the delay so many callers do not all retry at once. These mechanisms help transient failures, but cannot fix invalid permissions or a permanently malformed request. Repeated model calls also consume time and may consume budget.
 
-##### 1. Python Decorators (`@`) as Non-Invasive Structural Interceptors
-A Python decorator (the `@decorator_name` syntax) implements the **Decorator / Proxy Pattern**. It accepts a callable (function or method), extends or modifies its execution behavior, and returns a new callable—all without mutating the underlying method implementation.
+Separate HTTP retry policy, workflow-node retry policy and a model's attempt to repair a tool call. They operate at different boundaries and their limits can multiply. Module 38 revisits the complete failure budget.
 
-In enterprise engineering, decorators are the standard mechanism for cross-cutting concerns:
-- **Distributed Tracing & APM**: Injecting OpenTelemetry span contexts into model invocations.
-- **Access Control & RBAC**: Enforcing authentication tokens before dispatching prompts.
-- **Resource Management**: Automating thread synchronization, retries, and lifecycle hooks.
+### Prefer configuration and small factories before subclassing
 
-##### 2. Lazy Initialization & Connection Pooling via `@cached_property`
-The `@cached_property` decorator from Python's standard `functools` module transforms a class method into a read-only attribute that is **computed exactly once** and then cached in the instance's `__dict__` for the remaining lifecycle of the object.
+A factory is an ordinary function that returns a configured object. Use one when several agents need the same supported settings. Overriding a model's client property is an advanced extension with maintenance and resource-lifecycle obligations; it is not Google's required production pattern.
 
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│             LIFECYCLE MANAGEMENT WITH @cached_property                 │
-│                                                                        │
-│   Turn 1 (Prompt Received):                                            │
-│   agent.model.api_client                                               │
-│       │                                                                │
-│       ├─► Cache Miss: Invokes def api_client(self)                     │
-│       │   • Handshakes TLS connection with Google Cloud API            │
-│       │   • Authenticates ADC / OAuth2 credentials                     │
-│       │   • Builds HTTP/2 connection pool                              │
-│       ▼                                                                │
-│   Instance __dict__['api_client'] = Client(...)                        │
-│                                                                        │
-│   Turn 2..N (Subsequent Tool Calls & Multi-Turn Reasoning):            │
-│   agent.model.api_client                                               │
-│       │                                                                │
-│       └─► Cache Hit: Instant lookup from self.__dict__                 │
-│           • Zero network handshakes                                    │
-│           • Reuses existing warm TCP/TLS sockets                       │
-│           • Eliminates garbage collection thrashing                    │
-└────────────────────────────────────────────────────────────────────────┘
-```
+Python's `cached_property` caches a computed value on an instance. It does not create a process-wide singleton, guarantee a single evaluation under concurrent access, enforce read-only access, or guarantee socket reuse. The HTTP client owns its connection behavior. See the [Python cached_property contract](https://docs.python.org/3/library/functools.html#functools.cached_property).
 
-**Why this matters in Enterprise Agentic Workflows:**
-- **Avoid Repeated TCP/TLS Handshakes**: Initializing a Google GenAI `Client` initiates Google Cloud Application Default Credentials (ADC) resolution, SSL/TLS handshakes, and regional endpoint discovery. Performing this on every inference request degrades response latency and wastes CPU cycles.
-- **Single Source of Truth**: Multiple tools, callbacks, or sub-agents sharing the same model instance reference the exact same authenticated client state.
-- **Lazy Evaluation**: The connection to GCP is never opened when the Python process starts or imports the module; it is opened only when the agent actually executes its first reasoning step.
+### Where LiteLLM fits
 
-##### 3. Encapsulation & Instance Binding (`self`)
-In the method signature `def api_client(self) -> Client`:
-- **`def api_client(...)`**: Overrides the internal property accessor that ADK's `Gemini` base class uses whenever it prepares to dispatch `generate_content` calls.
-- **`self`**: The explicit reference to the current instance of `ProductionGemini`. It binds the client configuration to that specific instance's parameters (e.g., pulling project IDs or environment flags specific to that deployment cluster), ensuring complete isolation between distinct runtime environments.
+ADK's `LiteLlm` adapter is useful when a project intentionally uses another supported model provider. For this course's Google enterprise path, begin with Gemini and its supported configuration. Changing provider can change tool calling, structured output, auth, safety and data-location behavior; portability of the Python interface is not proof of equivalent behavior.
 
-##### 4. Thundering-Herd Mitigation with `jitter`
-Notice the `HttpRetryOptions` configuration:
-- **`exp_base=2.0`**: Doubles the wait duration after each transient failure ($2s, 4s, 8s, \dots$).
-- **`max_delay=10.0`**: Prevents exponential backoff from inflating indefinitely and violating user-facing request timeouts.
-- **`jitter=0.5`**: Introduces pseudo-random variance into backoff intervals. When an upstream service blips, hundreds of concurrent agent workers will not retry at the exact same microsecond, preventing the **Thundering Herd** problem from repeatedly taking down the endpoint.
+Consult [ADK's Gemini model guidance](https://adk.dev/agents/models/google-gemini/) and evaluate the model available in the bank's approved project and location. Do not select a model solely because an old example embeds its name.
 
----
+## Continue the course story
 
-#### 💼 Enterprise Application: Reusable Pattern for Heavy Agent Resources
+Previous: [Module 04](../module04-agent-deep-dive/README.md) · Next: [Module 05](../module05-running-agents/README.md) · [See how the concepts build](../learning-journey.md)
 
-This design pattern is not restricted to model clients. You should apply this exact pattern whenever your ADK agents interface with heavyweight, expensive, or stateful resources:
-
-```python
-class DocumentSearchTool:
-    """Production tool demonstrating cached resource loading."""
-
-    def __init__(self, bucket_name: str, corpus_id: str):
-        self.bucket_name = bucket_name
-        self.corpus_id = corpus_id
-
-    @cached_property
-    def vector_index(self):
-        """Loads and deserializes vector embeddings once into memory."""
-        print(f"Loading heavy vector index {self.corpus_id} from Cloud Storage...")
-        # Expensive I/O, parsing, and embedding memory allocation happens once:
-        return load_vertex_vector_search_index(self.bucket_name, self.corpus_id)
-
-    def search(self, query: str) -> list[str]:
-        # Subsequent calls reference the warm in-memory index immediately
-        return self.vector_index.find_nearest(query)
-```
-
----
-
-### When to use LiteLLM?
-While the `Gemini` class offers the best performance and deepest integration with Google services, you should use the **`LiteLlm`** class (from `google.adk.models.lite_llm`) when your primary goal is **Model Agnosticism**.
-
-Use `LiteLlm` if you need to:
-1.  Run **local models** (via Ollama) during development to save costs.
-2.  Switch between different cloud providers (OpenAI, Anthropic) without changing your code structure.
-
-### Key Takeaways
-- **Resiliency is mandatory:** Never deploy an agent without a retry policy.
-- **The `Gemini` class** is the key to configuring retries, locations, and custom project settings.
-- **Subclassing `Gemini`** is an expert pattern for centralizing production configurations.
-- **`LiteLlm`** is the tool for maximum portability across providers.
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module04_5-multi-model-litellm-README -->
 ---

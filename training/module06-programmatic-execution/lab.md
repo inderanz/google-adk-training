@@ -7,6 +7,9 @@ import { ChainSetup } from '../_chain-setup-snippet.mdx';
 
 # Lab 6: Programmatic Execution: Apps and Runners
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 
 In this lab, you will move beyond the CLI and trigger your **"Support Analyzer"** agent from a Python script. You will learn how to wrap your agent in an `App` container and use an `InMemoryRunner` to handle multiple independent user sessions.

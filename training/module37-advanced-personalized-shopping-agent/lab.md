@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 37: Building a Distributed Multi-Agent System Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## Goal
 In this advanced challenge lab, you will synthesize concepts from the entire course so far to build a distributed, multi-agent personalized shopping assistant. You will create three separate agents that collaborate using Agent-to-Agent (A2A) communication to provide a stateful, multimodal, and observable shopping experience.
 
@@ -264,7 +267,7 @@ This is the main, user-facing agent that will coordinate the others.
 4.  **Implement `agent.py`:**
     Open `agent.py` and replace its contents with the following skeleton. Your task is to define the `RemoteA2aAgent` instances and complete the `root_agent` definition.
 
-    **Important:** wire the two remote agents in as **`AgentTool`s** (`tools=[...]`), not as `sub_agents=[...]`. `sub_agents` wires ADK's `transfer_to_agent` mechanism, which is a *permanent*, one-way handoff — once the orchestrator transfers control to one remote agent, it can never call the other remote agent or regain control to combine their results. `AgentTool` gives proper call-and-return semantics: the orchestrator calls each remote agent like a function, gets its result back, and stays in control to make the next call and synthesize a final combined answer — exactly what a multi-step instruction like "check preferences, then search the web" requires.
+    **Use AgentTool for this lab's call-and-return design.** The coordinator requests a remote result and can continue synthesizing the answer. Delegation through `sub_agents` has a different mode-dependent contract; it is not universally a permanent transfer. Keep local and remote mode support separate, as explained in Module 19.
 
     ```python
     from typing import Any, Dict, Optional
@@ -310,7 +313,7 @@ This is the main, user-facing agent that will coordinate the others.
     cd ..
     ```
 
-> **Known limitation to observe:** once you get to "Running the System" below, try this: ask the orchestrator to save a preference, then — in a **separate follow-up message of the same conversation** — ask it what preferences it has saved for you. You'll find it comes back empty, even though the exact same request sent straight to `personalization_agent` (bypassing the orchestrator) works fine across turns. This is a real, verified limitation of the current ADK 2.8.0 A2A stack, not a bug in your code: `AgentTool` creates and discards a brand-new session on every single call, which breaks `RemoteA2aAgent`'s mechanism for resuming the same remote conversation (it looks for context left behind in session history that no longer exists by the next turn). See the README's "Known Limitation" section for the full technical explanation and what we checked for a fix. It's worth understanding this kind of constraint — distributed multi-agent systems have real seams like this one.
+> **Known limitation to observe:** once you get to "Running the System" below, try this: ask the orchestrator to save a preference, then — in a **separate follow-up message of the same conversation** — ask it what preferences it has saved for you. You'll find it comes back empty, even though the exact same request sent straight to `personalization_agent` (bypassing the orchestrator) works fine across turns. This is a historical observation recorded against ADK 2.8.0, which must be rechecked against the version you run: `AgentTool` creates and discards a brand-new session on every single call, which breaks `RemoteA2aAgent`'s mechanism for resuming the same remote conversation (it looks for context left behind in session history that no longer exists by the next turn). See the README's "Known Limitation" section for the full technical explanation and what we checked for a fix. It's worth understanding this kind of constraint — distributed multi-agent systems have real seams like this one.
 
 ---
 

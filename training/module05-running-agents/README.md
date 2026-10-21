@@ -5,6 +5,46 @@ title: "Module 5: Running and Interacting with Agents"
 
 # Module 5: Running and Interacting with Agents
 
+## Before you begin: what this module teaches
+
+**ADK concept: ADK development interfaces and their execution boundaries.**
+
+adk web provides a development interface, adk run provides terminal interaction, and adk api_server exposes programmatic endpoints. The entry package and configured services determine the agent that runs. A process listening on a port is a server; a user conversation is a session. Restarting a process can discard development storage even if the code is unchanged.
+
+**Where you would use this in real work.**
+
+Meera needs an interactive demonstration; an engineer needs a repeatable command; the bank portal needs an API. These are different ways to invoke an application, not three different kinds of reasoning agent.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+The local server can use Gemini through the approved Google backend. Deploying the application to Agent Runtime or Cloud Run comes later. Running api_server does not add product authentication or make a debug interface suitable for public banking access.
+
+**By the end, you should be able to:**
+
+- Select the interface appropriate to a demonstration, script or application.
+- Explain process lifetime versus conversation lifetime.
+- Inspect events instead of inferring tool execution from polished prose.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Run one message and identify the selected application.
+- **Experienced engineer:** Repeat a failure through the CLI and API to isolate interface versus agent behavior.
+- **Bank FDE:** Decide which demonstration data and development interfaces may be shown to a client.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
+## Draw the execution boundary
+
+Choose one interface for the task. These are alternative entry points to execution.
+
+```mermaid
+flowchart TB
+  A[Choose web, CLI or API interface] --> B[Load application]
+  B --> C[Resolve conversation session]
+  C --> D[Run agent and tools]
+  D --> E[Inspect events and response]
+```
+
 ## Theory
 
 ### Bringing Your Agent to Life
@@ -91,6 +131,12 @@ Use the official Google and ADK documentation as the current source of truth whe
 - Vertex AI generative AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
 
 These references should be checked alongside the lab when the framework evolves or when customer environments require a production-ready runtime decision.
+
+## Continue the course story
+
+Previous: [Module 04.5](../module04_5-multi-model-litellm/README.md) · Next: [Module 06](../module06-programmatic-execution/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module05-running-agents-README -->
 ---

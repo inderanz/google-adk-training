@@ -17,6 +17,17 @@ const config = {
   },
   themes: ['@docusaurus/theme-mermaid'],
   themeConfig: {
+    mermaid: {
+      theme: {light: 'neutral', dark: 'dark'},
+      options: {
+        fontFamily: "'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+        flowchart: {
+          htmlLabels: true,
+          useMaxWidth: false,
+          curve: 'basis',
+        },
+      },
+    },
     image: 'img/social-card.jpg',
     navbar: {
       title: 'Mastering Google ADK: From First Agent to Production',
@@ -115,4 +126,12 @@ const config = {
   ],
 };
 
+// Cache-invalidation trigger
+// Cache-invalidation trigger: Module 13 diagrams refreshed
+// Cache-invalidation trigger: Module 13 diagrams optimized & validated
+// Cache-invalidation trigger: Module 13.5 and 14 Mermaid syntax verified
+// Cache-invalidation trigger: Mermaid anti-clipping & multi-line label wrapping applied
+// Cache-invalidation trigger: Module 14 clean narrative & Mermaid syntax hot reload
+// Cache-invalidation trigger: Module 13.5 Firestore persistence diagram syntax restored
 export default config;
+

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "allowed",
+    "user_id": "analyst-demo",
+    "prompt": "Prepare CASE-001 for human review.",
+    "expected": {
+      "tool": "prepare_case",
+      "status": "ok"
+    }
+  },
+  {
+    "id": "denied",
+    "user_id": "another-analyst",
+    "prompt": "Prepare CASE-001 for human review.",
+    "expected": {
+      "tool": "prepare_case",
+      "status": "not_found"
+    }
+  },
+  {
+    "id": "unknown",
+    "user_id": "analyst-demo",
+    "prompt": "Prepare CASE-999 for human review.",
+    "expected": {
+      "tool": "prepare_case",
+      "status": "not_found"
+    }
+  }
+]

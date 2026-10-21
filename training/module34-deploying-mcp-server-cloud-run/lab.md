@@ -7,6 +7,18 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 34: Deploying the "Shopping Cart" Server Challenge
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
+## Scope: observe a persistence failure before designing the customer service
+
+The file-backed cart below is a disposable transport experiment. Its `/tmp` storage is instance-local; its MCP session header is not authenticated customer identity; read-modify-write files do not provide concurrent business transactions. Do not treat this implementation as a durable or authorized banking service.
+
+After observing the limitation, specify the customer replacement: an authenticated resource owner, a stable business record ID, a Firestore/Cloud SQL repository with concurrency control, and a compatible multi-instance MCP transport/session strategy. Reuse Module 13.5's separation of identity, case record and conversation state. Merely replacing the directory with a shared store does not solve all four requirements.
+
+Acceptance evidence must include allowed/denied users, two concurrent writers, instance replacement and a duplicate operation. The [README](./README.md) explains those concepts and the Google service choices. The existing deployment demonstration does not establish these production properties.
+
+
 ## Goal
 
 In this lab, you will take the "Shopping Cart" MCP server from Module 28, re-architect it to be stateless, containerize it with a `Dockerfile`, and deploy it to Google Cloud Run. You will then configure an ADK agent to connect to this live, cloud-hosted tool.

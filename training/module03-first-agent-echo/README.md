@@ -5,6 +5,46 @@ title: "Module 3: Your First Agent: The \"Echo\" Agent"
 
 # Module 3: Your First Agent: The "Echo" Agent
 
+## Before you begin: what this module teaches
+
+**ADK concept: agent construction, loader conventions and the first invocation.**
+
+An import makes a class available. Calling Agent(...) constructs a configured object using named arguments such as name and instruction. Assigning it to root_agent lets the CLI discover that entry point. App groups application configuration; Runner executes a request. Construction is like preparing the branch desk before opening; invocation is serving an actual request.
+
+**Where you would use this in real work.**
+
+Before trusting an assistant with case data, Meera wants to see a minimal request travel through the system. An echo task is useful because the desired response is simple. It demonstrates execution, not business reasoning or a guarantee of exact copying.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+The local ADK runner calls the configured Gemini backend when execution requires it. It does not deploy Agent Runtime. For an enterprise exercise, use the approved Google project configuration from Module 2; no business record service is needed for an echo demonstration.
+
+**By the end, you should be able to:**
+
+- Distinguish defining an object from asking the model a question.
+- Locate name, description, instruction and model in the definition.
+- Trace user input to an ADK response event and report execution failures.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Explain every named argument in the small agent definition.
+- **Experienced engineer:** Test loader discovery separately from programmatic App construction.
+- **Bank FDE:** State why an echo result is a connectivity checkpoint rather than a banking acceptance test.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
+## Draw the execution boundary
+
+Construction happens before invocation. The runner starts the actual request.
+
+```mermaid
+flowchart TB
+  A[Define Agent] --> B[Configure App and Runner]
+  B --> C[Create or load session]
+  C --> D[Submit user Content]
+  D --> E[Receive execution events]
+```
+
 ## Theory
 
 ### The Core of an ADK Agent
@@ -44,7 +84,7 @@ For more advanced scenarios, you can define your agent directly in a Python scri
 
 **Advantages:**
 *   **Flexibility:** Allows for dynamic configuration and logic.
-*   **Advanced Features:** Required for implementing features like tools, workflows, and plugins.
+*   **Advanced Features:** Makes Python tool implementations, composition and application configuration explicit. YAML support has its own supported configuration surface; it is not restricted to tool-free agents.
 *   **Integration:** Easily integrates with other Python code and systems.
 
 The same agent defined in Python would look like this:
@@ -59,7 +99,7 @@ root_agent = Agent(
     instruction="You are an echo agent. Your only job is to repeat the user's input back to them exactly as they wrote it.",
 )
 ```
-**Important:** When defining an agent in Python, the ADK requires that the main agent variable be named exactly `root_agent`.
+**Loader convention:** the CLI can discover an exported `root_agent` in an agent package; current ADK also supports an exported `app`. When constructing `App(root_agent=...)` programmatically, your local variable can have any valid Python name. The parameter identifies the entry agent.
 
 ### The ADK 2.0 Runtime: App and Runner
 
@@ -166,6 +206,12 @@ In the upcoming lab, you will use these concepts to create, configure, and run y
 - The `instruction` is the most critical part, defining the agent's persona, goals, and rules.
 - Agents can be defined simply with YAML (`root_agent.yaml`) or programmatically with Python (`agent.py`).
 - The `uv run adk create` command scaffolds the necessary project structure for a new agent.
+
+## Continue the course story
+
+Previous: [Module 02](../module02-environment-setup/README.md) · Next: [Module 04](../module04-agent-deep-dive/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module03-first-agent-echo-README -->
 ---

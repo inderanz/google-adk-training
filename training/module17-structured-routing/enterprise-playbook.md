@@ -1,149 +1,87 @@
 ---
-sidebar_position: 17.1
-title: "Module 17 Enterprise Playbook: Structured Routing as Controlled Decision Logic"
+sidebar_position: 4
+title: "Enterprise Banking Playbook"
 ---
 
-# Module 17 Enterprise Playbook: Structured Routing as Controlled Decision Logic
+# Module 17 enterprise playbook
 
-This module introduces a practical middle ground between static workflow orchestration and fully dynamic routing. Instead of hand-writing a full custom decision engine, you can use a deterministic routing pattern to direct work based on explicit classification results. This is especially valuable when the business process is understood and the routing logic should be predictable.
+## Start from the bank’s requirement
 
-For a forward-deployed engineer, this is the moment where the workflow becomes a controlled operational decision tree rather than a free-form “let the model decide.”
+> If documents are missing, tell me to collect them first. Otherwise, tell me whether the case needs specialist review or standard review. Do not describe either route as loan approval.
 
-## The forward-deployed engineer lens
+The employee needs this result: Exactly one next step: collect documents, specialist review or standard review. Malformed input is rejected. An unexpected routing label goes to manual checking.
 
-In customer work, many workflows are not fully chaotic and not fully fixed. They sit in the middle:
+Read the [plain-English task and term explanations](./README.md#read-this-as-a-bank-employees-task) before the implementation details.
 
-- the process has known stages,
-- there are a small number of valid routes,
-- the route should be chosen reliably,
-- and the decision should not be left to a vague or expensive model-driven routing step.
 
-The question becomes: how do we route work based on explicit, constrained criteria without overengineering the system?
+## Architecture decision: policy is versioned code or configuration
 
-## Business translation
+Record the policy identifier and effective version alongside the selected route. A route trace should explain which facts and rule version produced it. Keep policy updates under the bank’s change process. Do not let a retrieved document or user message rewrite the routing table.
 
-Structured routing means the business process can decide which specialist or branch should handle the work based on a known classification result.
+Separate three decisions: who may access the case, what facts are authoritative, and which workflow step follows those facts. Authentication/IAM answer the first, the case and ledger services answer the second, and this router answers the third.
 
-Examples:
+If a handler later writes to Cloud Tasks, Pub/Sub or a case API, add an application idempotency key tied to case version and intended action. ADK events and workflow routes do not provide exactly-once execution of an external business operation. A timeout after a write is an uncertain outcome until the destination is checked.
 
-- support issue → technical or billing branch
-- customer request → sales, support, or policy branch
-- document type → drafting, review, or approval branch
-- task type → fetch data, analyze risk, or escalate
+## Translate the prototype into a customer implementation
 
-This is a standard pattern for enterprise operations because it creates reliable handoffs between specialized components.
+| Concern | Concrete implementation decision | Acceptance evidence |
+|---|---|---|
+| Identity | Authenticate ingress; derive caller/tenant context in trusted code | Wrong-user and wrong-tenant requests are denied |
+| Business truth | Use authorized case and ledger adapters | Freshness, provenance and record version are preserved |
+| Hosting | Choose supported Agent Runtime or Cloud Run based on ownership and operations | Staging deployment and recovery checks on the chosen target |
+| Persistence | Use a native ADK provider suitable for the environment | Restart and concurrent-session behavior tested |
+| Secrets | Workload identity and Secret Manager where a secret is needed | No credentials in prompts, source or normal logs |
+| Failure | Bound calls; report failure/unknown outcomes; reconcile writes | Timeout and duplicate-operation scenarios tested |
+| Quality | Evaluate grounded explanations and capability selection | Recorded per-case results, including held-out cases |
+| Operations | Cloud Logging/Trace with deliberate data capture policy | Case correlation, error categories and access controls verified |
 
-## Core ADK concept
+Reuse the authorized Firestore case pattern from Module 13.5 and bounded evidence adapters from Module 14. Do not replace them with prompt-only access checks. The standalone examples isolate this module’s concept; their fixture values must be replaced with authorized records before customer use.
 
-In ADK, a deterministic workflow can route work using dictionary-based edges. The routing decision is based on a value explicitly assigned to `ctx.route`, typically by a small `@node` classifier function.
+Keep a release record containing the dependency lock, model version/configuration, rule/contract versions, test results, evaluation results and known limitations. Google-native components reduce custom infrastructure work, but do not certify a solution’s security, compliance or business correctness.
 
-This design makes a strong distinction between:
+## Failure and acceptance review
 
-- the data being passed downstream
-- the decision about which branch should handle it
+| Scenario | Required reasoning |
+| --- | --- |
+| Incomplete checklist and maximum allowed amount | Document collection wins because its rule comes first. |
+| Complete checklist at and one cent above the threshold | The two requests select different analyst queues. |
+| Change one emitted label in a copy | The default handler sends it to manual triage; it must not look like normal review. |
+| Put an approval field in the request | The input schema rejects the extra field. |
 
-That distinction is extremely useful in real systems because it prevents routing logic from becoming ambiguous or untraceable.
+## Explain the native Google integration
 
-## Enterprise pattern
+The route is native ADK control flow. Bank policy and current case facts remain outside the model. A Pub/Sub or case-queue write would be a separate authorized operation; emitting next_step does not perform it.
 
-### Pattern 1: Routing by explicit category
-A classifier determines the category and sets `ctx.route`, then the workflow sends the work to the proper specialist.
+Use the [shared customer integration specification](../module15-intro-to-multi-agent-systems/fde-learning-guide.md#a-concrete-integration-boundary-after-module-215) to identify the exact earlier-course adapters and missing bank-owned fields. Keep ADK control logic, managed hosting and business data services as separate responsibilities.
 
-Examples:
+**Review challenge:** Add a policy-version field and propose migration behavior for sessions started under an older rule set. Explain how the audit record identifies the actual applied rule.
 
-- `technical`, `billing`, `general`
-- `risk`, `support`, `sales`
-- `approval_required`, `standard_flow`
+## Evidence available in this revision
 
-This is an efficient and transparent pattern when the decision space is limited and known.
+3 offline tests passed, including a real ADK run for all four decision-table scenarios and strict input checks. No live queue or credit-decision service is connected.
 
-### Pattern 2: Deterministic specialist selection
-The branch selection is explicit and business-defined, which reduces unpredictability and makes the system easier to validate.
+Reviewed on **3 October 2026** against **google-adk 2.11.0** and its installed public APIs. Examples require Python 3.12+ and were exercised with **Python 3.14.7**. Python 3.14.8 is the current stable patch release; it was not the local test interpreter. Use the supplied lockfile for the verified dependency resolution, and repeat the checks before upgrading.
 
-### Pattern 3: Controlled workflow flexibility
-This pattern sits between a static pipeline and a fully dynamic workflow. It gives you more flexibility than fixed edges while still being far more controlled than fully free-form routing.
+Sources: [ADK release](https://pypi.org/project/google-adk/2.11.0/) and [Python 3.14.8 release](https://www.python.org/downloads/release/python-3148/). “Current” is dated verification, not a promise that a dependency will never change.
 
-## Why this matters in production
+## Continue the story
 
-Structured routing is useful because it creates a reliable operating model for AI workflows without requiring every decision to be hand-coded as a large Python orchestration function.
+Module 16 collected evidence. This module chooses a step from fixed rules. Module 18 will schedule a varying set of checks without hiding business logic inside a prompt.
 
-It helps teams:
+[Previous module](../module16-static-orchestration/README.md) · [Lab](./lab.md) · [Solution](./lab-solution.md) · [Enterprise playbook](./enterprise-playbook.md) · [Next module](../module18-dynamic-orchestration/README.md)
 
-- keep process logic transparent,
-- reduce unnecessary LLM routing decisions,
-- maintain manageable operational costs,
-- produce clearer debugging and tracing,
-- support business process governance.
+## Instructor acceptance: demonstrate transfer
 
-## Best practices for real customer work
+Ask the learner to explain this derivation without looking at the implementation: Translate “missing documents first” into the first if. Translate “above” into >, including a boundary case at equality. The fallback represents an unrecognized control label, not permission to guess the bank policy.
 
-### 1. Keep the route set small and known
-Good routing categories are explicit, few in number, and easy to reason about.
+Then assign: Add a policy version and effective date to an authoritative input contract. Show how a change from above to at-least affects both the condition and its boundary test.
 
-### 2. Classify with deterministic business logic when possible
-A small classification node or business rule is often more stable and cheaper than asking the main model to make the route decision.
+Accept the explanation only when it names the native ADK execution boundary, identifies a trusted source, predicts a failure and proposes evidence that could disprove the design. A copied successful trace does not establish independent understanding.
 
-### 3. Separate classification from execution
-The classifier should decide path, not do the whole job. The specialist nodes do the actual work.
+## Official sources
 
-### 4. Document supported routes clearly
-This is especially important in enterprise systems where operational clarity matters.
+- [ADK graph routing](https://adk.dev/graphs/routes/)
+- [Structured graph data](https://adk.dev/graphs/data-handling/)
+- [Pydantic strict mode](https://docs.pydantic.dev/latest/concepts/strict_mode/)
 
-## Common enterprise anti-patterns
-
-### Anti-pattern 1: too many vague categories
-If the categories are fuzzy, the system becomes ambiguous and hard to maintain.
-
-### Anti-pattern 2: making the main model decide every route
-This can be more expensive, less predictable, and more prone to poor routing outcomes.
-
-### Anti-pattern 3: mixing route decisions with business logic in a single node
-This makes testing and debugging much harder.
-
-## Structured routing as a design tool
-
-This module is best understood as an intentional process-control pattern. It adds a layer of decision-making governance to the workflow while still allowing enough flexibility to handle a moderate range of business conditions.
-
-This is a classic forward-deployed engineering design decision: code the parts that are predictable, and leave the generative reasoning to the specialist nodes.
-
-## Related modules
-
-- [Module 16 Enterprise Playbook](../module16-static-orchestration/enterprise-playbook.md)
-- [Module 18 Dynamic Orchestration](../module18-dynamic-orchestration/README.md)
-- [Module 21 Distributed Graphs](../module21-distributed-graphs/README.md)
-- [Module 15 Enterprise Playbook](../module15-intro-to-multi-agent-systems/enterprise-playbook.md)
-
-## Recommended next move in the learning path
-
-The next natural evolution is dynamic orchestration, where routing decisions are handled more programmatically and can respond to changing conditions with more custom logic.
-
-## Final enterprise takeaway
-
-Module 17 teaches that not every workflow needs to be fully static, and not every route should be decided by a free-form model. Structured routing is the controlled middle ground that enables reliable enterprise AI processing.
-
-## Official ADK / Google references
-
-- ADK docs home: https://google.github.io/adk-docs/
-- ADK workflows and orchestration: https://google.github.io/adk-docs/workflows/
-- ADK agents runtime docs: https://google.github.io/adk-docs/agents/
-- Gemini API docs: https://ai.google.dev/gemini-api/docs
-- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
-
-These official references are the source for future updates to routing behavior, workflow branching, and deterministic selection logic.
-
----
-
-## Related roadmap
-
-- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
-- [Module 17 README](./README.md)
----
-
-## Official References
-
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
-
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. -->

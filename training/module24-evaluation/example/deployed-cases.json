@@ -1,0 +1,18 @@
+[
+  {
+    "id": "known",
+    "prompt": "Prepare CASE-001 for review.",
+    "expected": {
+      "tool": "read_case",
+      "status": "ok"
+    }
+  },
+  {
+    "id": "unknown",
+    "prompt": "Prepare CASE-999 for review.",
+    "expected": {
+      "tool": "read_case",
+      "status": "not_found"
+    }
+  }
+]

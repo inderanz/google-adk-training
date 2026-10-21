@@ -7,6 +7,9 @@ import Setup from '../_setup-snippet.mdx';
 
 # Lab 11.5: The Skill-Driven FDE Pathway — Enterprise Commercial Credit Underwriting
 
+**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
+
+
 ## 🧭 The FDE Philosophy: Tooling & Skills Over Manual Boilerplate
 
 A novice developer tries to write 500 lines of custom HTTP code by hand or blindly prompts an LLM with raw text.

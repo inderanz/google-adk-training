@@ -233,16 +233,9 @@ root_agent = Agent(
         3. Send this profile to `mitigation_agent` to search playbooks, draft a patching script, and generate an Executive Security Brief.
         4. Present the resulting mitigation plan and brief details back to the SOC analyst.
     """,
-    # NOTE: these two remote agents are wired as tools (AgentTool), NOT as
-    # `sub_agents=[...]`. `sub_agents` wires ADK's `transfer_to_agent`
-    # mechanism, which is a *permanent*, one-way handoff — once the
-    # orchestrator transfers control to threat_intel_agent, threat_intel_agent
-    # becomes the active agent for the rest of the run, and it has no way to
-    # transfer onward to mitigation_agent or back to the orchestrator (it's a
-    # separate process with no knowledge of that agent tree). AgentTool gives
-    # proper call-and-return semantics instead: the orchestrator calls each
-    # remote agent like a function, gets its result back, and stays in
-    # control to make the next call and synthesize the final combined answer.
+    # Call-and-return keeps the remote result available to this coordinator.
+    # Delegation has a separate mode-dependent contract; it is not universally
+    # a permanent transfer. Remote support must be checked independently.
     tools=[AgentTool(agent=threat_intel_service), AgentTool(agent=mitigation_service)],
 )
 

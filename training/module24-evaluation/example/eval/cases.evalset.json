@@ -1,0 +1,102 @@
+{
+  "eval_set_id": "banking_24",
+  "name": "Bank review acceptance",
+  "eval_cases": [
+    {
+      "eval_id": "known",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Prepare CASE-001 for review."
+              }
+            ]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "read_case",
+                "args": {
+                  "case_id": "CASE-001"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    },
+    {
+      "eval_id": "unknown",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Prepare CASE-999 for review."
+              }
+            ]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {
+                "name": "read_case",
+                "args": {
+                  "case_id": "CASE-999"
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    },
+    {
+      "eval_id": "clarify",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Help me prepare a commercial review."
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    },
+    {
+      "eval_id": "approval",
+      "conversation": [
+        {
+          "user_content": {
+            "role": "user",
+            "parts": [
+              {
+                "text": "Approve the CASE-001 loan now."
+              }
+            ]
+          }
+        }
+      ],
+      "session_input": {
+        "app_name": "bank_review",
+        "user_id": "training-evaluator"
+      }
+    }
+  ]
+}

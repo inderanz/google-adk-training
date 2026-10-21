@@ -5,82 +5,71 @@ title: "Module 34: Deploying an MCP Server to Cloud Run"
 
 # Module 34: Deploying an MCP Server to Cloud Run
 
-## Theory
+## Before you begin: what this module teaches
 
-### The Challenge of State in a Serverless World
+**ADK concept: remote MCP hosting with durable, authorized business state.**
 
-In Module 28, you built a stateful MCP server. Its state—the contents of the shopping cart—was a single global Python list: `CART = []`. That worked fine because the server ran over stdio, talking to exactly one client (your local agent) at a time — there was no notion of "whose cart is this" because there was only ever one.
+Externalized state lives outside the replaceable process. Protocol session state coordinates MCP communication; business state belongs to an authenticated resource owner. Both need a deliberate multi-instance design. A read-modify-write operation requires concurrency control when several requests can update the same record.
 
-Moving to Cloud Run over HTTP changes that completely: the server can now be talking to *many* clients concurrently, each of whom needs their own, isolated cart. A single global list would mean every user shares the exact same cart — a correctness bug, not just a scaling one. And even setting that aside, Cloud Run is a **stateless** and **serverless** environment, which introduces a second problem on top of the first:
+**Where you would use this in real work.**
 
-*   **Stateless:** Each incoming request could be handled by a completely different container instance. An instance that handles a user's "add item" request might be shut down before the user makes a "view cart" request, which would then be routed to a brand new instance with no memory of the previous one. The in-memory cart data would be lost.
-*   **Serverless:** You don't have a single, persistent "server." Cloud Run automatically starts and stops container instances based on traffic. It might run ten instances to handle a spike in traffic and then scale down to zero when idle.
+A branch tool works locally but loses its document-request list after a restart. Several server instances must see the same authorized record. The fix is a state and identity design, not merely replacing a local address with a cloud URL.
 
-If we deploy our simple, in-memory MCP server directly to Cloud Run, every user's shopping cart would be wiped out between requests. We need a new architecture.
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
 
-### The Solution: Externalized State
+Cloud Run can host the MCP endpoint; Firestore or Cloud SQL can own the business record. McpToolset consumes the compatible HTTP transport. Separate endpoint authentication, protocol compatibility and case authorization; an MCP session header is not a user identity.
 
-The solution to this challenge is to **externalize the state**. Instead of storing the session data in the memory of the MCP server process, the server must save it to and load it from an external, persistent storage service that all of its instances can access.
+**By the end, you should be able to:**
 
-This is a fundamental pattern in cloud-native application design. The application instances themselves remain stateless, which makes them easy to scale and replace, while the important data lives in a durable, centralized location.
+- Draw transport-session state separately from business persistence.
+- Explain why /tmp and process globals are not durable shared stores.
+- Specify version conflicts, repeated requests and denied access.
 
-**Common choices for an external state store include:**
-*   **In-memory caches:** Services like **Redis** or **Google Cloud Memorystore**. These are extremely fast and are a perfect fit for session data that needs to be accessed quickly but may not need to be stored forever.
-*   **Databases:** Services like **Firestore**, **DynamoDB**, or a traditional SQL database like **Cloud SQL**. These are better for data that needs to be stored permanently and queried in more complex ways.
+### Review this lesson through three perspectives
 
-### The New Architecture
+- **Python/ADK beginner:** Predict what survives instance replacement in the local exercise.
+- **Experienced engineer:** Test two instances and overlapping writes before claiming durable correctness.
+- **Bank FDE:** Identify the owner of each record and the approved identity/token contract at both ends.
 
-With externalized state, the interaction flow for our MCP server on Cloud Run looks like this:
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
 
-1.  An ADK agent (the client) sends a `call_tool` request (e.g., `add_item_to_cart`) to the Cloud Run service URL.
-2.  Cloud Run starts or selects a container instance to handle the request.
-3.  The MCP server code inside the container reads the `Mcp-Session-Id` HTTP header that the MCP transport itself tracks for the connection.
-4.  Instead of appending to a global in-memory list, the server connects to the external state store (e.g., Redis), keyed by that session ID.
-5.  It retrieves the shopping cart for the given session, performs the action (adds the new item), and saves the updated cart back to the external store.
-6.  It sends the success response back to the ADK agent.
+## Theory: remote MCP, durable business data and trusted callers
 
-Now, if another request for the same `session_id` arrives a moment later, Cloud Run can send it to a completely different container instance. This new instance will follow the same process, connect to the same external store, and retrieve the correct, up-to-date shopping cart. The state is preserved.
+### The counter and the register
 
-### Connecting the ADK Agent
+An MCP server instance is like a service counter; the durable business store is the shared register. Several counters may serve the same customer. Keeping the only copy of a record in one counter's memory makes restart or instance replacement lose it. It can also mix customers if a global list is used without ownership checks.
 
-When the MCP server is running on a public URL on Cloud Run, our ADK agent can no longer use `StdioConnectionParams`, which is designed for running a local subprocess.
+Cloud Run may reuse an instance across requests, so memory is not necessarily erased after every request. The problem is that reuse and persistence are not guaranteed. A local file under `/tmp` is not a durable shared database either.
 
-Instead, the agent must be configured to connect to the remote server over the network. The MCP library provides connection types for this, such as `StreamableHTTPConnectionParams`, which allows the ADK `McpToolset` to communicate with the deployed server using standard HTTP requests.
+### Business state and protocol state are separate
 
-In the lab, you will modify the shopping cart server to be stateless, containerize it, and deploy it to Cloud Run. You will then reconfigure your ADK agent to connect to its public URL.
+A cart ID or case ID identifies a business resource. An authenticated caller must be authorized to access it. An MCP session ID coordinates protocol communication; do not use possession of that value as the only authorization check. A multi-instance design also needs the MCP server's supported strategy for protocol sessions/streams. Moving business rows to Firestore alone does not solve every transport-session problem.
 
-### Production Considerations for MCP
+```mermaid
+flowchart TB
+  A[ADK McpToolset] --> B[Authenticated Cloud Run endpoint]
+  B --> C[MCP tool validates caller and input]
+  C --> D[Authorized durable record operation]
+  D --> E[Bounded result returned]
+```
 
-When deploying MCP servers to production, security and safety become paramount. The ADK provides advanced features to handle these requirements.
+This is a customer target flow, not evidence that the local cart lab implements each production boundary. For a bank adaptation, use a case-owned document-request list instead of a shopping cart, and define an exact owner, version and duplicate-request policy.
 
-#### Authentication
+### Choose an appropriate store and write contract
 
-You must secure your MCP server to ensure that only authorized agents can access its tools. The `McpToolset` supports several authentication methods:
+Firestore or Cloud SQL can hold durable business records according to their configured guarantees. Memorystore may fit selected cache/session workloads, but durability and failover depend on product and configuration; “Redis” does not automatically mean permanent storage. A read-modify-write sequence needs concurrency control when two instances can update the same record.
 
-*   **OAuth2 (Recommended):** The most secure, standard method for production systems. The ADK handles the client credentials flow, automatically requesting and refreshing access tokens.
-*   **HTTP Bearer Token:** For services that use a simple static bearer token for authentication.
-*   **HTTP Basic Authentication:** For legacy systems or internal tools that use a simple username and password.
-*   **API Key:** For services that require an API key to be passed in a specific header.
+Use Streamable HTTP for a compatible remote MCP endpoint. Authentication must match both the ingress and MCP server contract. ADK exposes `auth_scheme`, `auth_credential` and context-dependent `header_provider` options; there is no universal `credential=` switch that solves all token acquisition and refresh. A Cloud Run invocation ID token and an OAuth access token are different credentials. Validate the current [ADK MCP authentication guidance](https://adk.dev/tools-custom/mcp-tools/) for the selected integration.
 
-You configure the chosen method via the `credential` parameter in the `McpToolset`, and the ADK handles the rest.
+### Approval is a complete interaction, not a blocking sentence
 
-#### Human-in-the-Loop (HITL)
+A before-tool callback can return a blocked result. That alone does not implement a later authorized resume. A real approval path needs a recorded request, verified approver, exact approved parameters, expiry, and validation when execution resumes. Use supported ADK confirmation/human-input mechanisms where appropriate and enforce the actual write at the backend. See Module 13 for confirmation and Module 26 for hook behavior.
 
-When an MCP server provides powerful or destructive tools (e.g., `write_file`, `delete_database_entry`), it's crucial to have a human approval step to prevent accidental data loss or misuse. This is known as a "Human-in-the-Loop" (HITL) workflow.
+## Continue the course story
 
-You can implement HITL in the ADK using a `before_tool_callback`. This callback function is triggered *before* any tool is executed. Inside the callback, you can:
-1.  Check if the tool being called is on a list of "destructive" operations.
-2.  If it is, you can block the execution and return a message to the agent indicating that approval is required.
-3.  This allows a user in the UI (or an automated policy) to review the requested operation and approve or deny it before it runs.
+Previous: [Module 33](../module33-deployment-gke/README.md) · Next: [Module 35](../module35-deployment-agent-runtime/README.md) · [See how the concepts build](../learning-journey.md)
 
-### Key Takeaways
-- Serverless platforms like Cloud Run are **stateless**, meaning in-memory state is lost between requests.
-- To deploy a stateful service (like an MCP server) to a stateless platform, you must **externalize the state** using a persistent storage service like Redis or Firestore.
-- When connecting an ADK agent to a remote MCP server, you must use a network-based connection type, such as `StreamableHTTPConnectionParams`.
-- For production, it is critical to secure your MCP server with authentication (e.g., OAuth2) and implement Human-in-the-Loop (HITL) workflows for destructive tools.
-- **Separation of Concerns in MCP:** A key benefit of the MCP architecture is that the client (`McpToolset`) is completely decoupled from the server's state management implementation. The agent only needs to know the server's URL and the tool schema. This allows the server's backend to be changed (e.g., migrating from a file-based system to Redis) without requiring any changes to the agent client, promoting modular maintenance and reducing the client's complexity.
-- **Advantages of Memorystore (Redis):** For production session state, a managed in-memory service like Google Cloud Memorystore (Redis) is far superior to a file-based approach. It offers true persistence (data survives container restarts), low-latency performance (ideal for fast tool access), and scalability (all Cloud Run instances connect to the same central data source, ensuring state consistency).
-- **Persistence in Cloud Run:** Using the `/tmp` directory for storage in a Cloud Run container is not truly persistent. The `/tmp` directory is part of the container's volatile filesystem. When Cloud Run scales a service to zero due to inactivity or recycles an instance, the container is terminated, and all data in `/tmp` is permanently lost. This means any state (like a shopping cart) stored there would be erased.
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module34-deploying-mcp-server-cloud-run-README -->
 ---

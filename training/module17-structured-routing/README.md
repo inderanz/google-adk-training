@@ -1,145 +1,268 @@
 ---
 sidebar_position: 17
-title: "Module 17: Structured Routing - Edges and Dictionaries"
+title: "Module 17: Structured Routing: Turning Bank Rules into Edges"
 ---
 
-# Module 17: Structured Routing - Edges and Dictionaries
+# Module 17: Structured Routing: Turning Bank Rules into Edges
 
-## Theory
+## Before you begin: what this module teaches
 
-In Module 16, you learned how to define static paths. But what if you want your graph to branch based on a specific decision? 
+**ADK concept: structured routing and explicit control signals.**
 
-While you can use **Dynamic Workflows** (Module 18) for total control, ADK 2.0 provides a more efficient middle ground: **Dictionary-based Routing**.
+Once evidence is available, an application may need to choose a next step. Google’s **Agent Development Kit (ADK)** supports workflow routes for that purpose. You will learn the distinction between `Event.output`, which carries business data, and `Event.route`, which selects a configured destination.
 
-### Why use Deterministic Workflows?
+The bank’s rule is expressed as ordered Python conditions. ADK then follows the corresponding graph path. This separation makes the decision inspectable: the facts say what is known, the rule says which condition takes precedence, and the route says what runs next. Writing a dictionary containing a field called “route” is not automatically the same as setting ADK’s routing signal.
 
-1.  **Transparency:** The structure of your application is visible at a glance in the code (and in the Dev UI Graph View).
-2.  **Efficiency:** Routing via a dictionary or a fixed list of edges is faster and cheaper than asking an LLM to decide the next step.
-3.  **Reliability:** You eliminate the "hallucination" risk of an LLM choosing a non-existent path.
+**Where you would use this in real work.**
 
-### Anatomy of a Workflow Graph
+Meera asks what to do next with the case. The fictional rule says missing documents take priority. Only when the checklist is complete should the amount determine whether standard or specialist review is next.
 
-A Workflow in ADK 2.0 is defined by two things:
-1.  **Nodes:** The individual components (Agents, FunctionTools, or `@node` functions).
-2.  **Edges:** The connections between nodes, defining the execution path.
+Consider a case with a high amount and a missing ownership register. Both facts are true, but document collection must come first under this exercise’s rule. You will translate that priority into code and examine the exact threshold. Returning “specialist review” describes the selected next step; it does not approve credit or create an actual work-queue item.
 
-#### Static Edges (Sequential)
-The simplest edge is a tuple `("NodeA", "NodeB")`, which means "after NodeA finishes, run NodeB".
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
+This routing logic remains part of the ADK application when hosted on Gemini Enterprise Agent Platform Agent Runtime. Gemini may interpret a question or explain a result, while Python applies the exact rule taught here. The routing lesson itself needs no model call.
+
+In a real bank, the input must come from authorized systems, and a policy owner must provide the rule and its version. Hosting, model access and deterministic routing solve different parts of the solution. The lab keeps them visible so the rule can be tested before a cloud integration is added.
+
+**By the end, you should be able to:**
+
+- **Derive the rule:** explain why the document condition is checked before the amount condition.
+- **Use the ADK contract:** distinguish Event.route from Event.output and map each named route to its destination.
+- **Predict boundaries:** determine the route at the threshold and just above it before running the example.
+- **Handle unexpected routing:** explain the fallback destination and why an unrecognized route must not imply approval.
+- **Transfer the pattern:** write a new ordered rule in plain English, identify its data owner, and derive its boundary checks.
+
+**How this moves the story forward.** Module 17 chooses one destination. Module 18 asks a related but different question: which collection of checks does this particular case need?
+
+Read the detailed customer task below, then follow the [guided lab](./lab.md). Build one checkpoint at a time and compare your explanation with the observed result.
+
+[Previous module](../module16-static-orchestration/README.md) · [Lab](./lab.md) · [Solution](./lab-solution.md) · [Enterprise playbook](./enterprise-playbook.md) · [Next module](../module18-dynamic-orchestration/README.md)
+
+## The banking story
+
+Module 16 collected evidence. This module chooses a step from fixed rules. Module 18 will schedule a varying set of checks without hiding business logic inside a prompt.
+
+Sovereign Horizon Bank and Acme Robotics are fictional teaching organizations. We follow the same commercial-review case, **CASE-001**, through the sequence. Monetary thresholds are teaching fixtures, not lending policy.
+
+## Customer problem statement
+
+### Read this as a bank employee's task
+
+The bank analyst has the document status and requested amount. The next task is to identify what should happen next. In this fictional exercise, missing documents must be dealt with before the amount-based review rule is considered.
+
+In this course, an analyst is the employee who gathers and checks information for a review. Picture a business banking team preparing for a company meeting. The bank, company and records are fictional.
+
+> If documents are missing, tell me to collect them first. Otherwise, tell me whether the case needs specialist review or standard review. Do not describe either route as loan approval.
+
+| What you need to understand first | This exercise's answer |
+|---|---|
+| What information starts the task? | A validated case snapshot: the case ID, document status and requested amount. |
+| What should the employee receive? | Exactly one next step: collect documents, specialist review or standard review. |
+| What should happen when it cannot be completed? | Malformed input is rejected. An unexpected routing label goes to manual checking. |
+
+### New words, explained using this task
+
+| Term | Meaning here |
+|---|---|
+| Route | The next operation selected by the application. |
+| Precedence | Which rule is checked first when more than one could apply. |
+| Structured output | Data in named fields, so code does not have to guess its meaning from a sentence. |
+
+The next technical table connects these requirements to ADK objects and checks. Read one row at a time: the employee's need comes first, then the coding choice, then the result that would show it works.
+
+
+## Match each customer requirement to code and a check
+
+| Customer requirement | Implementation choice | Acceptance check |
+| --- | --- | --- |
+| Missing documents take precedence | First branch in choose_route | A high amount with missing documents still goes to document collection. |
+| Define the threshold precisely | Integer cents and > 20_000_000 | The exact threshold stays in standard review; one cent above goes to specialist review. |
+| Handle unexpected routing values | Explicit __DEFAULT__ edge | Unsupported routes lead to manual triage. |
+| Reject malformed input before routing | Workflow input_schema | Unknown cases, booleans as money and extra approval fields are rejected. |
+
+**Result of this module:** Exactly one route handler produces a next-step instruction from a validated synthetic snapshot.
+
+## Work through the concept as a customer problem
+
+### A branch reception desk sends a file to the right team
+
+Imagine a Pune branch has three trays: missing documents, specialist review and standard review. Meera must first check whether the file is complete. A large requested amount does not let an incomplete file skip that first rule. The branch manager writes this order down before anyone automates it.
+
+This is **routing**: choosing the next operation from available destinations. **Precedence** means deciding which rule wins when several conditions could apply. **Deterministic** means the same validated facts and rule version select the same destination. None of these words means the credit application has been approved.
+
+### From the branch rule to Python, then to ADK
+
 ```python
-from google.adk import Workflow
-
-# A simple sequential pipeline: START -> Researcher -> Writer
-my_workflow = Workflow(
-    name="SequentialSystem",
-    edges=[
-        ("START", researcher_node),
-        (researcher_node, writer_node)
-    ]
-)
+# Inside choose_route(node_input): evaluate the bank's teaching rules in order.
+if not node_input.documents_complete:
+    route = "documents"  # First priority: missing evidence.
+elif node_input.requested_cents > 20_000_000:
+    route = "specialist"  # Consider amount only after completeness passes.
+else:
+    route = "standard"  # Remaining valid cases still need analyst review.
 ```
 
-#### Router Edges (Conditional)
-You can use a **dictionary as the target of an edge** to route to different nodes without writing a full `if`/`else` orchestrator. The key that gets matched isn't the node's raw output, though — it's `ctx.route`, a value the source node must set explicitly.
+`if` tests the first condition. `not` reverses a boolean, so `not False` is `True`. `elif` means “otherwise, if”; it is considered only when the earlier condition failed. `else` covers the remaining valid inputs. Indentation tells Python which assignment belongs to each branch. The spelling `20_000_000` is an integer with visual separators, not a special money type.
 
-A plain `Agent` never sets `ctx.route` on its own, even with a Pydantic `output_schema` — so the source of a Router Edge needs to be a small `@node` function that runs the classifier and then sets the route from its result:
+The function then returns `Event(output=node_input.model_dump(), route=route)`. `model_dump()` converts the validated Pydantic object into a dictionary. `output` carries that case data; `route` carries the control label. In the graph's mapping, the string `"documents"` selects the callable `request_documents`. Returning ordinary data with a key named `route` would not make that same routing request.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-```python
-from google.adk import Workflow, Context
-from google.adk.workflow import node
+### Work the decision table before running the program
 
-# The classifier itself is a plain Agent with a Pydantic output_schema
-classifier_node = Agent(..., output_schema=RequestType)
+| Documents complete? | Requested cents | First matching condition | Selected route |
+|---|---:|---|---|
+| No | 25,000,000 | Missing evidence | `documents` |
+| Yes | 25,000,000 | Above the threshold | `specialist` |
+| Yes | 20,000,000 | Neither earlier condition | `standard` |
+| Yes | 1 | Neither earlier condition | `standard` |
 
-# A tiny @node wrapper is what actually makes the dictionary routing work
-@node(rerun_on_resume=True)
-async def classify_and_route(ctx: Context, node_input: str):
-    result = await ctx.run_node(classifier_node, node_input)  # a dict, not the Pydantic instance
-    ctx.route = result["category"]
-    return node_input
+These four rows expose two common mistakes: testing the amount first, and writing `>=` when the agreed word was “above.” They also show why a model should not invent a lending rule from an informal request. Gemini may help extract intent, but current case facts and approved rules belong to trusted application/service boundaries.
 
-# A system that routes based on ctx.route
-my_workflow = Workflow(
-    name="SmartRouter",
-    edges=[
-        ("START", classify_and_route),
-        (classify_and_route, {
-            "technical": tech_agent,
-            "billing": billing_agent,
-            "other": general_agent
-        })
-    ]
-)
+**Use routing** when a result must select a destination. **Use fan-out** when all independent operations are required. **Use a dynamic node** when code must build an applicable sequence of child work; that is the next module.
+
+### Three reviews before accepting the design
+
+- **Beginner:** predict all four rows and point to the winning assignment. Explain why the handler's `next_step` dictionary does not send a real email or create a queue item.
+- **Experienced engineer:** separate invalid input, an unmatched route and a handler exception. `__DEFAULT__` handles an unmatched label; it is not a universal exception handler. Add a policy-version requirement before adapting the rule to a real bank.
+- **Bank FDE:** ask who owns the rule, what currency it uses, when it becomes effective and which exception has priority. Obtain signed-off examples at both sides of every boundary. If the bank also wants a task created, specify an authorized, duplicate-safe queue write as a separate operation.
+
+**Carry forward:** routing chooses where evidence goes; [Module 18](../module18-dynamic-orchestration/README.md) chooses which additional evidence work is necessary.
+
+## Follow the execution
+
+```mermaid
+flowchart TB
+  A[Validated case] --> B{Complete?}
+  B -->|No| C[Collect documents]
+  B -->|Yes| D{Above threshold?}
+  D -->|Yes| E[Specialist review]
+  D -->|No| F[Standard review]
 ```
 
-The specialist branches (`tech_agent`, `billing_agent`, `general_agent`) stay fully declarative — only the classifier needs this small amount of glue code, which is what keeps this pattern meaningfully simpler than a full Dynamic Workflow (Module 18), where *every* routing decision is hand-written Python.
+This shows the three supported business routes. Invalid input is rejected before this diagram; an unexpected emitted route uses the separately configured default handler. The handlers return next-step data, not real queue writes.
 
-### The "START" and "END" Reserved Keywords
-- **`START`**: The entry point of your workflow. Every workflow must have at least one edge originating from `"START"`.
-- **`END`**: (Optional) Explicitly signals that the workflow has finished. If a node has no outgoing edges, the workflow ends automatically.
+## A route is a control signal
 
-### Data Flow in Deterministic Workflows
+A dictionary returned from a classifier is just data until code turns a field into a routing signal. `Event(output=payload, route="documents")` carries two separate things: the payload for the next node and the label used to select an edge. The handler does not need to parse a sentence like “please collect documents” to discover the route.
 
-In a deterministic `Workflow`, the output of one node is automatically passed as the input to the next node. 
-- If `NodeA` returns a string, `NodeB` receives that string as its input.
-- If you use a **Router Dictionary**, routing is decided separately from data flow: it's `ctx.route` (set explicitly, as shown above) that must match one of the dictionary's keys — not necessarily the value passed along as input to the next node.
+| Rule priority | Condition | Route label | Meaning |
+|---|---|---|---|
+| 1 | Checklist incomplete | `documents` | Collect missing evidence |
+| 2 | Complete and amount above 20,000,000 cents | `specialist` | Specialist analyst review |
+| 3 | Complete and amount at or below threshold | `standard` | Standard analyst review |
+| Fallback | Unexpected routing label | `__DEFAULT__` | Manual triage |
 
-### Key Takeaways
-- **Deterministic Workflows** define fixed paths using the `edges` parameter.
-- **Edges** can be simple tuples or use dictionaries for conditional routing — but the dictionary matches against `ctx.route`, which only a `@node` function can set. A plain `Agent`, even with a Pydantic `output_schema`, never sets it on its own.
-- This approach is **preferred for well-defined business processes** where you want maximum predictability and lowest latency.
-- You can mix and match: a node in a deterministic `Workflow` can itself be a dynamic `@node` workflow!
+These are fictional training rules. A real bank supplies its policy, currency, effective dates, exception handling and policy owner. This lab assumes one currency and never performs conversion. Routing is neither approval nor an authorization check.
 
-## Enterprise Lens: Controlled branching for predictable business flow
+## Translate English into ordered conditions
 
-This module is where the workflow becomes a decision engine for a known problem domain rather than a vague free-form route.
+The word **first** determines precedence. “Above” means `>`, not `>=`. “Otherwise” becomes `else`. “Send to” means choosing a destination, not executing a payment. Those distinctions are requirements, not coding style preferences.
 
-The real question is not “can the model choose any path?” but “can we control route selection so it matches explicit operational logic and business conditions?”
+Current ADK accepts a route mapping such as `(choose_route, {"documents": request_documents, ...})`. The mapping’s keys must match emitted route values. An ordinary edge connects nodes directly. A terminal node simply has no outgoing edge; do not invent an `"END"` function node to make execution stop.
 
-Read the companion guide here:
+## Where a model can help
 
-- [Module 17 Enterprise Playbook](./enterprise-playbook.md)
-- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
+If the request is plain English, a Gemini classifier can extract an intent using a Pydantic `output_schema` with `Literal` choices, including an unknown/clarification outcome. Its proposed case ID must still pass authorization and an authoritative lookup. A model’s parsed amount or assertion that “all documents are present” is not a bank record.
 
-This keeps the routing lesson connected to the broader ADK architecture story: specialized agents, clear process design, and controlled execution under enterprise governance.
+Keep semantic intent extraction separate from policy routing. A validated JSON shape does not prove the extracted fact is true. The runnable lab starts after authoritative lookup, with an explicitly synthetic snapshot, so the routing guarantee is inspectable without a model.
 
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module17-structured-routing-README -->
----
+## ADK execution model: Control signals are separate from business data
 
+The entry schema validates the synthetic snapshot before routing begins. choose_route then evaluates ordinary Python conditions in order. Only after selecting a label does it construct an Event. The event carries the case payload in output and the chosen control label in route. The route mapping connects that label to a handler function.
 
-## Official References
+Consider two values: `{"route": "documents"}` as a plain dictionary and Event(output=payload, route="documents"). The first is business data with a key called route; the second explicitly instructs the graph's routing mechanism. A downstream function should receive the case data, not parse the analyst-facing sentence to discover which rule won.
 
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Gemini API (multimodal): https://ai.google.dev/gemini-api/docs
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Vertex AI generative guidance: https://cloud.google.com/vertex-ai/generative-ai
-- Cloud Vision and OCR: https://cloud.google.com/vision
+There are three different failures to understand. Invalid input fails at the schema boundary before any rule executes. An unexpected emitted label selects the configured default route. An exception within a selected handler fails that execution unless recovery is explicitly implemented. A default edge is not a universal exception handler.
 
+A Gemini output_schema can constrain the shape of an extracted intent. It cannot establish that an extracted amount is current or that the caller owns the case. Language understanding, record authorization, current lookup and exact policy routing belong to separate boundaries.
+
+### Derive the code from the customer's words
+
+Translate “missing documents first” into the first if. Translate “above” into >, including a boundary case at equality. The fallback represents an unrecognized control label, not permission to guess the bank policy.
+
+### Predict, observe and explain
+
+Before execution, fill four rows: incomplete/high; complete/high; complete/equal; complete/low. Predict label and handler. Then intentionally misspell one emitted label and inspect the default outcome.
+
+### Worked design discussion for experienced learners
+
+Add a policy version and effective date to an authoritative input contract. Show how a change from above to at-least affects both the condition and its boundary test.
+
+Before accepting a solution, identify its input owner, exact ADK boundary, output consumer and failure evidence. Read the function comments in the lab alongside the corresponding source; comments explain design intent, while the executed events establish behavior.
+
+## Learn this concept from first principles
+
+A tool result is data. This module adds an explicit decision about where that data goes next. Keep that decision separate from how an LLM phrases an explanation.
+
+### Work through the same function twice
+
+With incomplete documents, Python selects the first branch even when the amount is high. Change only `documents_complete` to true and the first branch no longer applies; the amount comparison selects specialist review. Change the amount to exactly 20,000,000 cents and the comparison is false, so standard review is selected.
+
+A dictionary key such as `"documents"` is a label you chose. It must match the event's route. A function name such as `request_documents` is executable code. Returning `{"route": "documents"}` as ordinary output is not the same as setting the Event route field.
+
+The fallback handles a supported graph receiving an unexpected route label. It does not rescue a malformed input that failed the schema first. These are different failure stages: input rejection versus an unmatched control signal.
+
+### Add language understanding before facts, not instead of facts
+
+A model can identify that “help me prepare Acme's review” is a preparation request. It may extract a proposed case identifier. Trusted code must then resolve ambiguity, verify access and load current facts. Only those verified facts should enter the bank-rule router. This separates model uncertainty about intent from exact execution of an approved rule.
+
+An advanced rule set also needs currency, policy version, effective dates and exception precedence. If the bank changes “above” to “at least,” update the comparison and exact-boundary acceptance case together.
+
+### Trace one concrete request
+
+| Step | Value or operation | Reasoning |
+| --- | --- | --- |
+| Validated input | CASE-001, 25,000,000 cents, documents_complete=false | A large amount does not bypass missing evidence. |
+| First condition | not documents_complete is true | The if branch wins; elif and else are skipped. |
+| Routing event | route=documents plus a dumped case dictionary | Control signal and payload are distinct fields. |
+| Route mapping | documents selects request_documents | The destination is a Python function object. |
+| Handler result | next_step=collect_documents | Nothing has been placed on a real queue. |
+
+### Check your understanding
+
+What changes if a developer returns route="document" instead of "documents"?
+
+**Expected reasoning:** No named route matches; the __DEFAULT__ mapping selects manual triage. That result is deliberately different from a successful standard route.
+
+### Foundation and advanced learning paths
+
+**Foundation:** reproduce the trace above, explain the Python and ADK objects involved, and predict one changed input before running the lab. You should be able to identify which part is configuration and which part executes work.
+
+**Advanced:** Add a policy-version field and propose migration behavior for sessions started under an older rule set. Explain how the audit record identifies the actual applied rule.
+
+### Google service choice for this lesson
+
+The route is native ADK control flow. Bank policy and current case facts remain outside the model. A Pub/Sub or case-queue write would be a separate authorized operation; emitting next_step does not perform it.
+
+The [banking FDE learning guide](../module15-intro-to-multi-agent-systems/fde-learning-guide.md) connects the customer discovery questions, Google service map and integration boundaries across the sequence. It distinguishes implemented examples from customer integration and deployment work.
+
+## What you should be able to explain
+
+- Translate the bank request into inputs, operations, outputs and failure outcomes.
+- Point to the code that enforces each acceptance condition.
+- Explain which facts are synthetic and which production services would own them.
+- State what the local checks prove and what still needs a live integration or model evaluation.
+
+## Verified baseline and limits
+
+See the [course review and verification record](../module15-intro-to-multi-agent-systems/review-notes.md) for the cross-module checks and the evidence still required from a customer deployment.
+
+Reviewed on **3 October 2026** against **google-adk 2.11.0** and its installed public APIs. Examples require Python 3.12+ and were exercised with **Python 3.14.7**. Python 3.14.8 is the current stable patch release; it was not the local test interpreter. Use the supplied lockfile for the verified dependency resolution, and repeat the checks before upgrading.
+
+Sources: [ADK release](https://pypi.org/project/google-adk/2.11.0/) and [Python 3.14.8 release](https://www.python.org/downloads/release/python-3148/). “Current” is dated verification, not a promise that a dependency will never change.
+
+3 offline tests passed, including a real ADK run for all four decision-table scenarios and strict input checks. No live queue or credit-decision service is connected.
+
+## Official sources
+
+- [ADK graph routing](https://adk.dev/graphs/routes/)
+- [Structured graph data](https://adk.dev/graphs/data-handling/)
+- [Pydantic strict mode](https://docs.pydantic.dev/latest/concepts/strict_mode/)
+
+## Continue the course story
+
+Previous: [Module 16](../module16-static-orchestration/README.md) · Next: [Module 18](../module18-dynamic-orchestration/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
+
+<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. -->

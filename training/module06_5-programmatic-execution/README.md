@@ -5,6 +5,34 @@ title: "Module 6.5: Programmatic Types & Advanced Content Modeling (google.genai
 
 # Module 6.5: Programmatic Types & Advanced Content Modeling (`google.genai.types`)
 
+## Before you begin: what this module teaches
+
+**ADK concept: Content, Part, MIME types and typed request boundaries.**
+
+Content groups message parts under a role. Part represents a supported item such as text or inline bytes. A MIME type describes the format, for example application/pdf. A factory such as Part.from_text constructs an object; it does not run the model. Binary bytes and their text encodings are different representations, so inspect the actual payload boundary.
+
+**Where you would use this in real work.**
+
+Meera submits a question with a scanned document. Concatenating a filename into the question does not send its bytes to Gemini. The application must represent the text and document as supported message parts.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+google.genai.types supplies the message objects used by ADK and Gemini. Cloud Storage can own uploaded files when the chosen API supports those references; permissions and content limits still need validation. Model safety configuration and Model Armor inspection solve different concerns from message typing.
+
+**By the end, you should be able to:**
+
+- Construct and inspect a text message and a supported multimodal message.
+- Guard against missing content, non-text parts and partial events.
+- Distinguish type checking, runtime validation and factual evaluation.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Explain why parts is a list and why bytes need a MIME type.
+- **Experienced engineer:** Round-trip supported content and exercise empty, malformed and oversized inputs.
+- **Bank FDE:** Agree permitted document types, upload ownership and retention with the bank.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
 ## Theory
 
 In Module 06, you discovered how to run an agent programmatically from Python using `App` and `Runner`. You passed a simple string like `"I have a billing problem."` to `run_debug()`.
@@ -47,7 +75,7 @@ In ADK 2.0 and the `google-genai` SDK, every message exchanged between a user, a
 flowchart TD
     subgraph ContentObject["Content: Represents One Conversational Turn"]
         direction TB
-        RoleField["role: 'user' | 'model' | 'system'"]
+        RoleField["role: 'user' or 'model'"]
         subgraph PartsList["parts: list of Part objects"]
             Part1["Part 1: Text chunk (from_text)"]
             Part2["Part 2: Inline bytes or image (from_bytes)"]
@@ -157,19 +185,11 @@ Now you have a structured, type-safe payload ready for the ADK runner.
 In Module 06, you saw how `runner.run_async()` executes. Here is the exact interaction where `types.Content` enters the pipeline:
 
 ```mermaid
-sequenceDiagram
-    autonumber
-    participant App as Python Application
-    participant Runner as InMemoryRunner
-    participant Agent as Root Agent (LLM)
-
-    Note over App: Step A: Construct types.Content with parts
-    App->>Runner: run_async(user_id, session_id, new_message=user_turn)
-    Runner->>Agent: passes Content object directly to model pipeline
-    Agent-->>Runner: yields Event objects
-    Note over Runner,App: Event.content is also a types.Content object!
-    Runner-->>App: yields Event(content=types.Content(role='model', parts=[...]))
-    Note over App: Step B: Read event.content.parts[0].text
+flowchart TB
+  A[Build Content with Parts] --> B[Submit through Runner]
+  B --> C[ADK yields Event objects]
+  C --> D[Check whether content exists]
+  D --> E[Inspect all supported parts]
 ```
 
 Notice the symmetry:
@@ -220,30 +240,30 @@ bad_message = {
     "part": "Hello",
 }  # Notice typo: 'part' instead of 'parts'
 ```
-Python will not alert you. The script will run, fail silently inside the SDK network layer, and throw a `400 Bad Request` in front of the customer.
+An untyped dictionary does not by itself tell Python which keys are valid. Depending on the receiving API, an error may be caught locally, rejected remotely or remain unnoticed until the value is used.
 
 With `google.genai.types`:
 ```python
 # SAFE: MyPy flags invalid arguments instantly
 message = types.Content(role="user", parts=[types.Part.from_text(text="Hello")])
 ```
-If you make a typo, your IDE highlights it in red and your CI/CD test pipeline prevents deployment.
+A configured type checker or IDE can catch supported errors early. CI only blocks deployment if the relevant checks are actually configured and enforced; typed objects do not create that pipeline.
 
 #### 2. Zero-Loss Serialization
-Enterprise sessions frequently get persisted to databases (like Google Cloud Firestore in Module 13.5) or sent across gRPC and REST boundaries. `types.Content` models serialize cleanly to and from JSON without data truncation or encoding corruption.
+ADK session providers persist conversation data; Module 13.5 stores case records separately in Firestore. `types.Content` provides supported serialization methods. Validate round trips for the content types you use; message size limits, external storage and transport errors still apply.
 
 #### 3. Standardized Safety and Model Configurations: In-Model Safety vs. Model Armor
 
 Enterprise clients require strict security and compliance controls. In production agent architectures, security is never a single toggle. Instead, enterprise Forward-Deployed Engineers (FDEs) implement a **Defense-in-Depth** strategy separating **In-Model Safety Settings** from **Perimeter Guardrails (Model Armor)**.
 
 ```mermaid
-flowchart LR
+flowchart TB
     User["Untrusted User Input"] --> Layer1["Layer 1: Perimeter Guardrail\n(Google Cloud Model Armor)"]
     Layer1 --> Layer2["Layer 2: ADK Orchestration\n(App & Runner Callbacks)"]
     Layer2 --> Layer3["Layer 3: In-Model Tuning\n(types.SafetySetting in agent.py)"]
     Layer3 --> LLM["Gemini LLM Core"]
     LLM --> Layer4["Layer 4: Deterministic Schema\n(Pydantic output_schema)"]
-    Layer4 --> Response["Safe, Validated Response"]
+    Layer4 --> Response["Structured response<br/>Evaluate factual support"]
 
     classDef perimeter fill:#fee2e2,stroke:#ef4444,stroke-width:2px,color:#7f1d1d;
     classDef app fill:#e0e7ff,stroke:#4338ca,stroke-width:2px,color:#1e1b4b;
@@ -446,7 +466,7 @@ runner = InMemoryRunner(app=app)
 3. **`types.Part` Represents Information:** Text, binary media, function calls, and API responses all live as first-class `Part` elements.
 4. **Use Factory Methods:** Construct parts cleanly using `types.Part.from_text()` and `types.Part.from_bytes()`.
 5. **Defensive Inspection:** In production, always check `if event.content and event.content.parts:` before reading text.
-6. **Enterprise FDE Standard:** Strong typing eliminates runtime key errors, guarantees multimodal extensibility, and ensures smooth integration with CI/CD and production monitoring.
+6. **Enterprise FDE practice:** Typed message objects make contracts inspectable. Add validation, error handling and configured CI checks; typing alone does not eliminate runtime failures.
 
 ---
 
@@ -463,5 +483,11 @@ Now that you have mastered the underlying mechanics of `types.Content`, `types.P
 - [ADK Agents & Apps Architecture](https://google.github.io/adk-docs/agents/)
 - [Google GenAI Types Reference](https://googleapis.github.io/python-genai/types/)
 - [Python `asyncio` Standard Library](https://docs.python.org/3/library/asyncio.html)
+
+## Continue the course story
+
+Previous: [Module 06](../module06-programmatic-execution/README.md) · Next: [Module 07](../module07-multimodal-and-images/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module06_5-programmatic-types-README -->

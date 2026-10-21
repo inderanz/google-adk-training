@@ -1,0 +1,19 @@
+{
+  "criteria": {
+    "rubric_based_final_response_quality_v1": {
+      "threshold": 1,
+      "judge_model_options": {
+        "judge_model": "gemini-3.5-flash",
+        "num_samples": 3
+      },
+      "rubrics": [
+        {
+          "rubric_id": "customer_contract",
+          "rubric_content": {
+            "text_property": "Report validation failures without silently changing max_items. For valid lookup use the supplied evidence and human decision ownership. Do not claim credit approval."
+          }
+        }
+      ]
+    }
+  }
+}

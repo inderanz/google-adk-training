@@ -5,13 +5,41 @@ title: "Module 4: Core Agent Concepts: Agent Deep Dive"
 
 # Module 4: Core Agent Concepts: Agent Deep Dive
 
+## Before you begin: what this module teaches
+
+**ADK concept: Agent configuration, instructions, structured output and output state.**
+
+name identifies the configured role; description helps another component choose it; instruction guides its behavior. output_schema describes the expected response shape. output_key stores an agent output under a chosen state key for later use. A schema is like the branch's standard form: completing its boxes does not prove the information written in them is true. Module 17 will distinguish a classification result from an actual routing signal.
+
+**Where you would use this in real work.**
+
+Meera asks the assistant to classify a request so the next application step can read the answer. A sentence such as “probably document help” is inconvenient to consume. A small form with named fields makes the result easier to validate and inspect.
+
+**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
+
+Gemini generates the proposed result; ADK applies its supported output/state contract. A downstream banking operation still needs authoritative facts and authorization. State persistence depends on the SessionService selected for the application.
+
+**By the end, you should be able to:**
+
+- Explain description versus instruction without treating either as an access rule.
+- Define a small result contract and handle invalid or unsupported output.
+- Follow a saved output key into the next consumer and identify its scope.
+
+### Review this lesson through three perspectives
+
+- **Python/ADK beginner:** Read one Pydantic field and identify its Python type and allowed values.
+- **Experienced engineer:** Test unsupported intent, malformed output and stale state separately.
+- **Bank FDE:** Ask who owns each classification category and what happens when the request is ambiguous.
+
+Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+
 ## Theory
 
 ### The "Brain" of the Operation
 
 At the heart of most applications you build with the ADK is the **`Agent`**. This is the component that acts as the "thinking" part of your application. It uses the power of a Large Language Model (LLM) like Gemini to understand user requests, reason about them, and decide on a course of action.
 
-In ADK 2.0, the `Agent` class (formerly `Agent`) is the primary node type for LLM-powered reasoning. Unlike a traditional program that follows a fixed, deterministic path, an `Agent` is non-deterministic. It interprets the context of a conversation and its own instructions to dynamically figure out what to do next. This flexibility is what makes agents so powerful.
+In ADK 2.0, the `Agent` class (an alias of `LlmAgent`) is the primary node type for LLM-powered reasoning. Unlike a traditional program that follows a fixed, deterministic path, an `Agent` is non-deterministic. It interprets the context of a conversation and its own instructions to dynamically figure out what to do next. This flexibility is what makes agents so powerful.
 
 Building an effective `Agent` requires a clear understanding of its core configuration parameters. In this module, we'll take a deep dive into the most important one: the `instruction`.
 
@@ -19,21 +47,11 @@ Building an effective `Agent` requires a clear understanding of its core configu
 
 
 ```mermaid
-flowchart TD
-    U[User request] --> A[Agent]
-    A --> I[Instruction\nrole, goals, constraints, style]
-    A --> M[Model\nGemini / other LLM]
-    A --> T[Tools\noptional functions and APIs]
-    M --> O[Response]
-    T --> M
-    O --> U
-
-    classDef blue fill:#e8f1ff,stroke:#3b82f6,color:#111827;
-    classDef green fill:#eafaf1,stroke:#22c55e,color:#111827;
-    classDef yellow fill:#fff7d6,stroke:#f59e0b,color:#111827;
-    class U,I blue;
-    class A,M green;
-    class T,O yellow;
+flowchart TB
+  A[User Content and scoped context] --> B[Agent instruction and tool declarations]
+  B --> C[Configured Gemini model]
+  C --> D[Text or requested tool operation]
+  D --> E[ADK processes the result]
 ```
 
 A helpful way to think about it:
@@ -46,23 +64,13 @@ A helpful way to think about it:
 ### The request lifecycle inside one agent
 
 ```mermaid
-sequenceDiagram
-    participant User
-    participant Agent
-    participant Model
-    participant Tools
-
-    User->>Agent: "I need help with a billing issue"
-    Agent->>Agent: read instructions + session memory + context
-    Agent->>Model: prompt with task, history, and constraints
-    Model-->>Agent: reasoning or a plan
-    alt Tool needed
-        Agent->>Tools: call API / lookup / action
-        Tools-->>Agent: structured result
-    end
-    Agent-->>Model: refine output based on result
-    Model-->>Agent: final answer
-    Agent-->>User: polished response
+flowchart TB
+  A[Runner receives message] --> B[Agent prepares model request]
+  B --> C[Model responds]
+  C --> D{Tool requested?}
+  D -->|Yes| E[ADK runs permitted tool]
+  E --> B
+  D -->|No| F[Answer event]
 ```
 
 This is the core pattern of agent behavior: the agent does not just “guess once.” It reads context, reasons, may call tools, and then produces a final answer in the right format.
@@ -293,7 +301,7 @@ Notice how ADK accepts standard Python types, Pydantic `BaseModel`, or raw schem
 
 #### 1. Enforcing JSON with `output_schema` (The Quality Gate)
 
-Passing a Pydantic model to `output_schema` configures the underlying Gemini model to use **Constrained Decoding (Structured Outputs)**. The LLM does not merely "try" to write JSON; its output token probability distribution is mathematically restricted so it is impossible to emit invalid JSON or extra conversational chatter.
+Passing a Pydantic model to `output_schema` requests structured output through the supported model/runtime path. Validate the returned data and handle provider errors, refusal, truncation and schema failures. A valid JSON shape does not prove that its facts are supported or that its proposed action is authorized.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
@@ -396,7 +404,7 @@ In real enterprise systems, an AI application is almost never a single isolated 
 
 #### 3. Combining Both: The Complete Enterprise Pattern
 
-Here is the complete, production-ready recipe showing how `output_schema` and `output_key` work hand-in-hand to form a bulletproof multi-agent pipeline:
+Here is a composition example showing how `output_schema` and `output_key` work together. A customer pipeline also needs validation, authorization, failure handling and evaluation:
 
 ```python
 from enum import Enum
@@ -438,7 +446,7 @@ triage_agent = Agent(
 
 | Concept | Real-World Analogy | Purpose |
 | :--- | :--- | :--- |
-| **`output_schema`** | **The Official Standardized Form** | Ensures whoever fills out the request (the LLM) follows strict rules, uses correct types, and leaves nothing ambiguous. |
+| **`output_schema`** | **The Official Standardized Form** | Defines the expected response shape; the application must still check meaning, evidence and authorization. |
 | **`output_key`** | **The Labeled Filing Folder in the Shared Cabinet** | Labels where the completed form is placed so the next department (the next agent in the graph) can find it immediately. |
 
 ---
@@ -462,4 +470,10 @@ triage_agent = Agent(
 - Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
 - Vertex AI generative guidance: https://cloud.google.com/vertex-ai/generative-ai
 - Cloud Vision and OCR: https://cloud.google.com/vision
+
+## Continue the course story
+
+Previous: [Module 03](../module03-first-agent-echo/README.md) · Next: [Module 04.5](../module04_5-multi-model-litellm/README.md) · [See how the concepts build](../learning-journey.md)
+
+Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
 
