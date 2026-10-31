@@ -61,16 +61,20 @@ The `uv run adk deploy cloud_run` command is a powerful tool that automates most
         ```yaml
         name: billing_agent
         model: gemini-3.5-flash
-        description: "Handles questions about billing, invoices, and payments."
-        instruction: "You are a billing support agent. Politely answer questions about billing and payment issues."
+        # TODO 1: Add a concise description explaining that this agent handles billing, invoices, and payments.
+        description: ""
+        # TODO 2: Add instructions directing the agent to politely answer questions about invoices and payments.
+        instruction: ""
         ```
 
     *   **`tech_support_agent.yaml`:**
         ```yaml
         name: tech_support_agent
         model: gemini-3.5-flash
-        description: "Handles technical support questions and troubleshooting."
-        instruction: "You are a technical support agent. Help users troubleshoot technical issues and provide clear solutions."
+        # TODO 3: Add a concise description explaining that this agent handles technical support and troubleshooting.
+        description: ""
+        # TODO 4: Add instructions directing the agent to troubleshoot technical issues step-by-step.
+        instruction: ""
         ```
 
     *   **`root_agent.yaml`:**
@@ -78,11 +82,12 @@ The `uv run adk deploy cloud_run` command is a powerful tool that automates most
         name: router_agent
         model: gemini-3.5-flash
         description: "The main customer support router."
+        # TODO 5: Define the routing instruction directing billing questions to billing_agent
+        # and technical problems to tech_support_agent.
         instruction: |
           You are the customer support router.
-          Your job is to understand the user's request and delegate it to the correct specialist agent.
-          - If the user has a question about billing, delegate to the `billing_agent`.
-          - If the user has a technical problem, delegate to the `tech_support_agent`.
+          # TODO: Add routing instructions here
+        # TODO 6: Register the two sub-agents via config_path
         sub_agents:
           - config_path: billing_agent.yaml
           - config_path: tech_support_agent.yaml

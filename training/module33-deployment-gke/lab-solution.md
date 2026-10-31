@@ -5,6 +5,75 @@ title: "Lab Solution"
 
 # Lab 33 Solution: Manually Deploying an Agent to GKE
 
+## 🤖 Antigravity / Gemini Steering Prompt Template
+
+```markdown
+You are an expert Google Kubernetes Engine (GKE) & ADK Forward-Deployed Engineer (FDE).
+Deploy an enterprise ADK agent to a Google Kubernetes Engine Autopilot cluster:
+1. Containerize the ADK agent using python:3.11-slim, installing google-adk and running `adk api_server --host 0.0.0.0 --port=8080 .`.
+2. Build and push the container image to Google Artifact Registry using Cloud Build (`gcloud builds submit`).
+3. Author a Kubernetes Deployment manifest specifying 8080 containerPort and Vertex AI environment variables.
+4. Author a Kubernetes Service manifest of type LoadBalancer routing external port 80 to container targetPort 8080.
+5. Apply the manifest using `envsubst < deployment.yaml | kubectl apply -f -`.
+6. Verify external service IP allocation and test the agent turn via curl.
+```
+
+## Reference Manifests
+
+### `Dockerfile`
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+EXPOSE 8080
+CMD ["adk", "api_server", "--host", "0.0.0.0", "--port=8080", "."]
+```
+
+### `deployment.yaml`
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: support-agent-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: support-agent
+  template:
+    metadata:
+      labels:
+        app: support-agent
+    spec:
+      containers:
+      - name: support-agent
+        image: ${GOOGLE_CLOUD_LOCATION}-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/adk-images/support-agent:v1
+        ports:
+        - containerPort: 8080
+        env:
+          - name: GOOGLE_GENAI_USE_VERTEXAI
+            value: "1"
+          - name: GOOGLE_CLOUD_PROJECT
+            value: "${GOOGLE_CLOUD_PROJECT}"
+          - name: GOOGLE_CLOUD_LOCATION
+            value: "${GOOGLE_CLOUD_LOCATION}"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: support-agent-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: support-agent
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+```
+
 ## Goal
 
 This lab is a procedural tutorial. The primary "solution" is a successfully deployed Customer Support agent running on a GKE cluster, accessible via a public IP address.

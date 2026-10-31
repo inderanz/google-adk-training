@@ -5,6 +5,51 @@ title: "Lab Solution"
 
 # Lab 32 Solution: Deploying the Customer Support Agent
 
+## 🤖 Antigravity / Gemini Steering Prompt Template
+
+```markdown
+You are an expert Google Cloud & ADK Forward-Deployed Engineer (FDE).
+Deploy an ADK multi-agent support router to Google Cloud Run:
+1. Configure sub-agents (billing_agent.yaml and tech_support_agent.yaml) with explicit descriptions and instructions.
+2. Configure root_agent.yaml with delegation rules directing questions to billing or technical support.
+3. Set GOOGLE_GENAI_USE_VERTEXAI=1 and configure the target project and region in .env.
+4. Execute deployment using `uv run adk deploy cloud_run`.
+5. Verify the deployment by testing the resulting Cloud Run HTTPS Service URL.
+```
+
+## Reference Agent YAML Configurations
+
+### `billing_agent.yaml`
+```yaml
+name: billing_agent
+model: gemini-3.5-flash
+description: "Handles questions about billing, invoices, and payments."
+instruction: "You are a billing support agent. Politely answer questions about billing and payment issues."
+```
+
+### `tech_support_agent.yaml`
+```yaml
+name: tech_support_agent
+model: gemini-3.5-flash
+description: "Handles technical support questions and troubleshooting."
+instruction: "You are a technical support agent. Help users troubleshoot technical issues and provide clear solutions."
+```
+
+### `root_agent.yaml`
+```yaml
+name: router_agent
+model: gemini-3.5-flash
+description: "The main customer support router."
+instruction: |
+  You are the customer support router.
+  Your job is to understand the user's request and delegate it to the correct specialist agent.
+  - If the user has a question about billing, delegate to the `billing_agent`.
+  - If the user has a technical problem, delegate to the `tech_support_agent`.
+sub_agents:
+  - config_path: billing_agent.yaml
+  - config_path: tech_support_agent.yaml
+```
+
 ## Goal
 
 This lab is a procedural tutorial. The primary "solution" is a successfully deployed agent and a public URL.

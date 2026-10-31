@@ -88,14 +88,17 @@ In this lab, you will learn the fundamental process of deploying an ADK agent to
     ```
 
 2.  **Create the `Dockerfile`:**
-    Create a file named `Dockerfile` and add the following. Note that `.` is passed as the agent directory — since the YAML files are copied directly into `/app`, `/app` itself *is* the agent folder (there's no `support_agent/` subdirectory inside the image).
+    Create a file named `Dockerfile` to containerize the agent. Follow the `# TODO` prompts below.
     ```dockerfile
+    # TODO 1: Use official python:3.11-slim as base image
     FROM python:3.11-slim
     WORKDIR /app
     COPY requirements.txt .
     RUN pip install --no-cache-dir -r requirements.txt
     COPY . .
+    # TODO 2: Expose the target container port (8080)
     EXPOSE 8080
+    # TODO 3: Launch ADK api_server listening on 0.0.0.0 and port 8080 serving "."
     CMD ["adk", "api_server", "--host", "0.0.0.0", "--port=8080", "."]
     ```
 
@@ -129,7 +132,7 @@ In this lab, you will learn the fundamental process of deploying an ADK agent to
     ```
 
 3.  **Create the Kubernetes Manifest (`deployment.yaml`):**
-    Create a file named `deployment.yaml`. **Note the use of shell variables (`GOOGLE_CLOUD_LOCATION`, `GOOGLE_CLOUD_PROJECT`)**, which we will substitute in the next step. Kubernetes resource names can't contain underscores, which is why these use hyphens even though the container image and agent names use underscores.
+    Create a file named `deployment.yaml`. Complete the `# TODO` sections for the container spec and LoadBalancer service.
     ```yaml
     apiVersion: apps/v1
     kind: Deployment
@@ -147,9 +150,14 @@ In this lab, you will learn the fundamental process of deploying an ADK agent to
         spec:
           containers:
           - name: support-agent
+            # TODO 4: Specify the image tag in Artifact Registry
             image: ${GOOGLE_CLOUD_LOCATION}-docker.pkg.dev/${GOOGLE_CLOUD_PROJECT}/adk-images/support-agent:v1
             ports:
             - containerPort: 8080
+            # TODO 5: Define environment variables for Vertex AI:
+            # - GOOGLE_GENAI_USE_VERTEXAI: "1"
+            # - GOOGLE_CLOUD_PROJECT: "${GOOGLE_CLOUD_PROJECT}"
+            # - GOOGLE_CLOUD_LOCATION: "${GOOGLE_CLOUD_LOCATION}"
             env:
               - name: GOOGLE_GENAI_USE_VERTEXAI
                 value: "1"
@@ -163,10 +171,12 @@ In this lab, you will learn the fundamental process of deploying an ADK agent to
     metadata:
       name: support-agent-service
     spec:
+      # TODO 6: Set service type to LoadBalancer to expose externally
       type: LoadBalancer
       selector:
         app: support-agent
       ports:
+      # TODO 7: Map external port 80 to container targetPort 8080
       - protocol: TCP
         port: 80
         targetPort: 8080
