@@ -281,3 +281,68 @@ html .navbar__title,html .navbar__brand {
     scroll-behavior: auto!important;
   }
 }
+
+/* --- Copy-to-Clipboard Button --- */
+.code-block-wrapper {
+  position: relative;
+}
+.copy-code-button {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  background: rgba(30, 35, 45, 0.85);
+  color: #e2e8f0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+  backdrop-filter: blur(4px);
+  user-select: none;
+}
+.copy-code-button:hover {
+  background: #2563eb;
+  color: #fff;
+  border-color: #3b82f6;
+}
+.copy-code-button.copied {
+  background: #059669;
+  color: #fff;
+  border-color: #10b981;
+}
+
+/* --- Mark as Completed Widget --- */
+.module-completion-widget {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.completion-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 1px solid rgba(0,0,0,0.15);
+  background: #fff;
+  color: #374151;
+  transition: all 0.15s ease;
+}
+.completion-toggle-btn:hover {
+  background: #f3f4f6;
+}
+.completion-toggle-btn.completed {
+  background: #ecfdf5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}

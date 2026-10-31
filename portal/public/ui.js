@@ -29,25 +29,9 @@
       actions.append(action(u.active?'Revoke':'Approve',async()=>{await api('api/admin/users',u.active?'DELETE':'POST',{email:u.email});status('Access updated');await showUsers();},'secondary'));
       actions.append(action('Delete activity',async()=>{if(!confirm(`Delete retained activity for ${u.email}? Access approval will not change.`))return;await api('api/admin/reports','DELETE',{email:u.email});status('Learner activity deleted');await showReports();},'danger'));
       actions.append(action('View activity',async()=>{$('report-filters').elements.email.value=u.email;setReportFilters();await showReports();}));
-      return[u.email,u.active?'Approved':'Revoked',actions];
+      return[u.name || '—',u.email,u.active?'Active':'Revoked',u.accepted_at?new Date(u.accepted_at).toLocaleString():'Not registered',u.agreement_version || '—',actions];
     });
-    $('users').replaceChildren(rows.length?table(['Email','Access','Actions'],rows):el('p','No learners yet. Approve a Google account email to get started.','empty-state'));
-  }
-  async function showReleases(){
-    const data=await api('api/admin/modules');$('releases').replaceChildren();
-    for(const m of data.modules){
-      const card=el('section'),title=el('h3',m.title),form=el('form');
-      const lessons=el('input'),solutions=el('input');lessons.type=solutions.type='checkbox';lessons.checked=m.lessons;solutions.checked=m.solutions;solutions.disabled=!m.lessons;
-      const a=el('label','Release lessons and labs','check'),b=el('label','Release solutions','check');a.prepend(lessons);b.prepend(solutions);
-      lessons.onchange=()=>{solutions.disabled=!lessons.checked;if(!lessons.checked)solutions.checked=false;};
-      form.append(a,b,action('Save release',async()=>{await api('api/admin/modules','PUT',{id:m.id,lessons:lessons.checked,solutions:solutions.checked});status(`Release saved: ${m.title}`);}));
-      const preview=el('a','Preview content');preview.href=m.path;card.append(title,form,preview);$('releases').append(card);
-    }
-    $('release-search').oninput=()=>{
-      const query=$('release-search').value.trim().toLowerCase();let visible=0;
-      for(const card of $('releases').children){card.hidden=!card.querySelector('h3').textContent.toLowerCase().includes(query);if(!card.hidden)visible++;}
-      $('release-empty').hidden=visible>0;
-    };
+    $('users').replaceChildren(rows.length?table(['Name','Email','Access','Agreement accepted','Version','Actions'],rows):el('p','No learners yet. New learners appear here after registration.','empty-state'));
   }
   function showCatalogue(){
     const query=$('module-search').value.trim().toLowerCase();
@@ -79,6 +63,37 @@
     $('reports').append(rows.length?table(['Learner','Page','Visit','Last activity','Active minutes'],rows):el('p','No visits for these filters yet. Activity appears as learners visit released pages.','empty-state'));
     nextOffset=data.nextOffset;$('more').hidden=nextOffset===null;
   }
+  if($('registration')){
+    const form=$('registration');
+    form.onsubmit=async event=>{
+      event.preventDefault();const button=form.querySelector('button');button.disabled=true;
+      try{
+        me={csrf:form.dataset.csrf};
+        const result=await api('register/','POST',{name:form.elements.name.value,agree:form.elements.agree.checked,version:form.dataset.version});
+        location.assign(result.redirect);
+      }catch(error){status(error.message);button.disabled=false;}
+    };
+    return;
+  }
+  if($('email-login')){
+    const form=$('email-login');
+    form.onsubmit=async event=>{
+      event.preventDefault();const button=form.querySelector('button');button.disabled=true;
+      try{
+        me={csrf:form.dataset.csrf};
+        const result=await api('auth/login','POST',{
+          email:form.elements.email.value,
+          name:form.elements.name.value,
+          agree:form.elements.agree.checked,
+          version:form.dataset.version,
+          returnTo:form.dataset.return,
+          csrf:form.dataset.csrf
+        });
+        location.assign(result.redirect || base+'learn/');
+      }catch(error){status(error.message);button.disabled=false;}
+    };
+    return;
+  }
   try{
     me=await api('api/me');
     if($('admin-link'))$('admin-link').hidden=!me.admin;
@@ -94,7 +109,7 @@
       $('access-note').textContent=`Signed in as ${me.email}`;
       document.querySelector('.signin-help').hidden=true;
     }
-    if($('logout')){$('logout').hidden=false;$('logout').onclick=async()=>{try{await api('auth/logout','POST');location.assign(base);}catch(error){status(error.message);}};}
+    if($('logout')){$('logout').hidden=false;$('logout').onclick=async()=>{try{const result=await api('auth/logout','POST');location.assign(result.redirect || base);}catch(error){status(error.message);}};}
     if($('catalog')){
       const data=await api('api/catalog');
       modules=data.modules;
@@ -110,7 +125,7 @@
       showCatalogue();
     }
     if($('approve')){
-      await Promise.all([showUsers(),showReleases(),showReports()]);
+      await Promise.all([showUsers(),showReports()]);
       $('approve').onsubmit=async event=>{event.preventDefault();try{await api('api/admin/users','POST',{email:event.target.elements.email.value});event.target.reset();status('Learner approved');await showUsers();}catch(error){status(error.message);}};
       $('report-filters').onsubmit=async event=>{event.preventDefault();setReportFilters();try{await showReports();}catch(error){status(error.message);}};
       $('more').onclick=()=>showReports(nextOffset).catch(e=>status(e.message));

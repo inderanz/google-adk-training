@@ -13,53 +13,6 @@ This course was born from a specific need: to create a complete learning path th
 
 This course was created and is maintained by [**Inder Chauhan**](https://github.com/inderanz), Principal Engineer at One of top 4 Bank at Australia & leading enterprise-wide AI adoption and platform engineering. Google Cloud Certified Fellow with deep expertise in Gemini Enterprise Agent Platform, agentic workflows, RAG architectures, and SRE-driven reliability. This project stems from a passion for empowering developers with the skills needed to build the next generation of AI agents.
 
-## 🚧 Project Status 🚧
-
-**Current Version:** `v1.0.3`
-
-This training course is complete and production-ready, covering the full ADK 2.0 curriculum across 40 modules — from your first agent to distributed, enterprise-grade multi-agent systems with full AgentOps observability.
-
-We continue to refine and expand the material as the ADK evolves. Your feedback and contributions are highly encouraged! If you find an issue or have a suggestion, please [open an issue on GitHub](https://github.com/inderanz/google-adk-training/issues).
-
-**What's new in `v1.0.3`:** ADK 2.4-2.6 coverage completed, plus a full empirical re-validation pass (every change below was actually run, not just reasoned about) that surfaced several pre-existing bugs unrelated to prior updates —
-
-*Coverage:*
-*   **Module 18:** a "Going Further" section on using a `@node` directly as an `Agent` tool, paired with `RequestInput`/`ResumabilityConfig` for human-in-the-loop pause-and-resume.
-*   **Module 26:** noted `BasePlugin`'s notification-only `on_agent_error_callback`/`on_run_error_callback`, and added an explicit run/test step.
-*   **Module 28:** noted `to_mcp_server` as the agent-level counterpart to Module 27's tool-level MCP server.
-*   **Module 39.5:** pointed to `GkeCodeExecutor`/`AgentEngineSandboxCodeExecutor` as production-safe alternatives to `UnsafeLocalCodeExecutor`.
-
-*Bugs found and fixed via empirical re-validation (student simulations that actually run the code):*
-*   **Module 9 & 12:** fixed `adk run agent.py` (needs a directory, not a file) in both modules.
-*   **Module 21:** fixed a nonexistent tool (`GoogleSearchAgentTool` → `google_search`), a missing dependency, and a wrong agent-card URL that silently blocked the entire A2A lab.
-*   **Module 24:** fixed `adk eval`'s missing `__init__.py`/`PYTHONPATH` requirement and corrected both bonus sections' JSON formats and CLI commands.
-*   **Module 27:** fixed a missing `mcp` install (the extra is required, not optional).
-*   **Module 28:** fixed a CWD-dependent path and a directory-naming mismatch that broke the lab when run as documented.
-*   **Module 33:** fixed a broken YAML indentation that caused `kubectl` to silently discard the Deployment's `spec`.
-*   Removed a handful of stale `adk create` CLI prompts referenced across several modules.
-
-**What's new in `v1.0.2`:** a second pass, this time against ADK 2.6.0 —
-*   **Module 12:** noted `ManagedAgent`'s new `instruction` parameter.
-*   **Module 24:** added hands-on "Custom Metric" and "Dynamic User Simulation" bonus sections, closing a gap where the theory mentioned both but the lab never demonstrated them.
-*   **Module 26:** introduced `ReflectAndRetryModelPlugin` and `ReflectAndRetryToolPlugin` as concrete, production-ready examples of the plugin pattern.
-
-**What's new in `v1.0.1`:** a pass against the latest official ADK documentation, keeping the course current as the framework evolves —
-*   **Module 12:** a "Looking Ahead" note on the new (Preview) `ManagedAgent`.
-*   **Module 21:** fixed the A2A lab to opt into ADK's reliability-fixed executor (`use_legacy=False`), avoiding known streaming-mode message-duplication bugs.
-*   **Module 27:** a new bonus section connecting to a *remote* MCP server (`StreamableHTTPConnectionParams`) via the public GitHub MCP server, in addition to the existing local/Stdio example.
-*   **Module 28:** aligned MCP naming (`McpToolset`) with the current official SDK.
-*   **Module 33:** a bonus callout showing the automated `adk deploy gke` shortcut alongside the manual walkthrough.
-*   **Module 39.5:** noted the Skills feature's experimental status and added a "Going Further" section on the (Preview) Skill Registry.
-
-## ⏱️ Time Estimation
-
-This comprehensive training course is designed for both self-service and instructor-led delivery. The estimates below provide a realistic guide for pacing, considering the technical depth and hands-on nature of the labs.
-
-*   🧑‍💻 **Self-Service (SS) Duration:** This estimate reflects the time a motivated individual learner would take to read the theory, complete the labs, and account for a 25% troubleshooting/review factor.
-*   👨‍🏫 **Instructor-Led Training (ILT) Duration:** This estimate is tailored for a classroom environment (up to 16 participants) with a net delivery time of 6 hours per day. It includes a 75% buffer for instructor guidance, Q&A, and assisting students during labs, plus a 5-minute transition buffer between modules.
-
----
-
 ## ⏱️ Course Outline
 
 ### 🌱 Part 1: Foundations (Modules 1-7)
@@ -168,6 +121,53 @@ To get started with the course:
 Happy building!
 
 ---
+
+## ⏱️ Time Estimation
+
+This comprehensive training course is designed for both self-service and instructor-led delivery. The estimates below provide a realistic guide for pacing, considering the technical depth and hands-on nature of the labs.
+
+*   🧑‍💻 **Self-Service (SS) Duration:** This estimate reflects the time a motivated individual learner would take to read the theory, complete the labs, and account for a 25% troubleshooting/review factor.
+*   👨‍🏫 **Instructor-Led Training (ILT) Duration:** This estimate is tailored for a classroom environment (up to 16 participants) with a net delivery time of 6 hours per day. It includes a 75% buffer for instructor guidance, Q&A, and assisting students during labs, plus a 5-minute transition buffer between modules.
+
+---
+
+## 🚧 Project Status 🚧
+
+**Current Version:** `v1.0.3`
+
+This training course is complete and production-ready, covering the full ADK 2.0 curriculum across 40 modules — from your first agent to distributed, enterprise-grade multi-agent systems with full AgentOps observability.
+
+We continue to refine and expand the material as the ADK evolves. Your feedback and contributions are highly encouraged! If you find an issue or have a suggestion, please [open an issue on GitHub](https://github.com/inderanz/google-adk-training/issues).
+
+**What's new in `v1.0.3`:** ADK 2.4-2.6 coverage completed, plus a full empirical re-validation pass (every change below was actually run, not just reasoned about) that surfaced several pre-existing bugs unrelated to prior updates —
+
+*Coverage:*
+*   **Module 18:** a "Going Further" section on using a `@node` directly as an `Agent` tool, paired with `RequestInput`/`ResumabilityConfig` for human-in-the-loop pause-and-resume.
+*   **Module 26:** noted `BasePlugin`'s notification-only `on_agent_error_callback`/`on_run_error_callback`, and added an explicit run/test step.
+*   **Module 28:** noted `to_mcp_server` as the agent-level counterpart to Module 27's tool-level MCP server.
+*   **Module 39.5:** pointed to `GkeCodeExecutor`/`AgentEngineSandboxCodeExecutor` as production-safe alternatives to `UnsafeLocalCodeExecutor`.
+
+*Bugs found and fixed via empirical re-validation (student simulations that actually run the code):*
+*   **Module 9 & 12:** fixed `adk run agent.py` (needs a directory, not a file) in both modules.
+*   **Module 21:** fixed a nonexistent tool (`GoogleSearchAgentTool` → `google_search`), a missing dependency, and a wrong agent-card URL that silently blocked the entire A2A lab.
+*   **Module 24:** fixed `adk eval`'s missing `__init__.py`/`PYTHONPATH` requirement and corrected both bonus sections' JSON formats and CLI commands.
+*   **Module 27:** fixed a missing `mcp` install (the extra is required, not optional).
+*   **Module 28:** fixed a CWD-dependent path and a directory-naming mismatch that broke the lab when run as documented.
+*   **Module 33:** fixed a broken YAML indentation that caused `kubectl` to silently discard the Deployment's `spec`.
+*   Removed a handful of stale `adk create` CLI prompts referenced across several modules.
+
+**What's new in `v1.0.2`:** a second pass, this time against ADK 2.6.0 —
+*   **Module 12:** noted `ManagedAgent`'s new `instruction` parameter.
+*   **Module 24:** added hands-on "Custom Metric" and "Dynamic User Simulation" bonus sections, closing a gap where the theory mentioned both but the lab never demonstrated them.
+*   **Module 26:** introduced `ReflectAndRetryModelPlugin` and `ReflectAndRetryToolPlugin` as concrete, production-ready examples of the plugin pattern.
+
+**What's new in `v1.0.1`:** a pass against the latest official ADK documentation, keeping the course current as the framework evolves —
+*   **Module 12:** a "Looking Ahead" note on the new (Preview) `ManagedAgent`.
+*   **Module 21:** fixed the A2A lab to opt into ADK's reliability-fixed executor (`use_legacy=False`), avoiding known streaming-mode message-duplication bugs.
+*   **Module 27:** a new bonus section connecting to a *remote* MCP server (`StreamableHTTPConnectionParams`) via the public GitHub MCP server, in addition to the existing local/Stdio example.
+*   **Module 28:** aligned MCP naming (`McpToolset`) with the current official SDK.
+*   **Module 33:** a bonus callout showing the automated `adk deploy gke` shortcut alongside the manual walkthrough.
+*   **Module 39.5:** noted the Skills feature's experimental status and added a "Going Further" section on the (Preview) Skill Registry.
 
 ## 🤝 Contributing
 

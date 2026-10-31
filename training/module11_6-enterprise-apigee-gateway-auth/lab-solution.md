@@ -86,13 +86,6 @@ sequenceDiagram
 
 Below is the complete, runnable Python implementation for the Apigee X Secured Banking Agent:
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Demonstrate how to secure enterprise REST tools using `header_provider` and `httpx_client_factory`.
-- **Why it matters:** Enforces zero-trust credential hygiene by injecting auth headers strictly at the transport layer.
-- **Version watch:** Grounded against ADK 2.0 (`google.adk.tools.openapi_tool.OpenAPIToolset`).
-<!-- TEACHER_NOTE_END -->
-
 ```python
 # agent.py
 """
@@ -238,7 +231,6 @@ APIGEE_BANKING_SPEC: Dict[str, Any] = {
     },
 }
 
-
 # ============================================================================
 # 2. ASYNC IN-MEMORY OAUTH2 TOKEN MANAGER
 # ============================================================================
@@ -295,10 +287,8 @@ class ApigeeOAuth2TokenManager:
             self._expires_at = now + self.token_ttl_seconds
             return self._cached_token
 
-
 # Singleton token manager instance
 token_manager = ApigeeOAuth2TokenManager()
-
 
 # ============================================================================
 # 3. RUNTIME ZERO-TRUST HEADER PROVIDER
@@ -323,7 +313,6 @@ def apigee_header_provider(
         "x-api-key": "apex-advisor-portal-key-prod-01",
         "X-Advisor-Identity": caller_id,
     }
-
 
 # ============================================================================
 # 4. IN-MEMORY APIGEE X GATEWAY EMULATOR (HERMETIC TESTING)
@@ -389,7 +378,6 @@ def mock_apigee_gateway_handler(request: httpx.Request) -> httpx.Response:
 
     return httpx.Response(status_code=404, json={"error": "Not found"})
 
-
 def create_apigee_client_factory() -> Callable[[], httpx.AsyncClient]:
     """Returns an httpx.AsyncClient factory configured for Apigee X."""
     env = os.getenv("ENVIRONMENT", "development").lower()
@@ -406,7 +394,6 @@ def create_apigee_client_factory() -> Callable[[], httpx.AsyncClient]:
         return lambda: httpx.AsyncClient(
             transport=httpx.MockTransport(mock_apigee_gateway_handler)
         )
-
 
 # ============================================================================
 # 5. OPENAPI TOOLSET SYNTHESIS WITH TRANSPORT HOOKS
@@ -480,7 +467,6 @@ import pytest
 from google.adk.runners import AgentRunner
 from agent import root_agent, token_manager
 
-
 @pytest.mark.asyncio
 async def test_balance_inquiry_with_apigee_auth():
     """Verify that balance check completes successfully with transport auth."""
@@ -493,7 +479,6 @@ async def test_balance_inquiry_with_apigee_auth():
     final_response = [e.content for e in events if e.is_final_response()][0]
     assert "15,420.50" in final_response
     assert "ACC-10294" in final_response
-
 
 @pytest.mark.asyncio
 async def test_zero_trust_prompt_isolation():

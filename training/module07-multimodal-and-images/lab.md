@@ -7,7 +7,6 @@ title: "Challenge Lab"
 
 **Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
 
-
 ## Goal
 
 In this lab, you will build a multimodal agent that can analyze a product image and generate a marketing description. This will teach you how to handle image inputs and perform programmatic execution with a vision-capable agent.
@@ -56,20 +55,6 @@ Below is the same logic written in a teaching-friendly way. Instead of reading i
 
 This is the main mental model you will reuse in real ADK projects: one object holds the model, another object manages the runtime, and the message carries the business data.
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```python
 # ------------------------------------------------------------
 # 1) Import the libraries we need
@@ -319,8 +304,6 @@ When you build real AI features later, reuse this pattern:
 - Keep the app logic simple and reusable as a service or workflow method
 
 This is the same reasoning you will use for real-world systems such as document analysis, product recommendation, OCR, call summarization, and customer support copilots.
-
-
 
 > **Cleanup:** Unlike other modules, this lab's project was created directly inside `module07-multimodal-and-images/` (the actual course repo folder) rather than in your separate `adk-training` scratch directory. Once you're done, delete `visual_catalog/`, `.venv/`, `pyproject.toml`, and `uv.lock` from inside this module's folder so they don't accidentally get committed to the repo.
 

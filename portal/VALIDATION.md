@@ -1,3 +1,25 @@
+## Free registration validation — 2026-10-30
+
+Current access behavior supersedes the earlier instructor-release checks below:
+all registered learners receive all lessons and solutions. Anonymous access remains
+blocked; administrators can revoke accounts. Legacy learners must accept the
+agreement on their next Google sign-in.
+
+Completed:
+- `npm test`: 30 tests passed, including registration validation, CSRF, expiry,
+  replay, revocation, immutable verified email, and agreement metadata.
+- `npm run test:browser`: 59 checks passed in Chrome, including actual form
+  submission and responsive registration, catalogue, lessons and administration.
+- `npm run test:worker`: 8 checks passed against local Wrangler and D1.
+- `npm run build` and `npm run check`: passed; the latter was a dry-run only.
+- Applied `0002_registration.sql` locally, restarted the portal, verified HTTP 200.
+
+Google OAuth verification uses mocked token exchange in application tests and
+signed test tokens for verifier tests. Browser registration starts with a seeded,
+short-lived pending identity in its isolated test database. Real Gmail sign-in
+has not been tested: OAuth client credentials still need configuration. No remote
+database migration or deployment was performed.
+
 # Local validation — 1 October 2026
 
 Feature branch: `feature/gyanhq-training-portal`, based on

@@ -126,13 +126,6 @@ mock_client_factory = lambda: httpx.AsyncClient(
 
 Below is the complete, runnable Python implementation for the Core Banking OpenAPI Integration Agent with built-in hermetic transport mocking:
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Demonstrate how `OpenAPIToolset` ingests OpenAPI 3.0 specs and how `httpx_client_factory` enables hermetic local testing.
-- **Why it matters:** Eliminates manual adapter code for enterprise microservices while guaranteeing testability in zero-trust, firewalled environments.
-- **Version watch:** Grounded against ADK 2.0 (`google.adk.tools.openapi_tool.OpenAPIToolset`).
-<!-- TEACHER_NOTE_END -->
-
 ```python
 # agent.py
 """
@@ -274,7 +267,6 @@ CORE_BANKING_SPEC = {
 # Intercepts requests targeting private/unreachable enterprise hostnames in-memory.
 # Eliminates DNS resolution errors (`[Errno 8]`) without requiring local mock servers.
 
-
 def mock_banking_handler(request: httpx.Request) -> httpx.Response:
     url_str = str(request.url)
 
@@ -303,7 +295,6 @@ def mock_banking_handler(request: httpx.Request) -> httpx.Response:
         )
 
     return httpx.Response(status_code=404, json={"error": "Not found"})
-
 
 # ============================================================================
 # 3. OPENAPI TOOLSET SYNTHESIS WITH INJECTED CLIENT FACTORY
@@ -380,7 +371,6 @@ import os
 import httpx
 from google.adk.tools.openapi_tool import OpenAPIToolset
 
-
 def get_banking_client_factory():
     env = os.getenv("ENVIRONMENT", "development").lower()
 
@@ -396,7 +386,6 @@ def get_banking_client_factory():
             transport=httpx.MockTransport(mock_banking_handler)
         )
 
-
 banking_toolset = OpenAPIToolset(
     spec_str=spec_json_str,
     spec_str_type="json",
@@ -411,7 +400,6 @@ In your automated test suite, you can write deterministic tests without running 
 import pytest
 from google.adk.runners import AgentRunner
 from wealth_advisor.agent import root_agent
-
 
 @pytest.mark.asyncio
 async def test_balance_inquiry():

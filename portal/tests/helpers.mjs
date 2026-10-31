@@ -23,7 +23,7 @@ export const site={
   },
 };
 export class D1 {
-  constructor(){this.sqlite=new DatabaseSync(':memory:');this.sqlite.exec(readFileSync(new URL('../migrations/0001_portal.sql',import.meta.url),'utf8'));}
+  constructor(){this.sqlite=new DatabaseSync(':memory:');for(const file of ['0001_portal.sql','0002_registration.sql'])this.sqlite.exec(readFileSync(new URL('../migrations/'+file,import.meta.url),'utf8'));}
   prepare(sql){
     const database=this.sqlite;
     return {bind(...args){
@@ -48,6 +48,7 @@ export async function fixture(options={}){
   const app=createApp(site,{clock:()=>time,...options});
   for(const [sub,email,token]of[['learner','learner@gmail.com','learner-token'],['owner','owner@gmail.com','owner-token'],['other','other@gmail.com','other-token']]){
     db.sqlite.prepare('INSERT INTO identities VALUES(?,?,?,?)').run(sub,email,sub,time);
+    db.sqlite.prepare('INSERT INTO registrations VALUES(?,?,?)').run(sub,'2026-10-30',time);
     db.sqlite.prepare('INSERT INTO sessions VALUES(?,?,?,?,?)').run(await hash(token),sub,email,`csrf-${sub}`,time+43200000);
     if(sub!=='owner')db.sqlite.prepare('INSERT INTO approvals VALUES(?,?,?,?,?)').run(email,1,sub,time,time);
   }

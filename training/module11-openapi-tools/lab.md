@@ -9,7 +9,6 @@ import Setup from '../_setup-snippet.mdx';
 
 **Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
 
-
 ## 🏛️ Enterprise Scenario: Apex Global Financial Services
 
 You are a **Google Forward-Deployed Engineer (FDE)** assigned to **Apex Global Financial Services**. The bank is modernizing its wealth management platform and wants to equip financial advisors with an AI Assistant capable of interacting with their **Core Banking Gateway**.
@@ -51,13 +50,6 @@ Your objective is to complete the OpenAPI specification dictionary and integrate
 ### Step 2: Implement the OpenAPI Specification & Agent Node
 
 Open `agent.py` in `wealth_advisor`. Replace its contents with the starter skeleton below and complete all `TODO` sections.
-
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Teach how OpenAPI 3.0 specs auto-synthesize into ADK 2.0 executable tools via `OpenAPIToolset`.
-- **Why it matters:** Eliminates custom Python HTTP wrapper debt in enterprise environments with hundreds of existing REST endpoints.
-- **Version watch:** Grounded against ADK 2.0 (`google.adk.tools.openapi_tool.OpenAPIToolset`).
-<!-- TEACHER_NOTE_END -->
 
 ```python
 # In agent.py

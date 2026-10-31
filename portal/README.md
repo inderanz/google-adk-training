@@ -1,3 +1,30 @@
+## Free Google registration
+
+Anyone with a verified Google account can register for free. After Google sign-in,
+new learners confirm their name and explicitly accept the learning-account
+agreement. All lessons, labs, solutions, and associated assets are then available;
+there is no instructor approval or module-release step. Anonymous visitors still
+need to register. Administrators can view names, emails, agreement versions and
+acceptance dates, and disable accounts. Disabled accounts cannot register again
+to bypass revocation. Existing learners must sign in again to accept the agreement.
+
+Apply migration `0002_registration.sql` before running the updated Worker (the
+migration command below applies all pending migrations). Existing release rows
+are retained for compatibility but no longer restrict course access; the old
+module-release mutation API is disabled.
+
+Google identity details are temporarily stored for the ten-minute registration
+flow. No learner account or session is created until acceptance. The daily cleanup
+removes expired pending registrations. Agreement version `2026-10-30` covers
+account identity and the existing 90-day learning-activity collection; it does not
+subscribe learners to marketing. Keep that version's agreement text in source
+history. Account deletion must also delete its `registrations` row before the
+identity record because of its foreign key.
+
+Google OAuth credentials are still required for real sign-in. Configure the OAuth
+application for the intended public audience before launch. Local preview login
+continues to be an administrator-only convenience, not a Google login test.
+
 # GyanHQ training portal
 
 Separate Cloudflare Worker + D1 deployment of the existing Docusaurus course.
@@ -84,20 +111,18 @@ Resolve any current Markdown/MDX build errors before deploying updated lessons.
 
 - Worker first for every path, including JS, HTML, downloads, and assets.
 - Public landing and portal UI assets contain no lessons. All course assets
-  require a valid session and, where applicable, a released module/solution.
+  require a valid registered session.
 - Build metadata maps rendered pages and webpack content chunks to permissions;
   mixed-permission chunks and unclassified output fail the build. The manifest
   is bundled into the Worker, not served as a public static endpoint.
 - Full document navigation replaces speculative prefetch/client routing. This
   intentionally adds page requests in exchange for straightforward access checks.
 - Sessions last 12 hours. Only token hashes are stored in D1. Google `sub` is the
-  stable identity; approval emails are normalized without Gmail dot/plus alias
-  rewriting and bound to one Google identity on first approved login.
+  stable identity; account emails are normalized without Gmail dot/plus alias
+  rewriting and bound to one Google identity on registration.
 - Exact `ADMIN_EMAIL` is the sole administrator. It bypasses learner release
   rules. Changing it removes admin rights from the old email on its next request.
-- Everything starts locked. Releasing lessons also includes playbooks. Solutions
-  have a second control. Relocking lessons clears solution release. New modules
-  are locked automatically; no database reseed is needed after content updates.
+- All course content is available to registered learners. Account revocation still blocks access.
 - Activity records are per visit, updated cumulatively about once per minute.
   The browser coordinates focused tabs using Web Locks with a short localStorage
   lease fallback. Lease values contain random tab IDs, not authentication data.
@@ -133,7 +158,7 @@ npx wrangler secret put GOOGLE_CLIENT_SECRET --env staging
 
 Repeat with `--env production` using the production client. The Worker validates
 state, nonce, PKCE, issuer, audience, signature, expiry, and verified email. A
-Google account still needs your manual approval. Server sessions never store
+Google account completes self-service registration. Server sessions never store
 Google access/refresh tokens.
 
 ## Staging and production
@@ -151,8 +176,8 @@ and inspect existing account usage first: quotas are shared with other apps.
 4. Apply migrations with
    `npx wrangler d1 migrations apply gyanhq-training-staging --remote --env staging`.
 5. Build, run tests, run `npm run check`, then `npm run deploy:staging`.
-6. In staging, sign in as admin, approve a real test learner, test locked lessons
-   and solutions, release them separately, inspect activity, export CSV, revoke
+6. In staging, sign in as admin, register a real test learner, verify all lessons
+   and solutions are available, inspect activity, export CSV, revoke
    access, and confirm old sessions fail. Test on mobile and desktop.
 7. Inspect actual Workers CPU/request metrics and D1 read/write/storage metrics
    in Cloudflare. Local wall time is not edge CPU. Validate the free 10 ms CPU

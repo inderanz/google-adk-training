@@ -72,10 +72,21 @@ module.exports = function portalPlugin(context) {
       }
       const pages = Object.fromEntries(docs.map(d => [d.path.endsWith('/') ? d.path : `${d.path}/`, {title: d.title, policy: d.policy}]));
       const modules = [];
+      const pageRank = (p, modPath) => {
+        const pathStr = p.path || '';
+        const titleLower = (p.title || '').toLowerCase();
+        if (pathStr === modPath) return 0;
+        if (pathStr.includes('playbook') || titleLower.includes('playbook') || pathStr.includes('guide') || titleLower.includes('guide') || pathStr.includes('primer')) return 1;
+        if (pathStr.includes('/lab/') || titleLower.includes('challenge') || titleLower.includes('guided') || (titleLower.includes('lab') && !titleLower.includes('solution'))) return 2;
+        if (pathStr.includes('solution') || titleLower.includes('solution')) return 3;
+        return 4;
+      };
+
       for (const doc of docs) {
         if (!doc.policy || !/\/README\.md$/.test(doc.source)) continue;
-        modules.push({id: doc.policy.module, title: doc.title, path: doc.path,
-          pages: docs.filter(d => d.policy?.module === doc.policy.module).map(d => ({path: d.path, title: d.title, solution: d.policy.solution}))});
+        const modPages = docs.filter(d => d.policy?.module === doc.policy.module).map(d => ({path: d.path, title: d.title, solution: d.policy.solution}));
+        modPages.sort((a, b) => pageRank(a, doc.path) - pageRank(b, doc.path) || a.title.localeCompare(b.title));
+        modules.push({id: doc.policy.module, title: doc.title, path: doc.path, pages: modPages});
       }
       const moduleNumber = id => Number(id.match(/^module(\d+(?:_\d+)?)/)?.[1]?.replace('_', '.') || 0);
       modules.sort((a,b) => moduleNumber(a.id) - moduleNumber(b.id) || a.id.localeCompare(b.id));
