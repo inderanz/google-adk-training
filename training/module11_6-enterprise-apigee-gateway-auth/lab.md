@@ -11,7 +11,6 @@ import Setup from '../_setup-snippet.mdx';
 
 **Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
 
-
 ## 🏛️ Enterprise Scenario: Apex Global Financial Services
 
 You are a **Google Forward-Deployed Engineer (FDE)** partnering with **Apex Global Financial Services**. The bank has approved deployment of the Wealth Advisor Assistant, but the Chief Information Security Officer (CISO) and Apigee X platform team have established strict gateway entrance criteria:
@@ -57,13 +56,6 @@ Your objective is to implement the **`ApigeeOAuth2TokenManager`**, the dynamic *
 ### Step 2: Implement Secure Gateway Integration in `agent.py`
 
 Open `agent.py` in `apigee_wealth_advisor`. Replace its contents with the starter skeleton below and complete all `TODO` sections.
-
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Teach how to inject OAuth2 bearer tokens, API keys, and session identities at the HTTP transport layer using ADK 2.0 `OpenAPIToolset` hooks.
-- **Why it matters:** Real banking APIs reject unauthenticated traffic; embedding secrets in LLM prompts is a critical security vulnerability.
-- **Version watch:** Grounded against ADK 2.0 (`google.adk.tools.openapi_tool.OpenAPIToolset`).
-<!-- TEACHER_NOTE_END -->
 
 ```python
 # In agent.py

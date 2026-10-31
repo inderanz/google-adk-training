@@ -9,7 +9,6 @@ import Setup from '../_setup-snippet.mdx';
 
 **Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
 
-
 ## 🧭 The FDE Philosophy: Tooling & Skills Over Manual Boilerplate
 
 A novice developer tries to write 500 lines of custom HTTP code by hand or blindly prompts an LLM with raw text.
@@ -90,13 +89,6 @@ Open your scaffolded project files and complete the active learning `TODO` secti
 
 ### 3.1 Financial Math Tools (`tools/financial_math.py`)
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Teach that numerical solvency calculations must always be offloaded to deterministic tools.
-- **Why it matters:** Eliminates arithmetic hallucinations in regulated banking workflows.
-- **Version watch:** Standard Pydantic v2 `BaseModel` compatible with ADK 2.0.
-<!-- TEACHER_NOTE_END -->
-
 ```python
 # In tools/financial_math.py
 from pydantic import BaseModel, Field
@@ -106,7 +98,6 @@ from typing import List
 # TODO 1: DEFINE TYPED PYDANTIC MODELS FOR RATIO CALCULATIONS
 # ============================================================================
 
-
 class DscrResult(BaseModel):
     """Result of Debt Service Coverage Ratio calculation."""
 
@@ -115,7 +106,6 @@ class DscrResult(BaseModel):
     # TODO: Define assessment (str)
     pass
 
-
 class DebtToEbitdaResult(BaseModel):
     """Result of Debt-to-EBITDA leverage calculation."""
 
@@ -123,7 +113,6 @@ class DebtToEbitdaResult(BaseModel):
     # TODO: Define is_compliant (bool, threshold <= 3.5)
     # TODO: Define assessment (str)
     pass
-
 
 class CovenantEvaluationResult(BaseModel):
     """Consolidated credit policy and covenant compliance result."""
@@ -135,11 +124,9 @@ class CovenantEvaluationResult(BaseModel):
     # TODO: Define credit_memo_summary (str)
     pass
 
-
 # ============================================================================
 # TODO 2: IMPLEMENT DETERMINISTIC CALCULATION FUNCTIONS
 # ============================================================================
-
 
 def calculate_dscr(
     net_operating_income: float, total_debt_service: float
@@ -152,7 +139,6 @@ def calculate_dscr(
     # TODO: Return DscrResult.
     pass
 
-
 def calculate_debt_to_ebitda(total_debt: float, ebitda: float) -> DebtToEbitdaResult:
     """Calculate leverage ratio (Total Debt / EBITDA).
 
@@ -161,7 +147,6 @@ def calculate_debt_to_ebitda(total_debt: float, ebitda: float) -> DebtToEbitdaRe
     # TODO: Handle zero or negative EBITDA safely.
     # TODO: Return DebtToEbitdaResult.
     pass
-
 
 def evaluate_covenant_policy(
     dscr: float,

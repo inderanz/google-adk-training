@@ -15,6 +15,7 @@ for(let i=0;i<users;i++){
   const sub=`load-${i}`,email=`load-${i}@example.com`;
   db.sqlite.prepare('INSERT INTO identities VALUES(?,?,?,?)').run(sub,email,sub,time);
   db.sqlite.prepare('INSERT INTO approvals VALUES(?,?,?,?,?)').run(email,1,sub,time,time);
+  db.sqlite.prepare('INSERT INTO registrations VALUES(?,?,?)').run(sub,'2026-10-30',time);
   db.sqlite.prepare('INSERT INTO sessions VALUES(?,?,?,?,?)').run(await hash(sub),sub,email,sub,time+43200000);
 }
 let requests=0,failures=0;

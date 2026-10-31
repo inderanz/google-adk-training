@@ -18,20 +18,20 @@ test('callback rejects absent, mismatched, expired and replayed state',async()=>
   f.advance(600001);
   assert.equal((await f.request(`${BASE}auth/callback?state=${state}&code=x`,{role:null,headers:{Cookie:`gyanhq_training_oauth=${state}`}})).status,401);
 });
-test('approved callback binds Google sub, stores hashed session, consumes attempt once',async()=>{
-  const f=await fixture({fetcher:async()=>Response.json({id_token:'token'}),verify:async()=>({sub:'new-sub',email:'new@gmail.com',name:'New'})});
-  await f.request(`${BASE}api/admin/users`,{role:'owner',method:'POST',body:{email:'new@gmail.com'}});
+test('returning registered learner gets a hashed session without changing their chosen name',async()=>{
+  const f=await fixture({fetcher:async()=>Response.json({id_token:'token'}),verify:async()=>({sub:'learner',email:'learner@gmail.com',name:'Google name'})});
   const start=await f.request(`${BASE}auth/login`,{role:null});const state=new URL(start.headers.get('Location')).searchParams.get('state');
   const path=`${BASE}auth/callback?state=${state}&code=x`,opts={role:null,headers:{Cookie:`gyanhq_training_oauth=${state}`}};
   const response=await f.request(path,opts);assert.equal(response.status,303);
   const cookie=response.headers.get('Set-Cookie').match(/gyanhq_training_session=([^;]+)/)[1];
-  assert.equal(f.db.sqlite.prepare('SELECT sub FROM sessions WHERE token_hash=?').get(await hash(cookie)).sub,'new-sub');
-  assert.equal(f.db.sqlite.prepare('SELECT google_sub FROM approvals WHERE email=?').get('new@gmail.com').google_sub,'new-sub');
+  assert.equal(f.db.sqlite.prepare('SELECT sub FROM sessions WHERE token_hash=?').get(await hash(cookie)).sub,'learner');
+  assert.equal(f.db.sqlite.prepare('SELECT name FROM identities WHERE sub=?').get('learner').name,'learner');
   assert.equal((await f.request(path,opts)).status,401);
 });
-test('unapproved and differently bound Google accounts cannot obtain sessions',async()=>{
-  for(const claims of [{sub:'stranger',email:'unapproved@gmail.com'},{sub:'imposter',email:'learner@gmail.com'}]){
+test('revoked and differently bound Google accounts cannot obtain sessions',async()=>{
+  for(const claims of [{sub:'learner',email:'learner@gmail.com'},{sub:'imposter',email:'learner@gmail.com'}]){
     const f=await fixture({fetcher:async()=>Response.json({id_token:'token'}),verify:async()=>claims});
+    if(claims.sub==='learner')f.db.sqlite.prepare('UPDATE approvals SET active=0').run();
     const start=await f.request(`${BASE}auth/login`,{role:null});const state=new URL(start.headers.get('Location')).searchParams.get('state');
     const response=await f.request(`${BASE}auth/callback?state=${state}&code=x`,{role:null,headers:{Cookie:`gyanhq_training_oauth=${state}`}});
     assert.equal(response.status,403);assert.equal(f.db.sqlite.prepare('SELECT COUNT(*) n FROM sessions').get().n,3);

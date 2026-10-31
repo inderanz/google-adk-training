@@ -65,10 +65,7 @@ export function csrf(request, session, origin) {
   if (request.headers.get('Origin') !== origin || request.headers.get('X-CSRF-Token') !== session.csrf) fail(403, 'Invalid request origin or CSRF token');
 }
 export function allow(policy, identity, releases) {
-  if (identity.admin) return true;
-  if (!policy) return true;
-  const release = releases.get(policy.module);
-  return !!release?.lessons && (!policy.solution || !!release.solutions);
+  return !!identity;
 }
 export function allowAsset(asset, identity, releases) {
   return asset.anyOf?.length ? asset.anyOf.some(p => allow(p, identity, releases)) : allow(asset.policy, identity, releases);
@@ -116,5 +113,42 @@ export async function verifyGoogleToken(token, {clientId, nonce, fetcher = fetch
   } catch (error) {
     if (error instanceof HttpError) throw error;
     fail(401, 'Invalid Google identity');
+  }
+}
+
+// Only trust assertions signed by this team's Access application, never the
+// unsigned authenticated-user-email header. Keys are isolated by issuer.
+const accessKeys = new Map();
+export async function verifyAccessToken(token,{teamDomain,audience,fetcher=fetch,clock=now}) {
+  if (!/^https:\/\/[a-z0-9-]+\.cloudflareaccess\.com$/.test(teamDomain || '') || !audience) fail(503,'Email sign-in has not been configured');
+  try {
+    if (typeof token !== 'string' || token.length > 20000) fail(401,'Email verification required');
+    const parts=token.split('.');
+    if (parts.length!==3) fail(401,'Invalid email identity');
+    const header=JSON.parse(new TextDecoder().decode(decode(parts[0])));
+    const claims=JSON.parse(new TextDecoder().decode(decode(parts[1])));
+    if (header.alg!=='RS256' || typeof header.kid!=='string') fail(401,'Invalid email identity');
+    let cached=accessKeys.get(teamDomain);
+    if (!cached || cached.expires<=clock() || !cached.keys.some(k=>k.kid===header.kid)) {
+      const response=await fetcher(`${teamDomain}/cdn-cgi/access/certs`);
+      if (!response.ok) fail(503,'Email sign-in temporarily unavailable');
+      const data=await response.json();
+      if (!Array.isArray(data.keys)) fail(503,'Email sign-in temporarily unavailable');
+      cached={keys:data.keys,expires:clock()+3600000};accessKeys.set(teamDomain,cached);
+    }
+    const jwk=cached.keys.find(k=>k.kid===header.kid && k.kty==='RSA');
+    if (!jwk) fail(401,'Invalid email identity');
+    const key=await crypto.subtle.importKey('jwk',jwk,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['verify']);
+    const valid=await crypto.subtle.verify('RSASSA-PKCS1-v1_5',key,decode(parts[2]),new TextEncoder().encode(`${parts[0]}.${parts[1]}`));
+    if (!valid || claims.iss!==teamDomain || !Array.isArray(claims.aud) || !claims.aud.includes(audience)
+      || !Number.isFinite(claims.exp) || claims.exp*1000<=clock()
+      || !Number.isFinite(claims.iat) || claims.iat*1000>clock()+60000
+      || (claims.nbf!==undefined && (!Number.isFinite(claims.nbf) || claims.nbf*1000>clock()+60000))
+      || claims.type!=='app' || !validEmail(claims.email)
+      || typeof claims.sub!=='string' || !claims.sub || claims.sub.length>255) fail(401,'Invalid email identity');
+    return claims;
+  } catch(error) {
+    if (error instanceof HttpError) throw error;
+    fail(401,'Invalid email identity');
   }
 }

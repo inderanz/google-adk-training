@@ -19,6 +19,7 @@ const db=new D1(),tokens={owner:randomToken(),learner:randomToken()};
 for(const [sub,token]of Object.entries(tokens)){
   const email=`${sub}@gmail.com`;
   db.sqlite.prepare('INSERT INTO identities VALUES(?,?,?,?)').run(sub,email,sub,Date.now());
+  db.sqlite.prepare('INSERT INTO registrations VALUES(?,?,?)').run(sub,'2026-10-30',Date.now());
   db.sqlite.prepare('INSERT INTO sessions VALUES(?,?,?,?,?)').run(await hash(token),sub,email,`csrf-${sub}`,Date.now()+43200000);
   if(sub==='learner')db.sqlite.prepare('INSERT INTO approvals VALUES(?,?,?,?,?)').run(email,1,sub,Date.now(),Date.now());
 }
@@ -36,7 +37,7 @@ const server=createServer(async(req,res)=>{
   try{
     const chunks=[];for await(const chunk of req)chunks.push(chunk);
     const request=new Request(origin+req.url,{method:req.method,headers:req.headers,...(chunks.length?{body:Buffer.concat(chunks)}:{})});
-    const response=await app.fetch(request,env);res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));
+    const response=await app.fetch(request,env);res.writeHead(response.status,{...Object.fromEntries(response.headers),...(response.headers.getSetCookie().length?{'set-cookie':response.headers.getSetCookie()}: {})});res.end(Buffer.from(await response.arrayBuffer()));
   }catch(error){res.writeHead(500);res.end(error.message);}
 });
 await new Promise(resolve=>server.listen(8899,'localhost',resolve));
@@ -50,7 +51,7 @@ try{
   const page=await context.newPage(),errors=[];
   page.on('pageerror',error=>errors.push(error.message));
   await page.goto(origin+base);
-  check(await page.getByRole('link',{name:'Sign in with Google'}).isVisible(),'public sign-in page');
+  check(await page.getByRole('link',{name:'Sign in with email'}).isVisible(),'public sign-in page');
   const widths=[320,390,768,1024,1440,1920];
   const responsive=async(target,label)=>{
     for(const width of widths){
@@ -69,34 +70,36 @@ try{
     }
   };
   await responsive(page,'landing');
+  const registrationToken=randomToken();
+  db.sqlite.prepare('INSERT INTO pending_registrations VALUES(?,?,?,?,?,?,?)').run(await hash(registrationToken),'new-browser','new-browser@gmail.com','Google name','registration-csrf',base+'learn/',Date.now()+600000);
+  await context.addCookies([{name:'gyanhq_training_registration',value:registrationToken,url:origin+base,httpOnly:true,sameSite:'Lax'}]);
+  await page.goto(origin+base+'register/');
+  check(!(await page.getByRole('checkbox').isChecked()),'agreement starts unchecked');
+  await responsive(page,'registration');
+  await page.getByLabel('Your name').fill('Browser Learner');
+  await page.getByRole('checkbox').check();
+  await page.getByRole('button',{name:'Create free account'}).click();
+  await page.waitForURL(origin+base+'learn/');
+  await page.locator('#catalog article').first().waitFor();
+  check(db.sqlite.prepare("SELECT name FROM identities WHERE sub='new-browser'").get().name==='Browser Learner','browser registration stores confirmed name');
+  check(!!db.sqlite.prepare("SELECT accepted_at FROM registrations WHERE sub='new-browser'").get(),'browser registration records agreement');
   await page.setViewportSize({width:1440,height:1000});
   await context.addCookies([{name:'gyanhq_training_session',value:tokens.owner,url:origin+base,httpOnly:true,sameSite:'Lax'}]);
-  await page.reload();
+  await page.goto(origin+base);
   await page.getByRole('link',{name:'Open your workspace'}).waitFor();
-  check(await page.getByRole('link',{name:'Sign in with Google'}).count()===0,'signed-in landing offers workspace instead of login');
+  check(await page.getByRole('link',{name:'Sign in with email'}).count()===0,'signed-in landing offers workspace instead of login');
   await page.goto(origin+base+'admin/');
   await page.getByText('learner@gmail.com',{exact:true}).first().waitFor();
-  check(await page.locator('#releases section').count()===site.modules.length,'all modules shown in admin');
-  check(await page.locator('#releases input:checked').count()===0,'everything starts locked');
-  await page.locator('#release-search').fill('firestore');
-  check(await page.locator('#releases section:visible').count()===1,'admin module search');
-  await page.locator('#release-search').fill('');
-  await page.locator('#approve input').fill('new@gmail.com');await page.getByRole('button',{name:'Approve email',exact:true}).click();
-  await page.locator('#users').getByText('new@gmail.com',{exact:true}).waitFor();check(true,'manual learner approval UI');
   const selected=site.modules.find(m=>m.id==='module13_5-firestore-persistence');
-  const moduleCard=page.locator('#releases section').filter({has:page.getByRole('heading',{name:selected.title,exact:true})});
-  await moduleCard.getByLabel('Release lessons and labs').check();await moduleCard.getByRole('button',{name:'Save release'}).click();
-  await page.getByRole('status').filter({hasText:'Release saved'}).waitFor();
-  check(db.sqlite.prepare('SELECT lessons FROM releases WHERE module_id=?').get(selected.id).lessons===1,'module release UI persists');
   const learnerContext=await browser.newContext({viewport:{width:390,height:844}});
   await learnerContext.addCookies([{name:'gyanhq_training_session',value:tokens.learner,url:origin+base,httpOnly:true,sameSite:'Lax'}]);
   const learner=await learnerContext.newPage();learner.on('pageerror',error=>errors.push(error.message));
   await learner.goto(origin+base+'learn/');await learner.locator('#catalog article').first().waitFor();
   await learner.getByRole('button',{name:'Available',exact:true}).click();
-  check(await learner.locator('#catalog article').count()===1,'availability filter shows only released modules');
+  check(await learner.locator('#catalog article').count()===site.modules.length,'all modules available by default');
   await learner.getByRole('button',{name:'All modules',exact:true}).click();
   await learner.locator('#module-search').fill('13.5');
-  check(await learner.locator('#catalog article').count()===1,'decimal module number search');
+  check(await learner.getByRole('heading',{name:selected.title,exact:true}).isVisible(),'decimal module number search finds the module');
   await learner.locator('#module-search').fill('no-such-module-xyz');
   check(await learner.locator('#catalog-empty').isVisible(),'catalogue has a search empty state');
   await learner.locator('#module-search').fill('');
@@ -104,11 +107,11 @@ try{
   await learner.setViewportSize({width:390,height:844});
   check(await learner.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'mobile catalogue fits viewport');
   const learnerCard=learner.locator('#catalog article').filter({has:learner.getByRole('heading',{name:new RegExp(selected.title.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'))})});
-  check(await learnerCard.getByText(/not released/).count()>0,'solutions remain visibly locked');
+  check(await learnerCard.getByText(/not released/).count()===0,'solutions are available');
   const protectedSolution=selected.pages.find(p=>p.solution);
-  check((await learner.request.get(origin+protectedSolution.path)).status()===403,'solution URL denied');
+  check((await learner.request.get(origin+protectedSolution.path)).status()===200,'solution URL available');
   const solutionChunk=Object.entries(site.assets).find(([p,v])=>p.endsWith('.js')&&v.policy?.module===selected.id&&v.policy.solution);
-  check((await learner.request.get(origin+solutionChunk[0])).status()===403,'solution JS denied');
+  check((await learner.request.get(origin+solutionChunk[0])).status()===200,'solution JS available');
   const lessonResponse=await learner.goto(origin+selected.path);check(lessonResponse.status()===200,'released lesson loads');
   await learner.getByRole('button',{name:'Sign out',exact:true}).first().waitFor();
   await learner.waitForTimeout(2500);
@@ -128,10 +131,7 @@ try{
   await learner.screenshot({path:path.join(artifacts,'lesson-mobile.png'),fullPage:false});
   check(db.sqlite.prepare('SELECT COUNT(*) n FROM visits').get().n>=1,'learner visit recorded');
   await learner.goto(origin+base+'learn/');
-  await page.bringToFront();await moduleCard.getByLabel('Release solutions').check();await moduleCard.getByRole('button',{name:'Save release'}).click();
-  await page.waitForFunction(()=>document.getElementById('status').textContent.startsWith('Release saved'));
-  await page.waitForTimeout(150);
-  check((await learner.request.get(origin+protectedSolution.path)).status()===200,'solution release takes effect');
+  await page.bringToFront();
   await page.locator('#report-filters input[name=email]').fill('learner@gmail.com');await page.getByRole('button',{name:'View report',exact:true}).click();
   await page.locator('#reports').getByText('learner@gmail.com',{exact:true}).first().waitFor();check(true,'admin learner report');
   await responsive(page,'administration');

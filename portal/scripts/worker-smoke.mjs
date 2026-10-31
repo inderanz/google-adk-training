@@ -18,8 +18,9 @@ function run(args){
 await mkdir(new URL('../generated/',import.meta.url),{recursive:true});
 run(['d1','migrations','apply','gyanhq-training-local','--local','--env','local','--persist-to',persist]);
 const token=randomToken(),tokenHash=await hash(token),time=Date.now();
-const sql=`DELETE FROM sessions; DELETE FROM approvals; DELETE FROM identities; DELETE FROM releases;
+const sql=`DELETE FROM sessions; DELETE FROM approvals; DELETE FROM registrations; DELETE FROM identities; DELETE FROM releases;
 INSERT INTO identities VALUES ('smoke','smoke@example.com','Local test',${time});
+INSERT INTO registrations VALUES ('smoke','2026-10-30',${time});
 INSERT INTO approvals VALUES ('smoke@example.com',1,'smoke',${time},${time});
 INSERT INTO sessions VALUES ('${tokenHash}','smoke','smoke@example.com','smoke-csrf',${time+3600000});
 INSERT INTO releases VALUES ('${site.modules[0].id}',1,0,${time});`;
@@ -46,7 +47,7 @@ try{
   const chunk=Object.entries(site.assets).find(([p,a])=>p.endsWith('.js')&&a.policy?.module===site.modules[0].id&&!a.policy.solution);
   await check(chunk[0],200,true,'real static asset binding serves permitted lesson chunk');
   const solution=site.modules[0].pages.find(p=>p.solution).path;
-  await check(solution,403,true,'real Worker denies unreleased solution');
+  await check(solution,200,true,'real Worker serves solutions without release');
   await check(base+'api/admin/users',403,true,'real Worker denies learner admin API');
   await check(base+'unclassified-secret.json',404,true,'real Worker denies unclassified files');
   console.log(JSON.stringify({passed:checks.length,checks},null,2));

@@ -1,7 +1,12 @@
-> **Environment setup:**
-> * **Local machine:** If you're continuing the course in sequence, `cd` into the `adk-training` project you created in Module 2 and skip the block below -- your environment and dependencies already carry forward. If you're starting fresh at this module, create that project first:
->   ```bash
->   uv init adk-training --python 3.10 && cd adk-training
->   uv add "google-adk>=2.1.0" python-dotenv
->   ```
-> * **DevContainer / Codespaces (Alternative):** If you opened this repository in a DevContainer or GitHub Codespaces, Python, `uv`, and the core ADK dependencies are already pre-installed in your container environment.
+> **🚀 Quick Environment Setup (Choose your environment):**
+>
+> | Environment | Launch Shortcut | Best For |
+> | :--- | :--- | :--- |
+> | **☁️ Google Cloud Shell** | [![Open in Cloud Shell](https://gstatic.com/cloudssh/images/open-btn.svg)](https://shell.cloud.google.com/cloudshell/editor?cloudshell_git_repo=https://github.com/inderanz/google-adk-training&cloudshell_workspace=training) | Zero-install in your browser with gcloud & Python pre-configured. |
+> | **⚡ Google Colab** | [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/) | Interactive step-by-step cells with a free Gemini API key. |
+> | **💻 Local Machine** | `uv init adk-training --python 3.11 && cd adk-training && uv add "google-adk>=2.1.0" python-dotenv` | Development in VS Code / Cursor / PyCharm with Python 3.11+. |
+> | **📦 GitHub Codespaces** | Direct container launch | Instant cloud container with pre-installed `uv` & Linux toolchain. |
+>
+> **Prerequisites & Official Guidance:**
+> * **API Key / GCP Project:** Grab a free key from [Google AI Studio](https://aistudio.google.com/) (`export GEMINI_API_KEY="..."`) or set up ADC via `gcloud auth application-default login`.
+> * **Official ADK Guide:** [Google ADK Documentation](https://google.github.io/adk-docs/)

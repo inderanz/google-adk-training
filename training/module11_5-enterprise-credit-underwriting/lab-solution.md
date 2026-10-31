@@ -73,13 +73,6 @@ commercial_credit_triage/
 
 ### Step 1: Financial Math Tools (`tools/financial_math.py`)
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Demonstrate how deterministic calculations are encapsulated in Pydantic models.
-- **Why it matters:** In banking, floating-point math must never be delegated to an LLM's token predictor.
-- **Version watch:** Standard Pydantic v2 `BaseModel` compatible with ADK 2.0.
-<!-- TEACHER_NOTE_END -->
-
 ```python
 # tools/financial_math.py
 """Deterministic Financial Calculation Tools for Commercial Credit Underwriting.
@@ -95,7 +88,6 @@ from pydantic import BaseModel, Field
 # 1. TYPED PYDANTIC RETURN SCHEMAS
 # ============================================================================
 
-
 class DscrResult(BaseModel):
     """Result of Debt Service Coverage Ratio (DSCR) calculation."""
 
@@ -110,7 +102,6 @@ class DscrResult(BaseModel):
         ...,
         description="Qualitative rating: STRONG, COMPLIANT, BORDERLINE, or DEFICIT",
     )
-
 
 class DebtToEbitdaResult(BaseModel):
     """Result of Debt-to-EBITDA leverage calculation."""
@@ -128,7 +119,6 @@ class DebtToEbitdaResult(BaseModel):
         ...,
         description=("Qualitative rating: CONSERVATIVE, ACCEPTABLE, or OVERLEVERAGED"),
     )
-
 
 class CovenantEvaluationResult(BaseModel):
     """Consolidated credit policy and covenant compliance evaluation."""
@@ -153,11 +143,9 @@ class CovenantEvaluationResult(BaseModel):
         ..., description="Executive summary for the Credit Committee"
     )
 
-
 # ============================================================================
 # 2. DETERMINISTIC CALCULATION TOOLS (ADK 2.0 COMPLIANT)
 # ============================================================================
-
 
 def calculate_dscr(
     net_operating_income: float, total_debt_service: float
@@ -187,7 +175,6 @@ def calculate_dscr(
 
     return DscrResult(dscr_ratio=ratio, is_compliant=(ratio >= 1.25), assessment=rating)
 
-
 def calculate_debt_to_ebitda(total_debt: float, ebitda: float) -> DebtToEbitdaResult:
     """Calculate the corporate leverage ratio (Total Debt / EBITDA).
 
@@ -212,7 +199,6 @@ def calculate_debt_to_ebitda(total_debt: float, ebitda: float) -> DebtToEbitdaRe
     return DebtToEbitdaResult(
         leverage_ratio=ratio, is_compliant=(ratio <= 3.5), assessment=rating
     )
-
 
 def evaluate_covenant_policy(
     dscr: float,
@@ -432,7 +418,6 @@ from pathlib import Path
 import re
 from typing import Any, Dict, List, Optional
 
-
 def normalize_legacy_spec(
     raw_spec: Dict[str, Any], allowed_path_patterns: Optional[List[str]] = None
 ) -> Dict[str, Any]:
@@ -494,7 +479,6 @@ def normalize_legacy_spec(
             cleaned_spec["paths"][path_str] = cleaned_path_item
 
     return cleaned_spec
-
 
 def load_and_normalize_spec(
     spec_path: str, allowed_path_patterns: Optional[List[str]] = None
@@ -662,7 +646,6 @@ from tools.financial_math import (
     evaluate_covenant_policy,
 )
 
-
 class TestCommercialUnderwritingTools(unittest.TestCase):
     def test_dscr_strong_pass(self):
         """Test robust cash flow exceeding 1.25x covenant."""
@@ -737,7 +720,6 @@ class TestCommercialUnderwritingTools(unittest.TestCase):
         self.assertFalse(result.is_approved)
         self.assertIn("restricted industry", result.credit_memo_summary)
 
-
 class TestLegacyOpenAPINormalizer(unittest.TestCase):
     def setUp(self):
         self.legacy_file = os.path.join(
@@ -776,7 +758,6 @@ class TestLegacyOpenAPINormalizer(unittest.TestCase):
         )
         risk_op = spec["paths"][risk_path]["get"]
         self.assertEqual(risk_op["operationId"], "get_borrower_risk_profile")
-
 
 if __name__ == "__main__":
     unittest.main()

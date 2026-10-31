@@ -14,8 +14,8 @@ test('activity is cumulative, deduplicated, server bounded, and bound to the aut
   f.advance(1000);await update(f,2,1000000);visit=f.db.sqlite.prepare('SELECT * FROM visits WHERE id=?').get(id);
   assert.equal(visit.active_ms,61000);
 });
-test('locked pages cannot be tracked; admin browsing is excluded',async()=>{
-  const f=await fixture();assert.equal((await update(f,0,0)).status,403);
+test('revoked learners cannot track pages; admin browsing is excluded',async()=>{
+  const f=await fixture();f.db.sqlite.prepare('UPDATE approvals SET active=0').run();assert.equal((await update(f,0,0)).status,403);
   assert.deepEqual(await(await update(f,0,0,'owner')).json(),{ignored:true});
   assert.equal(f.db.sqlite.prepare('SELECT COUNT(*) n FROM visits').get().n,0);
 });

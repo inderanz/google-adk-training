@@ -9,7 +9,6 @@ import Setup from '../_setup-snippet.mdx';
 
 **Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
 
-
 ## Goal
 
 In this lab, you will work with an agent that has been given misleading instructions. It will try to call a tool by the wrong name. Your task is to use the `ReflectAndRetryToolPlugin` to allow the agent to self-correct and succeed *without* changing the misleading instruction.
@@ -38,20 +37,6 @@ This code defines a tool named `secret_calculator`. However, the agent's system 
 
 **A note on the instruction wording:** it's forceful enough to guarantee the agent actually *attempts* the nonexistent `super_calc` call on its first try (a milder "you MUST use `super_calc`" gets ignored in practice — modern models tend to just call whatever tool is actually declared, regardless of what the prompt claims its name is), while explicitly scoping that no-deviation rule to "the first attempt only" — so that once the tool-not-found error comes back, the agent is free to adapt instead of stubbornly retrying the same broken name forever. Both halves matter: this is the wording that reliably reproduces both the failure (Step 3) and the plugin-assisted recovery (Step 5).
 
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
-<!-- TEACHER_NOTE_START -->
-**Teacher's note (ADK instructor view):**
-- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
-- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
-- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
-- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
-<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.agents import Agent
 from google.adk.tools import FunctionTool
