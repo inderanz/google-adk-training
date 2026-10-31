@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 23: Artifacts: Reproducible Banking Review Packs
 
 **What you are practising:** Artifacts, versions and storage providers in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -48,11 +50,13 @@ Write the desired outcome in one sentence, then identify inputs, operations, out
 
 ## Set up the reference and your practice copy
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module23-artifacts/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -186,9 +190,12 @@ async def create_review_pack(source_version: int, tool_context: ToolContext) -> 
     if not isinstance(case, dict):
         return {"status": "invalid_source"}
     documents = case.get("documents")
-    if (case.get("case_id") != "CASE-001" or not isinstance(documents, dict)
-            or set(documents) != required
-            or any(type(value) is not bool for value in documents.values())):
+    if (
+        case.get("case_id") != "CASE-001"
+        or not isinstance(documents, dict)
+        or set(documents) != required
+        or any(type(value) is not bool for value in documents.values())
+    ):
         return {"status": "invalid_source"}
     missing = sorted(name for name, received in documents.items() if not received)
     report = (
@@ -199,12 +206,17 @@ async def create_review_pack(source_version: int, tool_context: ToolContext) -> 
     )
     report_version = await tool_context.save_artifact(
         filename=REPORT_NAME,
-        artifact=types.Part.from_bytes(data=report.encode("utf-8"), mime_type="text/markdown"),
+        artifact=types.Part.from_bytes(
+            data=report.encode("utf-8"), mime_type="text/markdown"
+        ),
     )
     manifest = {
         "case_id": "CASE-001",
-        "source": {"filename": SOURCE_NAME, "version": source_version,
-                   "sha256": hashlib.sha256(raw).hexdigest()},
+        "source": {
+            "filename": SOURCE_NAME,
+            "version": source_version,
+            "sha256": hashlib.sha256(raw).hexdigest(),
+        },
         "report": {"filename": REPORT_NAME, "version": report_version},
         "status": "prepared_for_human_review",
     }
@@ -276,19 +288,32 @@ async def verify(report_path: str) -> dict:
             response = part.get("function_response") or part.get("functionResponse")
             if response and response["name"] == "create_review_pack":
                 outputs.append(response["response"])
-    outcome = next(value for value in outputs if value.get("status") == "prepared_for_human_review")
+    outcome = next(
+        value for value in outputs if value.get("status") == "prepared_for_human_review"
+    )
     # A new client/process reads the data; nothing relies on the earlier Runner.
     service = GcsArtifactService(bucket_name=os.environ["ARTIFACT_BUCKET"])
-    scope = {"app_name": "bank_review", "user_id": case["user_id"], "session_id": case["session_id"]}
+    scope = {
+        "app_name": "bank_review",
+        "user_id": case["user_id"],
+        "session_id": case["session_id"],
+    }
     manifest_part = await service.load_artifact(
-        **scope, filename="CASE-001-manifest.json", version=outcome["manifest_version"])
+        **scope, filename="CASE-001-manifest.json", version=outcome["manifest_version"]
+    )
     if not manifest_part or not manifest_part.inline_data:
         raise AssertionError("Saved manifest could not be read back")
     manifest = json.loads(manifest_part.inline_data.data)
-    source = await service.load_artifact(**scope, **{
-        key: manifest["source"][key] for key in ("filename", "version")})
+    source = await service.load_artifact(
+        **scope, **{key: manifest["source"][key] for key in ("filename", "version")}
+    )
     saved_report = await service.load_artifact(**scope, **manifest["report"])
-    if not source or not source.inline_data or not saved_report or not saved_report.inline_data:
+    if (
+        not source
+        or not source.inline_data
+        or not saved_report
+        or not saved_report.inline_data
+    ):
         raise AssertionError("An exact referenced artifact version is missing")
     digest = hashlib.sha256(source.inline_data.data).hexdigest()
     if digest != manifest["source"]["sha256"]:
@@ -296,8 +321,14 @@ async def verify(report_path: str) -> dict:
     if manifest["report"] != outcome["report"]:
         raise AssertionError("Returned report and saved manifest disagree")
     if b"ownership_register" not in saved_report.inline_data.data:
-        raise AssertionError("Fixture report does not contain the expected missing item")
-    return {"status": "verified_from_gcs", "source": manifest["source"], "report": manifest["report"]}
+        raise AssertionError(
+            "Fixture report does not contain the expected missing item"
+        )
+    return {
+        "status": "verified_from_gcs",
+        "source": manifest["source"],
+        "report": manifest["report"],
+    }
 ```
 
 ## Trace the runner into actual Google services

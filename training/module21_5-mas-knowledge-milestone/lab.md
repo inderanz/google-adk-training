@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 21.5: MAS Knowledge Milestone: Defend a Banking Architecture
 
 **What you are practising:** Choosing and composing ADK patterns in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -52,11 +54,13 @@ Modules 15–21 introduced choices. This milestone combines and justifies them. 
 
 ## Set up the supplied example
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module21_5-mas-knowledge-milestone/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -162,6 +166,7 @@ The complete lab command below runs the software checks. Read the test names and
 
 ```python
 """Small, strict boundary for fictional CASE-001; no credit decision."""
+
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -187,6 +192,7 @@ SAMPLE = {
 
 ```python
 """An executable architecture decision: fixed checks, explicit route, no LLM."""
+
 from google.adk.events import Event
 from google.adk.workflow import JoinNode, Workflow
 from .contracts import CaseRequest
@@ -209,8 +215,10 @@ Read the validated checklist flag and case ID and return a small mapping. The ke
 ```python
 def exposure(node_input: CaseRequest) -> dict:
     # Compute the fictional review requirement in exact code rather than asking a model to guess it.
-    return {"specialist": node_input.requested_cents > 20_000_000,
-            "case_id": node_input.case_id}
+    return {
+        "specialist": node_input.requested_cents > 20_000_000,
+        "case_id": node_input.case_id,
+    }
 ```
 
 Compare the requested cents with the fictional threshold and return that boolean with the case ID. The separate branch allows the join and rule precedence to remain visible. It is a read-only fixture operation.
@@ -230,8 +238,9 @@ def decide(node_input: dict) -> Event:
         destination = "specialist_review"
     else:
         destination = "standard_review"
-    return Event(output={"case_id": docs["case_id"], "next_step": destination},
-                 route=destination)
+    return Event(
+        output={"case_id": docs["case_id"], "next_step": destination}, route=destination
+    )
 ```
 
 Read both named branch outputs, reject different case IDs, then apply missing-document precedence before amount. `destination` holds a machine-readable next step. The Event carries that value in output and uses the same string as its route, connecting the business result to explicit graph control.
@@ -241,8 +250,10 @@ Read both named branch outputs, reject different case IDs, then apply missing-do
 ```python
 def explain(node_input: dict) -> Event:
     # Expose the selected next step without changing the rule or claiming a credit decision.
-    return Event(output=node_input,
-                 message=f"Next step: {node_input['next_step']}. No credit approval issued.")
+    return Event(
+        output=node_input,
+        message=f"Next step: {node_input['next_step']}. No credit approval issued.",
+    )
 ```
 
 Read the chosen next step and insert it into a Python f-string for display. The returned output is the same mapping, so rendering does not change the business result. There is no model interpretation between the rule and this baseline explanation.
@@ -254,11 +265,22 @@ def build_agent():
     # Construct the ADK composition now; Runner executes it only after receiving a request.
     joined = JoinNode(name="evidence_join")
     return Workflow(
-        name="review_milestone", input_schema=CaseRequest, timeout=30,
-        edges=[("START", (documents, exposure)),
-               ((documents, exposure), joined), (joined, decide),
-               (decide, {"collect_documents": explain, "specialist_review": explain,
-                         "standard_review": explain})],
+        name="review_milestone",
+        input_schema=CaseRequest,
+        timeout=30,
+        edges=[
+            ("START", (documents, exposure)),
+            ((documents, exposure), joined),
+            (joined, decide),
+            (
+                decide,
+                {
+                    "collect_documents": explain,
+                    "specialist_review": explain,
+                    "standard_review": explain,
+                },
+            ),
+        ],
     )
 ```
 

@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Lab 14: Use a LangChain Tool from an ADK Agent"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 14: Use a LangChain Tool from an ADK Agent
 
 **What you are practising:** Third-party tools inside an ADK agent in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -41,6 +43,8 @@ Complete this table in your own words. These are exercise assumptions, not unive
 The data team must maintain valid, approved records and resolve conflicting versions. Keep one approved fixture per company for this exercise. Ordering by review date does not resolve conflicting profiles reviewed on the same day.
 
 ## 2. Prepare an isolated practice directory
+
+<Setup/>
 
 Prerequisites: basic terminal use, Python 3.12 or newer, and `uv`. The deterministic exercises need no Google account, cloud project, API key, or billable request. See the overview for the exact [version baseline](./README.md#version-baseline-and-what-was-verified).
 

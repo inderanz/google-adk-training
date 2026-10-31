@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 24: Evaluation: Evidence for a Banking Release Decision
 
 **What you are practising:** Agent evaluation and release evidence in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -48,11 +50,13 @@ Write the desired outcome in one sentence, then identify inputs, operations, out
 
 ## Set up the reference and your practice copy
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module24-evaluation/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -138,7 +142,8 @@ def read_case(case_id: str) -> dict:
     if case_id != "CASE-001":
         return {"status": "not_found"}
     return {
-        "status": "ok", "case_id": case_id,
+        "status": "ok",
+        "case_id": case_id,
         "missing_documents": ["ownership_register"],
         "source": "training-fixture:checklist-v1",
         "decision_owner": "human_analyst",
@@ -249,7 +254,9 @@ def require_passed(result: EvalSetResult, dataset: EvalSet, config: EvalConfig) 
         raise ValueError("No evaluation criteria configured")
     thresholds = {}
     for name, criterion in config.criteria.items():
-        threshold = criterion if isinstance(criterion, (float, int)) else criterion.threshold
+        threshold = (
+            criterion if isinstance(criterion, (float, int)) else criterion.threshold
+        )
         # NaN makes ordinary comparisons false, which could accidentally pass
         # a bad score. This teaching gate uses finite, higher-is-better metrics.
         if isinstance(threshold, bool) or not math.isfinite(threshold):
@@ -257,22 +264,32 @@ def require_passed(result: EvalSetResult, dataset: EvalSet, config: EvalConfig) 
         thresholds[name] = threshold
     if result.eval_set_id != dataset.eval_set_id:
         raise ValueError("Result belongs to another dataset")
-    if not expected_cases or {case.eval_id for case in result.eval_case_results} != expected_cases:
+    if (
+        not expected_cases
+        or {case.eval_id for case in result.eval_case_results} != expected_cases
+    ):
         raise ValueError("Missing or unexpected evaluation cases")
     if len(result.eval_case_results) != len(expected_cases):
         raise ValueError("Duplicate evaluation cases; select one complete run")
     for case in result.eval_case_results:
         if case.final_eval_status.name != "PASSED":
             raise ValueError(f"Case did not pass: {case.eval_id}")
-        metrics = {metric.metric_name: metric for metric in case.overall_eval_metric_results}
+        metrics = {
+            metric.metric_name: metric for metric in case.overall_eval_metric_results
+        }
         # A dictionary would otherwise keep only the last duplicate metric,
         # possibly hiding a failure behind a later passing row.
         if len(metrics) != len(case.overall_eval_metric_results):
             raise ValueError(f"Duplicate metric results: {case.eval_id}")
         for name, threshold in thresholds.items():
             metric = metrics.get(name)
-            if (metric is None or metric.eval_status.name != "PASSED" or metric.score is None
-                    or not math.isfinite(metric.score) or metric.score < threshold):
+            if (
+                metric is None
+                or metric.eval_status.name != "PASSED"
+                or metric.score is None
+                or not math.isfinite(metric.score)
+                or metric.score < threshold
+            ):
                 raise ValueError(f"Missing or failing metric: {case.eval_id}/{name}")
 ```
 

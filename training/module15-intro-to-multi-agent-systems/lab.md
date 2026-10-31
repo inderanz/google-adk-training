@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 15: Introduction to Multi-Agent Systems
 
 **What you are practising:** Agent composition and specialist consultation in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -52,11 +54,13 @@ Module 14 supplied bounded evidence tools. This module defines who should use a 
 
 ## Set up the supplied example
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module15-intro-to-multi-agent-systems/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -166,6 +170,7 @@ The complete lab command below runs the software checks. Read the test names and
 
 ```python
 """Two advisory roles; the coordinator calls a specialist and resumes."""
+
 import os
 from google.adk.agents import Agent
 from google.adk.tools.agent_tool import AgentTool

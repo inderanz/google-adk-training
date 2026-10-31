@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 20: Cyclic Workflows: Bounded Memo Revision
 
 **What you are practising:** Bounded revision loops and stopping conditions in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -53,11 +55,13 @@ Module 19 composed advisory results. This module bounds revision of an evidence 
 
 ## Set up the supplied example
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module20-cyclic-workflows/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -178,6 +182,7 @@ The complete lab command below runs the software checks. Read the test names and
 
 ```python
 """Small, strict boundary for fictional CASE-001; no credit decision."""
+
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -203,6 +208,7 @@ SAMPLE = {
 
 ```python
 """Bounded memo revision with a deterministic evidence gate."""
+
 import os
 from google.adk.agents import Agent
 from google.adk.agents.context import Context
@@ -247,9 +253,17 @@ Start with an empty list, add a message for a wrong case, and add another for a 
 def fixture_writer(node_input: dict) -> dict:
     # Deliberately omit a citation on pass 1 so learners can see a revision.
     # Make the first attempt observably incomplete so learners can trace feedback into a revision.
-    sources = ["checklist-v1"] if node_input["attempt"] == 1 else ["checklist-v1", "profile-v1"]
-    return {"case_id": node_input["case_id"], "evidence_ids": sources,
-            "summary": node_input["evidence"]["checklist-v1"] + " Analyst review is required."}
+    sources = (
+        ["checklist-v1"]
+        if node_input["attempt"] == 1
+        else ["checklist-v1", "profile-v1"]
+    )
+    return {
+        "case_id": node_input["case_id"],
+        "evidence_ids": sources,
+        "summary": node_input["evidence"]["checklist-v1"]
+        + " Analyst review is required.",
+    }
 ```
 
 The conditional expression chooses one source ID on attempt 1 and two on later attempts. This intentionally controlled behavior makes revision observable offline. The summary uses the checklist text supplied in the payload, so changing the fixture completeness flag changes the source statement. No model call occurs in this function.
@@ -268,29 +282,48 @@ def build_agent(writer=None):
         problems = []
         for attempt in range(1, 4):
             payload = {
-                "case_id": node_input.case_id, "attempt": attempt,
-                "evidence": {"checklist-v1": ("Checklist complete." if node_input.documents_complete
-                                              else "Ownership register missing."),
-                             "profile-v1": "Acme Robotics is a fictional borrower."},
+                "case_id": node_input.case_id,
+                "attempt": attempt,
+                "evidence": {
+                    "checklist-v1": (
+                        "Checklist complete."
+                        if node_input.documents_complete
+                        else "Ownership register missing."
+                    ),
+                    "profile-v1": "Acme Robotics is a fictional borrower.",
+                },
                 "feedback": problems,
             }
             raw = await ctx.run_node(selected_writer, node_input=payload)
             try:
                 memo = Memo.model_validate(raw)
             except ValidationError:
-                return Event(output={"status": "invalid_model_output", "history": history},
-                             message="The writer returned an invalid memo; manual review is required.")
+                return Event(
+                    output={"status": "invalid_model_output", "history": history},
+                    message="The writer returned an invalid memo; manual review is required.",
+                )
             problems = defects(memo, node_input.case_id)
             history.append({"attempt": attempt, "defects": list(problems)})
             if not problems:
-                return Event(output={"status": "ready_for_human_review",
-                                     "memo": memo.model_dump(), "history": history},
-                             message="Memo passed citation checks; human review is required.")
-        return Event(output={"status": "needs_manual_review", "history": history},
-                     message="Revision budget exhausted; no accepted memo was produced.")
+                return Event(
+                    output={
+                        "status": "ready_for_human_review",
+                        "memo": memo.model_dump(),
+                        "history": history,
+                    },
+                    message="Memo passed citation checks; human review is required.",
+                )
+        return Event(
+            output={"status": "needs_manual_review", "history": history},
+            message="Revision budget exhausted; no accepted memo was produced.",
+        )
 
-    return Workflow(name="memo_revision", input_schema=CaseRequest, timeout=45,
-                    edges=[("START", revise)])
+    return Workflow(
+        name="memo_revision",
+        input_schema=CaseRequest,
+        timeout=45,
+        edges=[("START", revise)],
+    )
 ```
 
 The outer function selects a writer. Its inner async function captures that selected object, which is a Python closure. Each of three attempts constructs a new evidence/feedback payload and awaits the writer. Schema validation happens before defects accesses fields. A copied feedback list records that attempt. Returning inside the loop means acceptance; the return after the loop means exhaustion. The outer return wraps this orchestrator in a native Workflow.
@@ -301,7 +334,9 @@ The outer function selects a writer. Its inner async function captures that sele
 def live_writer():
     # Keep the same Memo contract when replacing the fixture with Gemini reasoning.
     return Agent(
-        name="memo_writer", model=os.environ["GEMINI_MODEL"], output_schema=Memo,
+        name="memo_writer",
+        model=os.environ["GEMINI_MODEL"],
+        output_schema=Memo,
         instruction=(
             "Draft a short bank analyst memo from only the supplied evidence. "
             "Use the given case_id and evidence keys; address feedback on each revision. "

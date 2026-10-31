@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Lab 13.5: From a Bank Request to Durable State"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 13.5: Build a Review Assistant That Can Resume Tomorrow
 
 **What you are practising:** Durable sessions and separate business records in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -68,6 +70,8 @@ Read the [overview's architecture and contract](./README.md) first. Attempt each
 
 ## 3. Set up a practice copy
 
+<Setup/>
+
 Copy the entire sibling `example/` directory into a separate practice workspace. Run all following commands from that copied directory.
 
 ```text
@@ -127,9 +131,7 @@ Open `bank_review/sessions.py`. Its local branch uses the built-in service:
 ```python
 from google.adk.sessions import DatabaseSessionService
 
-service = DatabaseSessionService(
-    db_url="sqlite+aiosqlite:///./review_sessions.db"
-)
+service = DatabaseSessionService(db_url="sqlite+aiosqlite:///./review_sessions.db")
 ```
 
 Read the URL in parts: `sqlite` is the database; `aiosqlite` is the async driver; `./review_sessions.db` is a file in the current working directory. The constructor creates the service object; operations initialize/use its storage.
@@ -196,6 +198,7 @@ Open `session_probe.py`. The program creates an event for each checkpoint using:
 
 ```python
 from google.adk.events import Event, EventActions
+
 
 def checkpoint_event(invocation_id, step):
     return Event(
@@ -284,6 +287,7 @@ Google's transaction wrapper is used this way:
 ```python
 from google.cloud import firestore
 
+
 async def execute_receipt(client, reference, case_id, user_id, document_name, version):
     from bank_review.repository import mark_in_transaction
 
@@ -316,6 +320,7 @@ In `get_review_case`, the model provides a case ID. ADK supplies `ToolContext`:
 ```python
 from google.adk.tools import ToolContext
 
+
 def remember_case_hint(case_id: str, tool_context: ToolContext) -> None:
     tool_context.state["last_case_id"] = case_id
 ```
@@ -336,6 +341,7 @@ Read `agent.py` and `run_agent.py`. The agent defines reasoning instructions and
 
 ```python
 from google.adk import Runner
+
 
 def make_runner(agent, service):
     return Runner(

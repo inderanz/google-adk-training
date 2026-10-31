@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Challenge Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 13: Learn ToolContext Through a Simulated Drawdown
 
 **Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
@@ -82,7 +84,9 @@ The model supplies `facility_id`, `amount_cents`, and `disbursement_purpose`. AD
 
 ## Step 1: Prepare the package
 
-Continue in your existing `adk-training` Python project. In this repository, that is `learn-to-teach/adk-training`. Check the active environment:
+<Setup/>
+
+Continue in your existing `adk-training` Python project (or use one of the launch options above). Check the active environment:
 
 ```bash
 uv run --no-sync python -c "import sys; from importlib.metadata import version; print(sys.version); print('google-adk', version('google-adk'))"
@@ -380,9 +384,7 @@ async def check_case(
         assert expected in result
 
     if expected == "[COMPLETED]":
-        assert context.state["available_credit_cents"] == (
-            1_000_000_000 - amount_cents
-        )
+        assert context.state["available_credit_cents"] == (1_000_000_000 - amount_cents)
         assert len(context.state["drawdown_log"]) == 1
         assert context.actions.skip_summarization is True
         assert "available_credit_cents" in context.actions.state_delta

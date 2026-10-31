@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 17: Structured Routing: Turning Bank Rules into Edges
 
 **What you are practising:** Structured routing and explicit control signals in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -52,11 +54,13 @@ Module 16 collected evidence. This module chooses a step from fixed rules. Modul
 
 ## Set up the supplied example
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module17-structured-routing/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -162,6 +166,7 @@ The complete lab command below runs the software checks. Read the test names and
 
 ```python
 """Small, strict boundary for fictional CASE-001; no credit decision."""
+
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -187,6 +192,7 @@ SAMPLE = {
 
 ```python
 """Validated facts select one explicit route; no LLM chooses bank policy."""
+
 from google.adk.events import Event
 from google.adk.workflow import Workflow
 from .contracts import CaseRequest
@@ -215,8 +221,10 @@ Python evaluates the conditions from top to bottom. When documents are missing, 
 ```python
 def request_documents(node_input: dict) -> Event:
     # Return the selected next step as data; this function does not send a real document request.
-    return Event(output={"case_id": node_input["case_id"], "next_step": "collect_documents"},
-                 message="Collect the missing checklist evidence before review.")
+    return Event(
+        output={"case_id": node_input["case_id"], "next_step": "collect_documents"},
+        message="Collect the missing checklist evidence before review.",
+    )
 ```
 
 This handler receives a plain dictionary, so it uses square-bracket key lookup rather than model attribute access. It returns the canonical case ID and the action label collect_documents. The message explains that label to the analyst. It does not contact the borrower or write a request into a case system.
@@ -226,8 +234,10 @@ This handler receives a plain dictionary, so it uses square-bracket key lookup r
 ```python
 def specialist_review(node_input: dict) -> Event:
     # Routing identifies the review owner; it does not approve the requested credit.
-    return Event(output={"case_id": node_input["case_id"], "next_step": "specialist_review"},
-                 message="Send the complete evidence pack to a specialist analyst.")
+    return Event(
+        output={"case_id": node_input["case_id"], "next_step": "specialist_review"},
+        message="Send the complete evidence pack to a specialist analyst.",
+    )
 ```
 
 The router has already applied the rule. This handler only packages the next-step label specialist_review and a readable explanation. There is no hidden second model decision or approval operation here. A real queue submission would require a separate service call and an idempotency contract.
@@ -237,8 +247,10 @@ The router has already applied the rule. This handler only packages the next-ste
 ```python
 def standard_review(node_input: dict) -> Event:
     # The remaining valid cases enter standard review; they still require a human decision.
-    return Event(output={"case_id": node_input["case_id"], "next_step": "standard_review"},
-                 message="Send the complete evidence pack to a standard analyst queue.")
+    return Event(
+        output={"case_id": node_input["case_id"], "next_step": "standard_review"},
+        message="Send the complete evidence pack to a standard analyst queue.",
+    )
 ```
 
 The normal handler returns standard_review, which still means an analyst queue, not automatic approval. Keeping the label machine-readable lets a UI or later operation interpret it without parsing prose. The current example returns data only.
@@ -248,8 +260,10 @@ The normal handler returns standard_review, which still means an analyst queue, 
 ```python
 def unsupported_route(node_input: dict) -> Event:
     # Unexpected control labels need an explicit manual outcome instead of an invented default approval.
-    return Event(output={"case_id": node_input["case_id"], "next_step": "manual_triage"},
-                 message="An unsupported route requires manual triage.")
+    return Event(
+        output={"case_id": node_input["case_id"], "next_step": "manual_triage"},
+        message="An unsupported route requires manual triage.",
+    )
 ```
 
 This handler preserves the case identifier but chooses manual_triage. It is deliberately distinguishable from the standard path. The default mapping invokes it for an unmatched routing signal; an invalid input schema fails earlier and does not reach this handler.
@@ -260,15 +274,20 @@ This handler preserves the case identifier but chooses manual_triage. It is deli
 def build_agent():
     # Construct the ADK composition now; Runner executes it only after receiving a request.
     return Workflow(
-        name="case_router", input_schema=CaseRequest, timeout=30,
+        name="case_router",
+        input_schema=CaseRequest,
+        timeout=30,
         edges=[
             ("START", choose_route),
-            (choose_route, {
-                "documents": request_documents,
-                "specialist": specialist_review,
-                "standard": standard_review,
-                "__DEFAULT__": unsupported_route,
-            }),
+            (
+                choose_route,
+                {
+                    "documents": request_documents,
+                    "specialist": specialist_review,
+                    "standard": standard_review,
+                    "__DEFAULT__": unsupported_route,
+                },
+            ),
         ],
     )
 ```

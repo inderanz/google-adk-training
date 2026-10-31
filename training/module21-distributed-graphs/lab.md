@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 21: Distributed Graphs: A2A Service Boundaries
 
 **What you are practising:** Remote agents and the A2A protocol in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -53,11 +55,13 @@ Module 20 bounded local iterative work. This module introduces a remote ownershi
 
 ## Set up the supplied example
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module21-distributed-graphs/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -175,6 +179,7 @@ The complete lab command below runs the software checks. Read the test names and
 
 ```python
 """Small, strict boundary for fictional CASE-001; no credit decision."""
+
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -200,6 +205,7 @@ SAMPLE = {
 
 ```python
 """A fixed, developer-controlled endpoint; never accept a URL from the model."""
+
 from google.adk.a2a.agent import RemoteA2aAgent
 ```
 
@@ -236,6 +242,7 @@ Construct a remote proxy with a developer-owned discovery URL. The description e
 
 ```python
 """Local A2A specialist. No authentication: bind only to loopback."""
+
 from google.adk.a2a.utils.agent_to_a2a import to_a2a
 from google.adk.events import Event
 from google.adk.workflow import Workflow
@@ -244,17 +251,26 @@ from .contracts import CaseRequest
 
 def review_checklist(node_input: CaseRequest) -> Event:
     # The remote service validates its own input; a network caller is not automatically trusted.
-    result = {"case_id": node_input.case_id,
-              "documents_complete": node_input.documents_complete,
-              "source": "training-fixture:checklist-v1"}
-    return Event(output=result, message=(
-        f"{node_input.case_id}: checklist complete={node_input.documents_complete}. "
-        "Synthetic evidence only; no credit approval."
-    ))
+    result = {
+        "case_id": node_input.case_id,
+        "documents_complete": node_input.documents_complete,
+        "source": "training-fixture:checklist-v1",
+    }
+    return Event(
+        output=result,
+        message=(
+            f"{node_input.case_id}: checklist complete={node_input.documents_complete}. "
+            "Synthetic evidence only; no credit approval."
+        ),
+    )
 
 
-specialist = Workflow(name="remote_checklist", input_schema=CaseRequest,
-                      edges=[("START", review_checklist)], timeout=20)
+specialist = Workflow(
+    name="remote_checklist",
+    input_schema=CaseRequest,
+    edges=[("START", review_checklist)],
+    timeout=20,
+)
 app = to_a2a(specialist, host="127.0.0.1", port=8001)
 ```
 

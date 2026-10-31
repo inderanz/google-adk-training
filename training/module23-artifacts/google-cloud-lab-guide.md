@@ -39,7 +39,7 @@ The native ADK HTTP server's `user_id` is a scope parameter. It is not proof of 
 From the selected module's `example/` directory:
 
 ```bash
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 cp .env.example .env
 gcloud auth application-default login
 ```

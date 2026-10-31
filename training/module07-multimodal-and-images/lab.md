@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Challenge Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 7: Building a Visual Product Catalog Analyzer
 
 **Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
@@ -19,6 +21,8 @@ You will use the **App and Runner** pattern you learned in Module 6 to build a P
 3.  Executes the agent using `run_async`.
 
 ### Step 1: Create and Prepare the Project
+
+<Setup/>
 
 > **Note:** unlike other modules, `visual_catalog` must live directly inside this module's own folder (`module07-multimodal-and-images/`) rather than in your shared `adk-training` project -- see point 3 below for why. If this is the first agent you're creating from inside this folder, set up a local environment here first: `uv init --python 3.10 && uv add "google-adk>=2.1.0" python-dotenv`.
 
@@ -59,15 +63,19 @@ This is the main mental model you will reuse in real ADK projects: one object ho
 # ------------------------------------------------------------
 # 1) Import the libraries we need
 # ------------------------------------------------------------
-import asyncio                      # Lets us run async code (important for ADK run_async)
-import logging                      # Helps us control noisy logs from Google libraries
-import os                           # Lets us work with file paths and check whether files exist
+import asyncio  # Lets us run async code (important for ADK run_async)
+import logging  # Helps us control noisy logs from Google libraries
+import os  # Lets us work with file paths and check whether files exist
 
-from google.adk import Agent        # The AI brain / instruction set for the app
-from google.adk.apps import App     # The app container that holds the root agent
-from google.adk.runners import InMemoryRunner  # Runs the app in memory and manages session state
-from google.genai import types      # Used to create Parts, Content, and Blob payloads for multimodal input
-from dotenv import load_dotenv       # Loads environment variables from .env
+from google.adk import Agent  # The AI brain / instruction set for the app
+from google.adk.apps import App  # The app container that holds the root agent
+from google.adk.runners import (
+    InMemoryRunner,
+)  # Runs the app in memory and manages session state
+from google.genai import (
+    types,
+)  # Used to create Parts, Content, and Blob payloads for multimodal input
+from dotenv import load_dotenv  # Loads environment variables from .env
 
 # ------------------------------------------------------------
 # 2) Keep the logs clean
@@ -75,6 +83,7 @@ from dotenv import load_dotenv       # Loads environment variables from .env
 # This is optional, but very helpful when learning.
 # Without this, ADK may print a lot of internal HTTP/debug logs that are not relevant to the app logic.
 logging.getLogger("google.adk").setLevel(logging.WARNING)
+
 
 # ------------------------------------------------------------
 # 3) Helper function: convert a local image file into ADK format
@@ -88,20 +97,19 @@ def load_image_from_file(path: str) -> types.Part:
 
     # Open the file in binary mode because images are not plain text.
     # 'rb' = read-binary
-    with open(path, 'rb') as f:
+    with open(path, "rb") as f:
         image_bytes = f.read()
 
     # Choose the MIME type based on the file extension.
     # This tells the model what kind of image it is receiving.
     # Think of MIME type as the file's label, like "this is a JPEG image".
-    mime_type = 'image/png' if path.lower().endswith('.png') else 'image/jpeg'
+    mime_type = "image/png" if path.lower().endswith(".png") else "image/jpeg"
 
     # Build the payload structure expected by the Google GenAI SDK.
     # `types.Blob` holds the raw bytes and the file type.
     # `types.Part` wraps that blob so it can be placed inside a message.
-    return types.Part(
-        inline_data=types.Blob(data=image_bytes, mime_type=mime_type)
-    )
+    return types.Part(inline_data=types.Blob(data=image_bytes, mime_type=mime_type))
+
 
 # ------------------------------------------------------------
 # 4) Application class: organize the logic into a reusable object
@@ -120,9 +128,9 @@ class VisualCatalogApp:
         # The model is the actual LLM.
         # The instruction is the job description.
         self.agent = Agent(
-            model='gemini-3.5-flash',
-            name='catalog_writer',
-            instruction="You are a professional product catalog writer. Analyze the image and write a compelling description."
+            model="gemini-3.5-flash",
+            name="catalog_writer",
+            instruction="You are a professional product catalog writer. Analyze the image and write a compelling description.",
         )
 
         # B. Build the app container
@@ -197,8 +205,8 @@ class VisualCatalogApp:
             role="user",
             parts=[
                 types.Part(text=f"Analyze this image for product {product_id}."),
-                image_part
-            ]
+                image_part,
+            ],
         )
 
         # --------------------------------------------------------
@@ -211,9 +219,7 @@ class VisualCatalogApp:
         # We iterate through the returned event stream and wait for the final answer.
         print("📸 Sending image to Gemini...")
         async for event in self.runner.run_async(
-            user_id=user_id,
-            session_id=session_id,
-            new_message=msg
+            user_id=user_id, session_id=session_id, new_message=msg
         ):
             # `is_final_response()` tells us when the model has produced the final answer.
             # This is important because the model may emit intermediate streaming events first.
@@ -221,6 +227,7 @@ class VisualCatalogApp:
                 # In many ADK tasks, the response is in event.content.parts[0].text.
                 # We print it for the user.
                 print(f"✅ Description:\n{event.content.parts[0].text}\n")
+
 
 # ------------------------------------------------------------
 # 6) Entry point: run the workflow for multiple products
@@ -240,8 +247,8 @@ async def main():
     # This is a simple data structure that lets us process multiple products in one loop.
     # In real work, this could come from a database, CSV, or API response.
     products = [
-        ('HEADPHONES-01', '../headphones.jpg'),
-        ('LAPTOP-02', '../laptop.jpg'),
+        ("HEADPHONES-01", "../headphones.jpg"),
+        ("LAPTOP-02", "../laptop.jpg"),
     ]
 
     # Loop through each product.
@@ -256,13 +263,14 @@ async def main():
         else:
             print(f"⚠️ Image not found: {path}")
 
+
 # ------------------------------------------------------------
 # 7) Standard Python execution pattern
 # ------------------------------------------------------------
 # `if __name__ == '__main__':` means:
 # "Only run this block when the script is executed directly as a file."
 # This is standard Python best practice and prevents code from running when imported as a module.
-if __name__ == '__main__':
+if __name__ == "__main__":
     # `asyncio.run(main())` starts the async event loop and runs the main coroutine.
     # This is the bridge between Python's async engine and the code we wrote.
     asyncio.run(main())

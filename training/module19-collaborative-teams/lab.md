@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 19: Collaborative Teams: Calls, Returns and Handoffs
 
 **What you are practising:** Collaboration, delegation and conversation ownership in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -52,11 +54,13 @@ Modules 16–18 controlled required work in code. This module introduces flexibl
 
 ## Set up the supplied example
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module19-collaborative-teams/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -170,6 +174,7 @@ The complete lab command below runs the software checks. Read the test names and
 
 ```python
 """A coordinator consults two local specialists using call-and-return."""
+
 import os
 from typing import Literal
 from google.adk.agents import Agent
@@ -196,20 +201,25 @@ def build_agent(model=None):
     # Construct the ADK composition now; Runner executes it only after receiving a request.
     selected_model = model or os.environ["GEMINI_MODEL"]
     documents = Agent(
-        name="document_adviser", model=selected_model,
+        name="document_adviser",
+        model=selected_model,
         description="Explains financial statements and ownership-register evidence.",
         instruction="Explain the two required documents; you cannot verify receipt.",
         output_schema=AdvisoryNote,
     )
     policy = Agent(
-        name="review_adviser", model=selected_model,
+        name="review_adviser",
+        model=selected_model,
         description="Explains that a human analyst owns the credit decision.",
-        instruction=("Explain that analysts assess evidence and authorize decisions. "
-                     "You have no policy retrieval tool; do not invent policy limits."),
+        instruction=(
+            "Explain that analysts assess evidence and authorize decisions. "
+            "You have no policy retrieval tool; do not invent policy limits."
+        ),
         output_schema=AdvisoryNote,
     )
     return Agent(
-        name="case_coordinator", model=selected_model,
+        name="case_coordinator",
+        model=selected_model,
         instruction=(
             "Prepare an advisory explanation for CASE-001 (fictional). For a full "
             "preparation request, consult both advisers and combine their notes, "
@@ -225,17 +235,22 @@ def build_agent(model=None):
 ### Read `build_delegation_team`
 
 ```python
-def build_delegation_team(model=None, mode: Literal["chat", "task", "single_turn"] = "single_turn"):
+def build_delegation_team(
+    model=None, mode: Literal["chat", "task", "single_turn"] = "single_turn"
+):
     # Mode chooses the interaction contract, not a banking permission.
     # Create a fresh child for this parent; mode controls delegation rather than business authorization.
     selected_model = model or os.environ["GEMINI_MODEL"]
     specialist = Agent(
-        name="checklist_specialist", model=selected_model, mode=mode,
+        name="checklist_specialist",
+        model=selected_model,
+        mode=mode,
         description="Explains the financial-statements and ownership-register checklist.",
         instruction="Explain the two document types. Do not claim receipt or approval.",
     )
     return Agent(
-        name="delegation_coordinator", model=selected_model,
+        name="delegation_coordinator",
+        model=selected_model,
         instruction="Delegate checklist questions to checklist_specialist.",
         sub_agents=[specialist],
     )
