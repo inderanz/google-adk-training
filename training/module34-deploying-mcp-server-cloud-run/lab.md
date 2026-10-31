@@ -66,21 +66,18 @@ We need to modify our server so it doesn't store the shopping carts in memory.
     from mcp.server.fastmcp import FastMCP, Context
 
     # --- Configuration ---
-    # In a serverless environment, we can use the temporary filesystem for a simple demo.
-    # In a real production system, this would be a connection to a dedicated external
-    # persistence service like Redis or Memorystore.
     STATE_STORAGE_PATH = "/tmp/carts"
     if not os.path.exists(STATE_STORAGE_PATH):
         os.makedirs(STATE_STORAGE_PATH)
 
     # --- MCP Server Setup ---
-    mcp = FastMCP("stateless_shopping_cart_server")
+    # TODO 1: Initialize FastMCP with name "stateless_shopping_cart_server"
+    mcp = ...
 
     def get_session_id(ctx: Context) -> str:
-        # The MCP session ID arrives as a standard HTTP header, tracked by the
-        # transport itself -- this is what ties requests to the same cart,
-        # regardless of which container instance handles each one.
-        return ctx.request_context.request.headers.get("mcp-session-id", "unknown")
+        # TODO 2: Extract the session ID from the standard HTTP header 'mcp-session-id'
+        # Default to 'unknown' if not present
+        ...
 
     # Helper functions to simulate external state
     def get_cart(session_id: str) -> list:
@@ -95,27 +92,21 @@ We need to modify our server so it doesn't store the shopping carts in memory.
         with open(cart_file, 'w') as f:
             json.dump(cart, f)
 
-    @mcp.tool()
+    # TODO 3: Decorate add_item_to_cart with @mcp.tool()
+    # It should extract session_id via ctx, append item to retrieved cart, and persist via save_cart
     def add_item_to_cart(item: str, ctx: Context) -> dict:
         """Adds an item to the cart."""
-        session_id = get_session_id(ctx)
-        print(f"[Server]: Handling add_item_to_cart for session '{session_id}'")
-        cart = get_cart(session_id)
-        cart.append(item)
-        save_cart(session_id, cart)
-        return {"status": "success", "message": f"Added '{item}'."}
+        ...
 
-    @mcp.tool()
+    # TODO 4: Decorate view_cart with @mcp.tool()
+    # It should extract session_id via ctx, load cart, and return {"status": "success", "cart": cart}
     def view_cart(ctx: Context) -> dict:
         """Views items in the cart."""
-        session_id = get_session_id(ctx)
-        print(f"[Server]: Handling view_cart for session '{session_id}'")
-        cart = get_cart(session_id)
-        return {"status": "success", "cart": cart}
+        ...
 
     # --- ASGI app for HTTP, suitable for Cloud Run ---
-    # FastMCP mounts the MCP endpoint at /mcp by default.
-    app = mcp.streamable_http_app()
+    # TODO 5: Mount the MCP endpoint as a streamable HTTP ASGI app for Uvicorn
+    app = ...
     ```
 
 ### Step 2: Containerize the MCP Server
@@ -188,17 +179,14 @@ Now, create an ADK agent that connects to your newly deployed server.
     # The URL of your deployed MCP server -- note the /mcp path suffix
     MCP_SERVER_URL = "YOUR_CLOUD_RUN_SERVICE_URL/mcp"
 
+    # TODO 6: Initialize root_agent with McpToolset and StreamableHTTPConnectionParams pointing to MCP_SERVER_URL
     root_agent = Agent(
         model='gemini-3.5-flash',
         name='cloud_shopping_agent',
         instruction='You are a shopping assistant. Help the user by adding items to their cart and showing them their cart contents.',
         tools=[
-            McpToolset(
-                # Use StreamableHTTPConnectionParams for remote servers
-                connection_params=StreamableHTTPConnectionParams(
-                    url=MCP_SERVER_URL,
-                ),
-            )
+            # Configure McpToolset here
+            ...
         ],
     )
     ```

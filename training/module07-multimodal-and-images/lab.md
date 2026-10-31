@@ -94,139 +94,56 @@ logging.getLogger("google.adk").setLevel(logging.WARNING)
 # `types.Part` is the message container for model input.
 def load_image_from_file(path: str) -> types.Part:
     """Read an image file from disk and convert it into a `types.Part` for Gemini/ADK."""
-
-    # Open the file in binary mode because images are not plain text.
-    # 'rb' = read-binary
-    with open(path, "rb") as f:
-        image_bytes = f.read()
-
-    # Choose the MIME type based on the file extension.
-    # This tells the model what kind of image it is receiving.
-    # Think of MIME type as the file's label, like "this is a JPEG image".
-    mime_type = "image/png" if path.lower().endswith(".png") else "image/jpeg"
-
-    # Build the payload structure expected by the Google GenAI SDK.
-    # `types.Blob` holds the raw bytes and the file type.
-    # `types.Part` wraps that blob so it can be placed inside a message.
-    return types.Part(inline_data=types.Blob(data=image_bytes, mime_type=mime_type))
+    # TODO 1: Open the file in binary mode ('rb') and read raw bytes.
+    # Determine mime_type ("image/png" if path.lower().endswith(".png") else "image/jpeg").
+    # Construct types.Blob(data=image_bytes, mime_type=mime_type).
+    # Return types.Part(inline_data=blob).
+    raise NotImplementedError("TODO 1: Implement load_image_from_file")
 
 
 # ------------------------------------------------------------
 # 4) Application class: organize the logic into a reusable object
 # ------------------------------------------------------------
-# This class is like a small business "workflow" object:
-# - agent = the intelligence
-# - app = the runtime container
-# - runner = the execution engine that actually sends the task to the model
 class VisualCatalogApp:
     def __init__(self):
-        # A. Define the AI "brain"
-        # --------------------------------------------------------
-        # Here we define the model and the task instructions.
-        # This is a classic ADK pattern:
-        #   Agent(model=..., name=..., instruction=...)
-        # The model is the actual LLM.
-        # The instruction is the job description.
-        self.agent = Agent(
-            model="gemini-3.5-flash",
-            name="catalog_writer",
-            instruction="You are a professional product catalog writer. Analyze the image and write a compelling description.",
-        )
+        # TODO 2: Instantiate self.agent using Agent:
+        # - model="gemini-3.5-flash"
+        # - name="catalog_writer"
+        # - instruction="You are a professional product catalog writer. Analyze the image and write a compelling description."
+        self.agent = None  # Replace with Agent(...)
 
-        # B. Build the app container
-        # --------------------------------------------------------
-        # `App` is the wrapper that holds the root agent.
-        # In a real application, this is the place where the app is assembled.
-        # It is the "container" in which the agent lives.
-        self.app = App(name="visual_catalog", root_agent=self.agent)
-
-        # C. Create the runner that executes the app
-        # --------------------------------------------------------
-        # `InMemoryRunner` is a lightweight runner for in-process execution.
-        # It gives us an easy way to send messages and receive events.
-        # For a learning example, this is much simpler than setting up a full web server.
-        self.runner = InMemoryRunner(app=self.app)
+        # TODO 3: Wrap self.agent into an App container named "visual_catalog"
+        # and instantiate an InMemoryRunner to orchestrate execution turns.
+        self.app = None  # Replace with App(...)
+        self.runner = None  # Replace with InMemoryRunner(...)
 
     # ------------------------------------------------------------
     # 5) Main business method: analyze one product image
     # ------------------------------------------------------------
-    # This is the key method that does the actual work.
-    # It follows the same basic pattern you will use in most ADK apps:
-    # 1) create / find a session
-    # 2) load the input data
-    # 3) produce a multimodal message
-    # 4) run the agent
-    # 5) read the final response
     async def analyze_product(self, product_id: str, image_path: str):
-        # Print a clear heading so we know what is being processed.
         print(f"\n--- Analyzing Product: {product_id} ---")
-
-        # Every conversation in ADK is associated with a user and session.
-        # This is like a conversation thread or a ticket folder.
-        # We give it a human-friendly user id and a unique session id.
         user_id = "catalog_admin"
         session_id = f"sess_{product_id}"
 
-        # --------------------------------------------------------
-        # Step 1: Create the session explicitly
-        # --------------------------------------------------------
-        # Very important! When using `run_async` programmatically,
-        # you must create a session before sending a new message.
-        # The session stores conversation state, memory, and context.
-        # Without this, the runner has no place to keep the conversation.
-        #
-        # Analogy:
-        # A session is like opening a customer support ticket before you send a message.
-        # The ticket keeps all the details together so the support agent can see the full context.
-        self.runner.session_service.create_session(
-            app_name=self.app.name,
-            user_id=user_id,
-            session_id=session_id,
-        )
+        # TODO 4: Explicitly create a session in self.runner.session_service:
+        # Call self.runner.session_service.create_session(
+        #     app_name=self.app.name,
+        #     user_id=user_id,
+        #     session_id=session_id
+        # )
 
-        # --------------------------------------------------------
-        # Step 2: Load the image
-        # --------------------------------------------------------
-        # We call our helper function to convert the image file into a `types.Part`.
-        # This is how we package the raw image for the model.
-        image_part = load_image_from_file(image_path)
+        # TODO 5: Load the image using load_image_from_file(image_path), then construct
+        # a multimodal types.Content message with role="user" and two parts:
+        # 1. A text instruction: types.Part(text=f"Analyze this image for product {product_id}.")
+        # 2. The image part returned from load_image_from_file.
+        msg = None  # Replace with types.Content(...)
 
-        # --------------------------------------------------------
-        # Step 3: Build the multimodal message
-        # --------------------------------------------------------
-        # A message in ADK is a `types.Content` object.
-        # It has a role and a list of parts.
-        # In this case, the message contains:
-        # - a text instruction from the user
-        # - an image part with the product photo
-        #
-        # This is the core multimodal pattern: combine different input types in one message.
-        msg = types.Content(
-            role="user",
-            parts=[
-                types.Part(text=f"Analyze this image for product {product_id}."),
-                image_part,
-            ],
-        )
-
-        # --------------------------------------------------------
-        # Step 4: Send the message to the agent via the runner
-        # --------------------------------------------------------
-        # `runner.run_async(...)` is the entry point that sends the message into the app.
-        # It does the orchestration: session lookup, root agent invocation, model execution,
-        # and event streaming back to us.
-        #
-        # We iterate through the returned event stream and wait for the final answer.
-        print("📸 Sending image to Gemini...")
-        async for event in self.runner.run_async(
-            user_id=user_id, session_id=session_id, new_message=msg
-        ):
-            # `is_final_response()` tells us when the model has produced the final answer.
-            # This is important because the model may emit intermediate streaming events first.
-            if event.is_final_response():
-                # In many ADK tasks, the response is in event.content.parts[0].text.
-                # We print it for the user.
-                print(f"✅ Description:\n{event.content.parts[0].text}\n")
+        # TODO 6: Send the message into self.runner.run_async(...)
+        # Print "📸 Sending image to Gemini..."
+        # Iterate over events: `async for event in self.runner.run_async(...)`:
+        # Check `if event.is_final_response():`
+        # Print `event.content.parts[0].text`
+        pass
 
 
 # ------------------------------------------------------------

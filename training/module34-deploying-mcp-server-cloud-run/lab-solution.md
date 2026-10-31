@@ -17,6 +17,27 @@ Acceptance evidence must include allowed/denied users, two concurrent writers, i
 
 This file contains the complete code for the `stateless_cart_server.py` and the `agent.py` client for the lab.
 
+## Steering Prompt Template
+
+Use this prompt to guide an AI assistant or validate your implementation against Google Principal FDE standards:
+
+```markdown
+Act as a Google Principal Forward-Deployed Engineer (FDE). I need to containerize and deploy an externalized-state Model Context Protocol (MCP) server to Google Cloud Run and integrate it into a Google ADK Agent.
+
+Requirements:
+1. FastMCP Service:
+   - Use `FastMCP("stateless_shopping_cart_server")` and mount as an ASGI app using `mcp.streamable_http_app()`.
+   - Implement `get_session_id(ctx: Context)` extracting the `mcp-session-id` header from `ctx.request_context.request.headers`.
+   - Store cart state in `/tmp/carts/{session_id}.json` to demonstrate externalized session-scoped state across instances.
+   - Implement `@mcp.tool()` handlers for `add_item_to_cart(item: str, ctx: Context)` and `view_cart(ctx: Context)`.
+2. Cloud Run Container:
+   - Package with `python:3.11-slim`, pinning `mcp<2` and `uvicorn`.
+   - Run via `uvicorn stateless_cart_server:app --host 0.0.0.0 --port ${PORT:-8080}`.
+3. ADK Client:
+   - Configure `google.adk.Agent` with `McpToolset` using `StreamableHTTPConnectionParams(url="<SERVICE_URL>/mcp")`.
+   - Pin model to `gemini-3.5-flash` with Vertex AI backend.
+```
+
 ### `cloud_mcp_server/stateless_cart_server.py`
 
 ```python
