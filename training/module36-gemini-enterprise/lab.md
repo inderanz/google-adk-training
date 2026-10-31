@@ -3,12 +3,16 @@ sidebar_position: 2
 title: "Challenge Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 36: Designing an Enterprise Agent Strategy Challenge
 
 **Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
 
 
 ## Goal
+
+<Setup/>
 
 In this lab, you will design a strategy for a fictional company to adopt and govern a fleet of AI agents using Gemini Enterprise. This is a conceptual exercise to help you think about the challenges of managing agents at scale. **There is no coding in this lab.**
 

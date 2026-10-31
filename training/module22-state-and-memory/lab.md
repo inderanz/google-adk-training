@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 22: State and Memory: Remembering Preferences Without Rewriting Facts
 
 **What you are practising:** Session state, memory ingestion and recall in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -53,11 +55,13 @@ Module 13.5 established durable conversations and authoritative case records. Mo
 
 ## Set up the supplied example
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module22-state-and-memory/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -193,6 +197,7 @@ The complete lab command below runs the software checks. Read the test names and
 
 ```python
 """Read current preference state and recall relevant past context on demand."""
+
 import os
 from google.adk.agents import Agent
 from google.adk.tools.load_memory_tool import LoadMemoryTool
@@ -206,7 +211,8 @@ Imports name the public ADK and Python APIs used below. Importing a class does n
 def build_agent(model=None):
     # Construct the ADK composition now; Runner executes it only after receiving a request.
     return Agent(
-        name="review_assistant", model=model or os.environ["GEMINI_MODEL"],
+        name="review_assistant",
+        model=model or os.environ["GEMINI_MODEL"],
         instruction=(
             "Help an analyst understand commercial-review preparation. "
             "Current explanation format: {user:review_format?}. "
@@ -240,6 +246,7 @@ These factories choose native providers. The local database and local memory hav
 
 ```python
 """Use ADK's providers instead of building another session or memory store."""
+
 import os
 from google.adk.memory import InMemoryMemoryService
 from google.adk.sessions import DatabaseSessionService
@@ -250,9 +257,11 @@ DEMO_USER = "analyst-demo"  # Replace with verified caller identity in a server.
 
 def session_service():
     # Choose the native persistence provider; scope prefixes alone do not provide durability.
-    return DatabaseSessionService(db_url=os.environ.get(
-        "SESSION_DB_URL", "sqlite+aiosqlite:///./analyst_sessions.db"
-    ))
+    return DatabaseSessionService(
+        db_url=os.environ.get(
+            "SESSION_DB_URL", "sqlite+aiosqlite:///./analyst_sessions.db"
+        )
+    )
 
 
 def memory_service():
@@ -262,6 +271,7 @@ def memory_service():
         return InMemoryMemoryService()
     if backend == "managed":
         from google.adk.memory import VertexAiMemoryBankService
+
         return VertexAiMemoryBankService(
             project=os.environ["GOOGLE_CLOUD_PROJECT"],
             location=os.environ["GOOGLE_CLOUD_AGENT_ENGINE_LOCATION"],
@@ -276,6 +286,7 @@ Read the two awaited operations in order. The first persists the exact preferenc
 
 ```python
 """A preference has a small explicit vocabulary and contains no case facts."""
+
 from google.adk.events import Event, EventActions
 from google.genai import types
 
@@ -288,9 +299,14 @@ def preference_event(review_format: str) -> Event:
         raise ValueError("Review format must be concise or detailed")
     return Event(
         author="preference_service",
-        content=types.Content(role="user", parts=[types.Part.from_text(
-            text=f"My bank review explanation preference is {review_format}."
-        )]),
+        content=types.Content(
+            role="user",
+            parts=[
+                types.Part.from_text(
+                    text=f"My bank review explanation preference is {review_format}."
+                )
+            ],
+        ),
         actions=EventActions(state_delta={"user:review_format": review_format}),
     )
 
@@ -303,8 +319,10 @@ async def save_preference(sessions, memory, session, review_format):
     # Send only the validated preference event, not the case conversation.
     # If this fails the preference remains saved; this is not a transaction.
     await memory.add_events_to_memory(
-        app_name=session.app_name, user_id=session.user_id,
-        events=[event], session_id=session.id,
+        app_name=session.app_name,
+        user_id=session.user_id,
+        events=[event],
+        session_id=session.id,
     )
 ```
 

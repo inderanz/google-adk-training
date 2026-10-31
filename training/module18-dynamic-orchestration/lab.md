@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 18: Dynamic Orchestration: Scheduling the Checks a Case Needs
 
 **What you are practising:** Dynamic workflows and child-node execution in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -52,11 +54,13 @@ Module 17 selected a single destination. This module schedules a variable set of
 
 ## Set up the supplied example
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module18-dynamic-orchestration/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -162,6 +166,7 @@ The complete lab command below runs the software checks. Read the test names and
 
 ```python
 """Small, strict boundary for fictional CASE-001; no credit decision."""
+
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -187,6 +192,7 @@ SAMPLE = {
 
 ```python
 """Schedule only the read-only checks required by this case."""
+
 from google.adk.agents.context import Context
 from google.adk.events import Event
 from google.adk.workflow import Workflow, node
@@ -240,7 +246,9 @@ The decorator supplies the resume setting required for dynamic child calls. The 
 def build_agent():
     # Construct the ADK composition now; Runner executes it only after receiving a request.
     return Workflow(
-        name="dynamic_checks", input_schema=CaseRequest, timeout=30,
+        name="dynamic_checks",
+        input_schema=CaseRequest,
+        timeout=30,
         edges=[("START", collect_required_checks)],
     )
 ```

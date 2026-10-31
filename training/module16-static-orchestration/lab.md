@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 16: Static Orchestration: Collecting Independent Evidence
 
 **What you are practising:** Static workflows, fan-out and joins in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -52,11 +54,13 @@ Module 15 separated roles. This module makes required collection explicit. Modul
 
 ## Set up the supplied example
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module16-static-orchestration/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -162,6 +166,7 @@ The complete lab command below runs the software checks. Read the test names and
 
 ```python
 """Small, strict boundary for fictional CASE-001; no credit decision."""
+
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -187,6 +192,7 @@ SAMPLE = {
 
 ```python
 """An explicit fan-out and join over a synthetic case snapshot."""
+
 from google.adk.events import Event
 from google.adk.workflow import JoinNode, Workflow
 from .contracts import CaseRequest
@@ -234,7 +240,9 @@ def combine(node_input: dict) -> Event:
     if documents["case_id"] != exposure["case_id"]:
         raise ValueError("Cannot combine evidence from different cases")
     result = {"case_id": documents["case_id"], "evidence": [documents, exposure]}
-    return Event(output=result, message="Evidence collected; analyst review is required.")
+    return Event(
+        output=result, message="Evidence collected; analyst review is required."
+    )
 ```
 
 The predecessor names are keys in JoinNode's output map. Read each required entry, then compare their case IDs before constructing the pack. `raise ValueError` stops the success path for mixed cases. The evidence list keeps both original result mappings. `Event.output` makes that pack available to software; `message` gives a person an explanation.
@@ -246,7 +254,9 @@ def build_agent():
     # Construct the ADK composition now; Runner executes it only after receiving a request.
     joined = JoinNode(name="evidence_join")
     return Workflow(
-        name="evidence_pipeline", input_schema=CaseRequest, timeout=30,
+        name="evidence_pipeline",
+        input_schema=CaseRequest,
+        timeout=30,
         edges=[
             ("START", (document_check, exposure_check)),
             ((document_check, exposure_check), joined),

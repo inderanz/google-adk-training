@@ -112,8 +112,6 @@ This method involves writing a custom Python script to deploy the agent. Unlike 
 
 ### Step 1: Prepare the Agent Project
 
-<Setup/>
-
 1.  **Create the Python version of the Customer Support agent:**
     ```shell
     mkdir deploy_manual
@@ -152,7 +150,7 @@ This method involves writing a custom Python script to deploy the agent. Unlike 
     # In deploy.py
     import vertexai
     from vertexai import agent_engines
-    from support_agent.agent import root_agent # Make sure this import is correct
+    from support_agent.agent import root_agent  # Make sure this import is correct
 
     # TODO: Fill in these values for your project
     PROJECT_ID = "your-gcp-project-id"
@@ -172,7 +170,7 @@ This method involves writing a custom Python script to deploy the agent. Unlike 
     # TODO: Call agent_engines.create() to deploy the app.
     # Pass the `app` object to the `agent_engine` parameter.
     # Also provide a `requirements` list: ["google-cloud-aiplatform[adk,agent_engines]"]
-    remote_app = None # Replace this
+    remote_app = None  # Replace this
 
     print(f"Deployment finished!")
     print(f"Resource Name: {remote_app.resource_name}")

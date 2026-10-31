@@ -78,16 +78,22 @@ Create a file named `verify_setup.py` and add the following content:
 
 # asyncio provides support for asynchronous programming, allowing non-blocking I/O operations (like calling LLM APIs).
 import asyncio
+
 # os provides access to operating system dependent functionality and environment variables.
 import os
+
 # warnings enables managing runtime warning messages emitted by Python or third-party libraries.
 import warnings
+
 # load_dotenv reads key-value pairs from a local .env file and sets them as environment variables (e.g., API keys).
 from dotenv import load_dotenv
+
 # Agent is the core building block representing an intelligent worker configured with instructions, a model, and tools.
 from google.adk import Agent
+
 # App encapsulates agents, configurations, and workflows into a deployable application unit.
 from google.adk.apps import App
+
 # InMemoryRunner executes agent apps locally in-memory for testing, debugging, and development.
 from google.adk.runners import InMemoryRunner
 
@@ -101,17 +107,19 @@ warnings.filterwarnings(
     category=UserWarning,
 )
 
+
 # Define the asynchronous entry point for our verification logic
 async def main():
     # Load environment variables from .env file so the Google SDK can discover GOOGLE_API_KEY or GCP settings
     load_dotenv()
 
-
     # Pedagogical Note for Enterprise Authentication (ADC):
     # When using Application Default Credentials (ADC) with gcloud, Google Cloud requires a quota project
     # so Vertex AI knows which billing account/quota to charge. If GOOGLE_CLOUD_PROJECT is set but
     # GOOGLE_CLOUD_QUOTA_PROJECT is not, we automatically align them to avoid 429 quota warnings.
-    if os.getenv("GOOGLE_CLOUD_PROJECT") and not os.getenv("GOOGLE_CLOUD_QUOTA_PROJECT"):
+    if os.getenv("GOOGLE_CLOUD_PROJECT") and not os.getenv(
+        "GOOGLE_CLOUD_QUOTA_PROJECT"
+    ):
         os.environ["GOOGLE_CLOUD_QUOTA_PROJECT"] = os.environ["GOOGLE_CLOUD_PROJECT"]
 
     # Print status message indicating start of verification checks
@@ -126,7 +134,6 @@ async def main():
             # The foundation model to use for inference (Gemini 2.5/3.5 Flash)
             model="gemini-3.5-flash",
             # System prompt directing the agent's behavior and required response
-            instruction="Respond with: 'ADK 2.0 is Ready!'"
             instruction="Respond with: 'ADK 2.0 is Ready!'",
         )
 
@@ -140,7 +147,6 @@ async def main():
         print("🚀 Connecting to LLM...")
         events = await runner.run_debug("Hello!", user_id="test_user")
 
-
         # Flag to track whether the expected final response event was received from the agent
         ready = False
         # Iterate over all execution events generated during the run turn
@@ -151,7 +157,6 @@ async def main():
                 print(f"✅ Agent Response: {event.content.parts[0].text}")
                 # Set the flag to True indicating successful interaction with the model
                 ready = True
-
 
         # Check completion flag and output final verification status
         if ready:
@@ -168,6 +173,7 @@ async def main():
     # Catch any other runtime exceptions (e.g., missing API key, network failure, model 404)
     except Exception as e:
         print(f"❌ An unexpected error occurred: {e}")
+
 
 # Standard Python boilerplate to run the main async function when executed directly from the terminal
 if __name__ == "__main__":

@@ -96,6 +96,7 @@ Read each comment as an answer to “which customer requirement caused this line
 The packaged repository, artifact helper and plugins retain their earlier-module
 implementations. See integrated-lab.md for their source and trust boundaries.
 """
+
 from datetime import datetime, timezone
 import os
 
@@ -127,7 +128,9 @@ async def prepare_case(case_id: str, tool_context: ToolContext) -> dict:
 
     # Derive the next step from current boolean facts, never from remembered text.
     # A complete checklist still does not establish exposure or credit approval.
-    missing = sorted(name for name, received in case["documents"].items() if not received)
+    missing = sorted(
+        name for name, received in case["documents"].items() if not received
+    )
     next_step = "collect_documents" if missing else "human_review"
     observed_at = datetime.now(timezone.utc).isoformat()
     source = {
@@ -149,9 +152,13 @@ async def prepare_case(case_id: str, tool_context: ToolContext) -> dict:
     # The manifest digest links to the exact source bytes, including provenance.
     # status=ok describes preparation only; decision_owner preserves human control.
     return {
-        "status": "ok", "case_id": case_id, "case_version": case["version"],
-        "observed_at": observed_at, "next_step": next_step,
-        "missing_documents": missing, "decision_owner": "human_analyst",
+        "status": "ok",
+        "case_id": case_id,
+        "case_version": case["version"],
+        "observed_at": observed_at,
+        "next_step": next_step,
+        "missing_documents": missing,
+        "decision_owner": "human_analyst",
         "pack": pack,
     }
 
@@ -178,8 +185,11 @@ def build_capstone(model=None, inspector=None) -> App:
     # Safety runs before domain logging at shared hooks. If it replaces a result,
     # later plugins may not see it. This is not a complete safety audit log.
     # Exclude the lab's before-model replacement: it could bypass after-model safety.
-    return App(name="bank_review", root_agent=agent,
-               plugins=[BankingSafety(inspector), ReviewTelemetry()])
+    return App(
+        name="bank_review",
+        root_agent=agent,
+        plugins=[BankingSafety(inspector), ReviewTelemetry()],
+    )
 ```
 
 The async tool awaits the repository and artifact APIs. The list comprehension filters current false receipt flags; sorted makes the resulting display order stable. Each early return ends the function before later writes. The App factory registers providers' consumers and plugins; the Runner supplies the actual SessionService and ArtifactService.
@@ -198,7 +208,7 @@ From the repository root:
 
 ```bash
 cd training/module26-callbacks/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 

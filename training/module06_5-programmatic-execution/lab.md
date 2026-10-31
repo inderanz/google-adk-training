@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Challenge Lab"
 ---
 
+import { ChainSetup } from '../_chain-setup-snippet.mdx';
+
 # Lab 6.5: Programmatic Types & Advanced Content Modeling
 
 **Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
@@ -17,6 +19,8 @@ Instead of passing unformatted raw strings, you will construct strongly typed **
 ---
 
 ### Step 1: Project Setup
+
+<ChainSetup module={4} project="support_analyzer" />
 
 1.  **Navigate to your existing `support_analyzer` directory:**
     ```shell

@@ -3,12 +3,16 @@ sidebar_position: 2
 title: "Challenge Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 31: Choosing the Right Deployment Strategy Challenge
 
 **Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
 
 
 ## Goal
+
+<Setup/>
 
 In this lab, you will apply the decision framework from the theory section to a series of real-world scenarios. This is a conceptual exercise to help you develop the strategic thinking needed to choose the right deployment path for your agents. There is no coding in this lab.
 

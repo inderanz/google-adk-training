@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 26: Callbacks: Agent Lifecycle and Banking Tool Controls
 
 **What you are practising:** Agent callbacks and lifecycle control in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -48,11 +50,13 @@ Write the desired outcome in one sentence, then identify inputs, operations, out
 
 ## Set up the reference and your practice copy
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module26-callbacks/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -156,9 +160,12 @@ def read_checklist(case_id: str, max_items: int = 5) -> dict:
     problem = validate_request(case_id, max_items)
     if problem is not None:
         return problem
-    return {"status": "ok", "case_id": case_id,
-            "missing_documents": ["ownership_register"][:max_items],
-            "source": "training-fixture:checklist-v1"}
+    return {
+        "status": "ok",
+        "case_id": case_id,
+        "missing_documents": ["ownership_register"][:max_items],
+        "source": "training-fixture:checklist-v1",
+    }
 ```
 
 #### before_agent
@@ -177,15 +184,26 @@ def before_agent(callback_context: CallbackContext) -> types.Content | None:
 Read current-turn user_content through the public context property and join its text parts. Only the exact laboratory marker returns a replacement LlmResponse. Other requests proceed to Gemini and are evaluated normally.
 
 ```python
-def before_model(callback_context: CallbackContext, llm_request: LlmRequest) -> LlmResponse | None:
+def before_model(
+    callback_context: CallbackContext, llm_request: LlmRequest
+) -> LlmResponse | None:
     # This is an explicit lab input contract, not semantic intent detection.
     # This exact lab command illustrates provider-call replacement, not general natural-language policy detection.
     content = callback_context.user_content
-    text = " ".join(part.text or "" for part in (content.parts or [])) if content else ""
+    text = (
+        " ".join(part.text or "" for part in (content.parts or [])) if content else ""
+    )
     if text.strip() == "LAB:REQUEST_CREDIT_APPROVAL":
-        return LlmResponse(content=types.Content(role="model", parts=[
-            types.Part.from_text(text="A human analyst must make the credit decision.")
-        ]))
+        return LlmResponse(
+            content=types.Content(
+                role="model",
+                parts=[
+                    types.Part.from_text(
+                        text="A human analyst must make the credit decision."
+                    )
+                ],
+            )
+        )
     return None
 ```
 
@@ -209,7 +227,9 @@ def before_tool(tool: BaseTool, args: dict, tool_context: ToolContext) -> dict |
 Add human decision ownership only to a successful checklist result. Dictionary unpacking creates a new result; failure dictionaries remain failures. This post-execution hook cannot undo a backend write.
 
 ```python
-def after_tool(tool: BaseTool, args: dict, tool_context: ToolContext, tool_response: dict) -> dict | None:
+def after_tool(
+    tool: BaseTool, args: dict, tool_context: ToolContext, tool_response: dict
+) -> dict | None:
     # Add human ownership only to successful lookup results without rewriting failure outcomes.
     if tool.name == "read_checklist" and tool_response.get("status") == "ok":
         return {**tool_response, "decision_owner": "human_analyst"}
@@ -221,7 +241,9 @@ def after_tool(tool: BaseTool, args: dict, tool_context: ToolContext, tool_respo
 Walk every content part, copy changed text parts, and preserve untouched parts. model_copy retains the surrounding LlmResponse fields. Returning None when unchanged avoids constructing an unnecessary replacement. This exact marker transformation is not a security claim.
 
 ```python
-def after_model(callback_context: CallbackContext, llm_response: LlmResponse) -> LlmResponse | None:
+def after_model(
+    callback_context: CallbackContext, llm_response: LlmResponse
+) -> LlmResponse | None:
     # Demonstrate response copying without deleting other text or function calls.
     # Modify only the intended text parts so other response fields and function calls survive.
     content = llm_response.content
@@ -231,13 +253,21 @@ def after_model(callback_context: CallbackContext, llm_response: LlmResponse) ->
     parts = []
     for part in content.parts:
         if part.text and "LAB_INTERNAL_MARKER" in part.text:
-            parts.append(part.model_copy(update={"text": part.text.replace("LAB_INTERNAL_MARKER", "[removed]")}))
+            parts.append(
+                part.model_copy(
+                    update={
+                        "text": part.text.replace("LAB_INTERNAL_MARKER", "[removed]")
+                    }
+                )
+            )
             changed = True
         else:
             parts.append(part)
     if not changed:
         return None
-    return llm_response.model_copy(update={"content": content.model_copy(update={"parts": parts})})
+    return llm_response.model_copy(
+        update={"content": content.model_copy(update={"parts": parts})}
+    )
 ```
 
 #### after_agent

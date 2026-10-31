@@ -73,7 +73,7 @@ uv run --no-project python scripts/check_banking_course.py
 This standard-library checker needs Python 3.11+. It checks syntax, declared ADK pins, relative file links, full solution listings and reused capstone sources. It does not contact Google Cloud or run the model. For each module, then run its documented contract command from `example/`:
 
 ```bash
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 

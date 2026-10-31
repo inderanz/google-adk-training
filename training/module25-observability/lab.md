@@ -3,6 +3,8 @@ sidebar_position: 2
 title: "Guided Banking Lab"
 ---
 
+import Setup from '../_setup-snippet.mdx';
+
 # Lab 25: Observability: Investigating a Banking Agent Request
 
 **What you are practising:** Observability, execution traces and App plugins in ADK (Agent Development Kit). Before coding, read the [module learning preview](./README.md#before-you-begin-what-this-module-teaches) for the real-world use case, Google platform connection and expected outcomes.
@@ -51,11 +53,13 @@ Write the desired outcome in one sentence, then identify inputs, operations, out
 
 ## Set up the reference and your practice copy
 
+<Setup/>
+
 From the repository root:
 
 ```bash
 cd training/module25-observability/example
-uv sync --locked --python 3.14
+uv sync --locked --python 3.11
 uv run python -m unittest discover -s tests -v
 ```
 
@@ -139,7 +143,9 @@ The handler formats structured JSON without a per-message network API call. The 
 def configure_logging() -> None:
     """Write Cloud Logging structured JSON to stdout; the runtime collects it."""
     # Install one structured handler per logger so repeated setup does not duplicate operational records.
-    if not any(isinstance(handler, StructuredLogHandler) for handler in logger.handlers):
+    if not any(
+        isinstance(handler, StructuredLogHandler) for handler in logger.handlers
+    ):
         logger.addHandler(StructuredLogHandler())
     logger.setLevel(logging.INFO)
     logger.propagate = False
@@ -222,8 +228,11 @@ def read_checklist(case_id: str, simulate_outage: bool = False) -> dict:
         return {"status": "not_found"}
     if simulate_outage:
         raise TimeoutError("Synthetic dependency timeout")
-    return {"status": "ok", "missing_documents": ["ownership_register"],
-            "source": "training-fixture:checklist-v1"}
+    return {
+        "status": "ok",
+        "missing_documents": ["ownership_register"],
+        "source": "training-fixture:checklist-v1",
+    }
 ```
 
 #### build_app
@@ -242,7 +251,8 @@ def build_app(model=None) -> App:
             "only when asked to simulate an outage. On unavailable, explain that "
             "preparation is incomplete; do not invent document status or retry in "
             "a loop. A human owns the credit decision. Data is synthetic."
-        ), tools=[read_checklist],
+        ),
+        tools=[read_checklist],
     )
     return App(name="bank_review", root_agent=agent, plugins=[ReviewTelemetry()])
 ```
