@@ -7,6 +7,31 @@ title: "Lab Solution"
 
 This solution provides a complete, locally-runnable ADK 2.0 implementation of the Aegis Incident Response System (AIRS). As explained in `lab.md`, Model Armor, Vertex AI Search (RAG), the GCS upload, and the telemetry export are represented with simulated implementations — the code and comments call out exactly where a production system would swap in the real Google Cloud service.
 
+## Steering Prompt Template
+
+Use this prompt to guide an AI coding assistant (such as Google Antigravity or Gemini Code Assist) or validate your capstone implementation against Google Principal FDE standards:
+
+```markdown
+Act as a Google Principal Forward-Deployed Engineer (FDE). I need to implement and orchestrate a distributed, multi-agent incident response system ("Project Aegis") using Google ADK 2.0, the Agent-to-Agent (A2A) protocol, and Model Context Protocol (MCP).
+
+Requirements:
+1. Threat Intelligence Agent (A2A Server on port 8001):
+   - Mount an MCP toolset querying an isolated subprocess BigQuery security audit server via `StdioConnectionParams`.
+   - Implement `before_model_callback(start_timer)` storing `time.time()` in `callback_context.state["start_time"]`.
+   - Implement `after_model_callback(end_timer_and_sanitize)` calculating elapsed latency, printing simulated OpenTelemetry span exports, and redacting private IPs (`192.168.x.***`) via `mask_security_secrets`. Guard against non-text function call parts.
+   - Expose as an A2A service via `to_a2a(threat_agent, port=8001)` and serve with Uvicorn.
+
+2. Mitigation & Patching Agent (A2A Server on port 8003):
+   - Implement tool `search_remediation_playbooks(vulnerability_type: str)` simulating Vertex AI Search (RAG) over CIS/NIST playbooks.
+   - Implement tool `build_and_upload_mitigation_brief(target_node, incident_type, tool_context)` simulating a signed GCS PDF brief upload.
+   - Expose as an A2A service via `to_a2a(mitigation_agent, port=8003)` and serve with Uvicorn.
+
+3. Aegis Orchestrator Agent (Client on port 8000):
+   - Declare `RemoteA2aAgent` gateways pointing to `http://localhost:8001/a2a/.well-known/agent.json` and `http://localhost:8003/a2a/.well-known/agent.json` with `use_legacy=False`.
+   - Wrap both gateways inside `AgentTool(agent=...)` to maintain call-and-return coordinator semantics.
+   - Instruct the root agent to first investigate threat logs, compile an incident profile, invoke the mitigation specialist, and present the final plan to the SOC analyst.
+```
+
 ---
 
 ### `threat_intel_agent/bigquery_mock_server.py` (provided, unchanged from `lab.md`)
