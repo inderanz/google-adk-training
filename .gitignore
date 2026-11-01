@@ -127,14 +127,35 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
+# Environments & Secrets
 .venv
 env/
 venv/
 ENV/
 env.bak/
 venv.bak/
-***/.env
+.env
+.env.*
+!.env.example
+***/*.env
+***/*.env.*
+!***/*.env.example
+
+# Credentials, Keys & Certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.pkcs12
+*.crt
+id_rsa
+id_ecdsa
+id_ed25519
+*service-account*.json
+*sa-key*.json
+*credentials*.json
+secrets.yaml
+secrets.json
 
 # Spyder project settings
 .spyderproject
