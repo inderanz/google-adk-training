@@ -226,3 +226,63 @@ Hand over the specification, architecture, identity map, source/record owners, t
 **Capstone:** the bank now wants multiple regional analysts to collaborate, attach documents, and request an account freeze. Identify which assumptions change. Propose shared authorization, artifact storage, version policy, formal approval, and action reconciliation using supported Google services. Keep the learned separation between conversation, business state, and optional memory.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module13_5-firestore-persistence-enterprise-playbook -->
+---
+
+## 🏛️ The 4 Tenets of Production Session & Record Persistence
+
+```mermaid
+graph TD
+    T1["1. The Storage Triad<br/>(Events vs. Working State vs. System of Record)"]
+    T2["2. Entity Decoupling<br/>(Session ID ≠ Loan Case ID)"]
+    T3["3. Optimistic Concurrency<br/>(Version Checks in Transactions)"]
+    T4["4. Standard ADK Providers<br/>(DatabaseSessionService & VertexAiSessionService)"]
+
+    T1 --> T2
+    T2 --> T3
+    T3 --> T4
+```
+
+### Tenet 1: The Three-Tier Storage Triad
+Never mix conversation history, working memory, and legal business records into a single database:
+1. **Conversation History:** Stored in ADK `SessionService` (messages, tool calls, and model responses).
+2. **Session Working Memory (`tool_context.state`):** Ephemeral multi-turn context (e.g. `last_active_case_id`).
+3. **Durable System of Record:** External ACID transactional store (Google Cloud Firestore / Spanner) holding authoritative checklists, collateral records, and compliance statuses.
+
+### Tenet 2: Decouple Session ID from Business Entity ID
+A chat session (`session_id`) represents a transient communication channel between a user and an agent. A business case (`case_id`) represents a durable commercial asset that spans weeks, multiple analysts, and independent chat threads. Never equate `session_id == case_id`.
+
+### Tenet 3: Optimistic Concurrency & Transactional Versioning
+In multi-user commercial lending, concurrent analysts may review the same borrower simultaneously. All mutating tools must submit an expected version number and execute inside an atomic Firestore transaction (`transaction.get()` $\rightarrow$ verify version $\rightarrow$ `transaction.update()`). Stale submissions must fail closed with `conflict`, forcing a fresh read.
+
+### Tenet 4: Built-in Session Providers Over Invented Stores
+Do not write custom `FirestoreSessionService` classes. Official ADK exports `DatabaseSessionService` (for SQL/SQLite engines) and `VertexAiSessionService` (for managed Gemini Enterprise Agent Platform Sessions). Use built-in providers for sessions and standard Google Cloud client SDKs (`google.cloud.firestore`) for business entities.
+
+---
+
+## ⚠️ Enterprise Anti-Pattern Comparison Matrix
+
+| Architectural Dimension | ❌ High-Risk Anti-Pattern | ✅ Google FDE Production Standard | Consequence of Failure |
+|---|---|---|---|
+| **Checklist Storage** | Storing compliance checklists in `tool_context.state` only | Storing authoritative checklists in Firestore with versioning | Cloud Run instance eviction wipes uncommitted state; $34M unperfected loan default. |
+| **Identity Coupling** | Binding `case_id` directly to `session_id` | Decoupled `case_id` referenced across multiple sessions | Opening a new chat tab creates an accidental duplicate loan application. |
+| **Concurrent Updates** | Blind `doc.set(data)` overwrite (last-writer-wins) | Atomic `firestore.transaction` with version increment | Concurrent analyst updates overwrite each other, erasing collateral verifications. |
+| **Session Providers** | Building brittle custom `FirestoreSessionService` classes | Using `DatabaseSessionService` or `VertexAiSessionService` | Broken event ordering, telemetry loss, and upgrade incompatibilities. |
+| **Idempotency** | Incrementing version and re-recording duplicate document receipts | Monotonic idempotent checks returning `already_received` | Misleading audit logs showing multiple contradictory receipt events. |
+
+---
+
+## 🔗 Related Course Curriculum
+
+* [Module 10 Theory](../module10-advanced-function-tools/README.md) — Custom function tools and ephemeral state.
+* [Module 13 Theory](../module13-tool-context/README.md) — Advanced ToolContext and runtime actions.
+* [Module 14 Theory](../module14-third-party-tools/README.md) — Third-party tools and BigQuery lookups.
+* [Enterprise ADK Roadmap](../enterprise-adk-roadmap.md) — Complete master roadmap for Google ADK enterprise architecture.
+
+---
+
+## 📚 Official References
+
+- Google ADK Session & State Management: https://adk.dev/sessions/
+- Google Cloud Firestore Python SDK: https://cloud.google.com/python/docs/reference/firestore/latest
+- Gemini Enterprise Agent Platform Sessions: https://docs.cloud.google.com/gemini-enterprise-agent-platform/agents
+- Federal Reserve SR 11-7 (Model Risk Management): https://www.federalreserve.gov/supervisionreg/srletters/sr1107.htm

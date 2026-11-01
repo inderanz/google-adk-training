@@ -47,6 +47,24 @@ In this course, an analyst is the employee who gathers and checks information fo
 
 > Let me reopen the same conversation tomorrow. Show the current checklist for my assigned case, and let me record that a document has arrived. If someone else changed the record, tell me before replacing their update.
 
+---
+
+### 🚨 The Operational Disaster: The $34M Lost Collateral Checklist at Apex Commercial Bank
+
+During an audit of a \$34,000,000 secured asset-backed credit facility for a regional medical equipment distributor, Apex Commercial Bank discovered that its collateral lien perfection filings were completely missing.
+
+The forensic incident review uncovered a catastrophic architecture flaw in the bank's AI lending assistant:
+1. **The In-Memory Session Trap:**
+   The prototype assistant stored borrower document checklists directly in ephemeral session working memory (`tool_context.state["checklist"]`). The engineering team assumed that because the conversation was active, the checklist was safe.
+2. **The Cloud Run Scaling Eviction:**
+   On Tuesday evening, Google Cloud Run automatically scaled down the assistant container instance due to an idle traffic window. When the credit analyst returned on Wednesday morning, their next chat turn was routed to a fresh container instance. The in-memory session was wiped clean.
+3. **The Unperfected $34M Default:**
+   Faced with a blank checklist on Wednesday, the analyst assumed a colleague had already finalized the verification out-of-band and proceeded to disburse the \$34M term loan without verifying the mandatory UCC-1 state lien filing. When the distributor filed for Chapter 11 bankruptcy 60 days later, the bank found itself an unperfected, unsecured creditor—losing \$34M in senior collateral rights.
+
+> *"This catastrophe exposed the vital difference between a conversation and a business record,"* explains the Lead FDE. *"Conversation events belong in an ADK SessionService (`DatabaseSessionService` or `VertexAiSessionService`). Authoritative business records (loan checklists, collateral filings, compliance approvals) belong in a durable, ACID-compliant database like **Google Cloud Firestore**, guarded by optimistic locking and transaction version numbers."*
+
+---
+
 | What you need to understand first | This exercise's answer |
 |---|---|
 | What information starts the task? | A case ID and, when recording receipt, the document name and the version last read. |
