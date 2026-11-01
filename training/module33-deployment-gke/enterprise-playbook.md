@@ -42,3 +42,4 @@ sequenceDiagram
 3. **Rolling Update Strategy:** Configure `maxSurge: 25%` and `maxUnavailable: 0` in the Deployment spec to guarantee zero-downtime rolling updates.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module33-enterprise-playbook -->
+

@@ -47,3 +47,4 @@ sequenceDiagram
 3. **Keepalive & Reconnects:** Configure client `StreamableHTTPConnectionParams` with connection pooling, retries, and exponential backoff.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module34-enterprise-playbook -->
+

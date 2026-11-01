@@ -37,3 +37,4 @@ flowchart TD
 3. **Usage Analytics:** Monitor fleet invocations using BigQuery Agent Analytics to evaluate token consumption, user adoption, and response latencies across corporate departments.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module36-enterprise-playbook -->
+

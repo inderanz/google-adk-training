@@ -42,3 +42,4 @@ flowchart TD
 3. **Observability:** Emit OpenTelemetry traces and structured JSON logs to Google Cloud Logging with unified trace IDs to enable distributed end-to-end tracing.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module31-enterprise-playbook -->
+

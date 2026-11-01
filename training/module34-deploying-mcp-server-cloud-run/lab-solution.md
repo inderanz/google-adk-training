@@ -56,23 +56,27 @@ if not os.path.exists(STATE_STORAGE_PATH):
 # --- MCP Server Setup ---
 mcp = FastMCP("stateless_shopping_cart_server")
 
+
 def get_session_id(ctx: Context) -> str:
     # The MCP session ID arrives as a standard HTTP header, tracked by the
     # transport itself.
     return ctx.request_context.request.headers.get("mcp-session-id", "unknown")
 
+
 # Helper functions to simulate an external state store
 def get_cart(session_id: str) -> list:
     cart_file = os.path.join(STATE_STORAGE_PATH, f"{session_id}.json")
     if os.path.exists(cart_file):
-        with open(cart_file, 'r') as f:
+        with open(cart_file, "r") as f:
             return json.load(f)
     return []
 
+
 def save_cart(session_id: str, cart: list):
     cart_file = os.path.join(STATE_STORAGE_PATH, f"{session_id}.json")
-    with open(cart_file, 'w') as f:
+    with open(cart_file, "w") as f:
         json.dump(cart, f)
+
 
 @mcp.tool()
 def add_item_to_cart(item: str, ctx: Context) -> dict:
@@ -84,6 +88,7 @@ def add_item_to_cart(item: str, ctx: Context) -> dict:
     save_cart(session_id, cart)
     return {"status": "success", "message": f"Added '{item}'."}
 
+
 @mcp.tool()
 def view_cart(ctx: Context) -> dict:
     """Views items in the cart."""
@@ -91,6 +96,7 @@ def view_cart(ctx: Context) -> dict:
     print(f"[Server]: Handling view_cart for session '{session_id}'")
     cart = get_cart(session_id)
     return {"status": "success", "cart": cart}
+
 
 # --- ASGI app for HTTP, suitable for Cloud Run ---
 # FastMCP mounts the MCP endpoint at /mcp by default.
@@ -110,9 +116,9 @@ from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnecti
 MCP_SERVER_URL = "YOUR_CLOUD_RUN_SERVICE_URL/mcp"
 
 root_agent = Agent(
-    model='gemini-3.5-flash',
-    name='cloud_shopping_agent',
-    instruction='You are a shopping assistant. Help the user by adding items to their cart and showing them their cart contents.',
+    model="gemini-3.5-flash",
+    name="cloud_shopping_agent",
+    instruction="You are a shopping assistant. Help the user by adding items to their cart and showing them their cart contents.",
     tools=[
         McpToolset(
             # Use StreamableHTTPConnectionParams for remote servers

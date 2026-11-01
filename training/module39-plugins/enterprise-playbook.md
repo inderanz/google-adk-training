@@ -50,3 +50,4 @@ sequenceDiagram
 3. **Immutability of Audit Events:** Verify that audit plugins emit events to append-only destinations (e.g., Google Cloud Pub/Sub or BigQuery) that cannot be altered by application workloads.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module39-enterprise-playbook -->
+

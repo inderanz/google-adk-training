@@ -55,3 +55,4 @@ sequenceDiagram
 3. **Automated Postmortem Generation:** On incident resolution, generate a standardized blameless postmortem artifact documenting detection time, time-to-mitigate (TTM), affected user percentage, and root cause timeline.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module40-aegis-incident-response-enterprise-playbook -->
+
