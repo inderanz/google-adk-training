@@ -54,7 +54,7 @@ flowchart TB
 It is 11:58 PM on the final day of the financial quarter. Apex Global Logistics has scheduled its automated quarterly dividend and bonus payouts. The core automated reconciliation agent is handling thousands of employee records.
 
 Suddenly, an exception is thrown:
-The agent attempts to call a legacy ERP microservice tool. Instead of calling `execute_ledger_adjustment(account_id=..., amount=...)`, the model—under slight nondeterministic prompt drift—generates a tool call named `adjust_ledger_balance`. 
+The agent attempts to call a legacy ERP microservice tool. Instead of calling `execute_ledger_adjustment(account_id=..., amount=...)`, the model—under slight nondeterministic prompt drift—generates a tool call named `adjust_ledger_balance`.
 
 In a traditional, fragile agent architecture, this triggers an immediate fatal crash:
 `ToolNotFoundException: adjust_ledger_balance is not registered`.
@@ -136,7 +136,7 @@ The ADK executes plugin hooks at precise lifecycle checkpoints across the agent 
 > [!WARNING]
 > **Official ADK Deprecation Notice:**
 > In Python, configuring the `plugins` parameter on `Runner` or `InMemoryRunner` is **deprecated** and raises a runtime `DeprecationWarning`.
-> 
+>
 > Always register plugins globally on the **`App`** object (`App(name=..., root_agent=..., plugins=[...])`), and then pass that `App` to the runner: `InMemoryRunner(app=app)`. Passing `plugins` to both `App` and `Runner` raises an immediate `ValueError`.
 
 ```python
@@ -151,7 +151,7 @@ retry_plugin = ReflectAndRetryToolPlugin(max_retries=3)
 app = App(
     name="financial_operations_app",
     root_agent=reconciliation_agent,
-    plugins=[retry_plugin]  # <--- Globally protects all sub-agents and tools
+    plugins=[retry_plugin],  # <--- Globally protects all sub-agents and tools
 )
 
 # 3. Instantiate Runner with the App
@@ -181,16 +181,15 @@ You can customize this by subclassing `ReflectAndRetryToolPlugin` and overriding
 ```python
 from google.adk.plugins import ReflectAndRetryToolPlugin
 
+
 class EnterpriseApiRetryPlugin(ReflectAndRetryToolPlugin):
     """Subclassed plugin that detects business-logic errors in dictionary outputs."""
-    
-    async def extract_error_from_result(
-        self, *, tool, tool_args, tool_context, result
-    ):
+
+    async def extract_error_from_result(self, *, tool, tool_args, tool_context, result):
         # Inspect dictionary responses for 'error' keys or failure status codes
         if isinstance(result, dict) and result.get("status") == "error":
             return result.get("message", "Unknown API failure occurred")
-        
+
         # Return None when the tool executed successfully
         return None
 ```

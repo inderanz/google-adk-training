@@ -60,36 +60,32 @@ In mature enterprise platforms, developers build domain agents, but the **Centra
 ```python
 from google.adk.apps import App
 from google.adk.plugins import ReflectAndRetryToolPlugin
+
 # Conceptual enterprise plugins
 from enterprise_security.plugins import ModelArmorPlugin, BigQueryTelemetryPlugin
 
+
 def create_enterprise_app(name: str, root_agent) -> App:
     """Standardized enterprise App factory with mandatory CISO security controls."""
-    
+
     # Platform-mandated plugin chain
     mandatory_plugins = [
         # 1. Edge Security: Screen prompts & outputs against Cloud Model Armor
         ModelArmorPlugin(
             template_id="projects/corp-sec/locations/global/templates/enterprise-strict",
-            fail_closed=True
+            fail_closed=True,
         ),
         # 2. Runtime Resilience: Auto-reflect and repair hallucinated tool calls
         ReflectAndRetryToolPlugin(
-            max_retries=3,
-            throw_exception_if_retry_exceeded=True
+            max_retries=3, throw_exception_if_retry_exceeded=True
         ),
         # 3. Observability & Audit: Stream complete invocation telemetry to BigQuery
         BigQueryTelemetryPlugin(
-            dataset_id="corp_agent_analytics.invocation_logs",
-            buffer_size=100
-        )
+            dataset_id="corp_agent_analytics.invocation_logs", buffer_size=100
+        ),
     ]
-    
-    return App(
-        name=name,
-        root_agent=root_agent,
-        plugins=mandatory_plugins
-    )
+
+    return App(name=name, root_agent=root_agent, plugins=mandatory_plugins)
 ```
 
 ---

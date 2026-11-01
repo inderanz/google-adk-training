@@ -48,10 +48,12 @@ import asyncio
 
 load_dotenv()
 
+
 # The actual tool
 def secret_calculator(a: int, b: int) -> int:
     """Adds two numbers."""
     return a + b
+
 
 # The agent with MISLEADING instructions
 root_agent = Agent(
@@ -70,14 +72,15 @@ root_agent = Agent(
         read the error message carefully and intelligently adapt, including
         calling a different, correctly-named tool if the error tells you
         one is available.""",
-    tools=[FunctionTool(secret_calculator)]
+    tools=[FunctionTool(secret_calculator)],
 )
+
 
 async def main():
     # TODO: 1. Import ReflectAndRetryToolPlugin from google.adk.plugins
-    
+
     # TODO: 2. Initialize the plugin here with max_retries=3
-    
+
     # TODO: 3. Create an App instance, passing the root_agent and the plugins list
     app = App(
         name="retry_app",
@@ -88,17 +91,22 @@ async def main():
     runner = InMemoryRunner(app=app)
 
     # /run_async requires a session that already exists.
-    await runner.session_service.create_session(app_name=app.name, user_id="test", session_id="1")
+    await runner.session_service.create_session(
+        app_name=app.name, user_id="test", session_id="1"
+    )
 
     print("User: What is 5 + 5?")
     # Running programmatically
     async for event in runner.run_async(
-        user_id="test", 
-        session_id="1", 
-        new_message=types.Content(role="user", parts=[types.Part.from_text(text="What is 5 + 5?")])
+        user_id="test",
+        session_id="1",
+        new_message=types.Content(
+            role="user", parts=[types.Part.from_text(text="What is 5 + 5?")]
+        ),
     ):
         if event.is_final_response():
             print(f"Agent: {event.content.parts[0].text}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -148,7 +156,11 @@ Now, let's fix this using the Plugin *instead* of fixing the prompt.
 
 In real-world enterprise environments, external microservices and ERP APIs often **do not raise Python exceptions**. Instead, they return an HTTP 200 payload containing a structured error response, such as:
 ```python
-{"status": "error", "error_code": "INVALID_FORMAT", "message": "Currency code must be 3-letter ISO uppercase (e.g., 'USD', 'EUR')."}
+{
+    "status": "error",
+    "error_code": "INVALID_FORMAT",
+    "message": "Currency code must be 3-letter ISO uppercase (e.g., 'USD', 'EUR').",
+}
 ```
 By default, `ReflectAndRetryToolPlugin` only triggers when a tool raises an unhandled `Exception`. It ignores successful tool return dictionaries, even if they indicate a failure.
 
@@ -168,40 +180,43 @@ from google.genai import types
 
 load_dotenv()
 
+
 def currency_converter(amount: float, target_currency: str) -> dict:
     """Converts USD amount to target currency."""
     # Simulates an enterprise API returning a soft error on lowercase or invalid codes
     if target_currency != target_currency.upper() or len(target_currency) != 3:
         return {
             "status": "error",
-            "message": f"Invalid currency '{target_currency}'. Currency must be a 3-letter uppercase ISO code (e.g. 'EUR', 'GBP', 'JPY')."
+            "message": f"Invalid currency '{target_currency}'. Currency must be a 3-letter uppercase ISO code (e.g. 'EUR', 'GBP', 'JPY').",
         }
     rates = {"EUR": 0.92, "GBP": 0.79, "JPY": 155.0}
     converted = amount * rates.get(target_currency, 1.0)
     return {"status": "success", "amount": converted, "currency": target_currency}
 
+
 # TODO: Subclass ReflectAndRetryToolPlugin to detect soft errors
 class EnterpriseSoftErrorPlugin(ReflectAndRetryToolPlugin):
-    async def extract_error_from_result(
-        self, *, tool, tool_args, tool_context, result
-    ):
+    async def extract_error_from_result(self, *, tool, tool_args, tool_context, result):
         """Inspects dictionary return values and extracts errors for LLM reflection."""
         # TODO: Check if result is a dict with status == "error"
         # TODO: Return the error message string if an error is found, otherwise return None
         pass
 
+
 agent = Agent(
     name="forex_agent",
     model="gemini-3.5-flash",
     instruction="You are a foreign exchange assistant. Use currency_converter to convert amounts.",
-    tools=[FunctionTool(currency_converter)]
+    tools=[FunctionTool(currency_converter)],
 )
+
 
 async def main():
     # TODO: Instantiate EnterpriseSoftErrorPlugin with max_retries=3
     # TODO: Register on App(name="forex_app", root_agent=agent, plugins=[...])
     # TODO: Execute via InMemoryRunner with a query: "Convert $100 to eur"
     pass
+
 
 if __name__ == "__main__":
     asyncio.run(main())

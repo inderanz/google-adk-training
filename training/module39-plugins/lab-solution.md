@@ -43,10 +43,12 @@ import asyncio
 
 load_dotenv()
 
+
 # The actual tool
 def secret_calculator(a: int, b: int) -> int:
     """Adds two numbers."""
     return a + b
+
 
 # The agent with MISLEADING instructions
 #
@@ -76,35 +78,37 @@ root_agent = Agent(
         read the error message carefully and intelligently adapt, including
         calling a different, correctly-named tool if the error tells you
         one is available.""",
-    tools=[FunctionTool(secret_calculator)]
+    tools=[FunctionTool(secret_calculator)],
 )
+
 
 async def main():
     # 2. Configure the Plugin
     # We give the agent 3 chances to realize its mistake and try the correct tool name.
     retry_plugin = ReflectAndRetryToolPlugin(max_retries=3)
-    
+
     # 3. Register the Plugin on the App
-    app = App(
-        name="retry_app",
-        root_agent=root_agent,
-        plugins=[retry_plugin]
-    )
+    app = App(name="retry_app", root_agent=root_agent, plugins=[retry_plugin])
 
     runner = InMemoryRunner(app=app)
 
     # /run_async requires a session that already exists.
-    await runner.session_service.create_session(app_name=app.name, user_id="test", session_id="1")
+    await runner.session_service.create_session(
+        app_name=app.name, user_id="test", session_id="1"
+    )
 
     print("User: What is 5 + 5?")
     # Running programmatically
     async for event in runner.run_async(
-        user_id="test", 
-        session_id="1", 
-        new_message=types.Content(role="user", parts=[types.Part.from_text(text="What is 5 + 5?")])
+        user_id="test",
+        session_id="1",
+        new_message=types.Content(
+            role="user", parts=[types.Part.from_text(text="What is 5 + 5?")]
+        ),
     ):
         if event.is_final_response():
             print(f"Agent: {event.content.parts[0].text}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
@@ -131,9 +135,10 @@ from google.genai import types
 
 load_dotenv()
 
+
 def currency_converter(amount: float, target_currency: str) -> dict:
     """Converts USD amount to target currency.
-    
+
     Demonstrates a realistic enterprise API behavior: returning HTTP 200 with
     a structured error payload when input formatting is invalid.
     """
@@ -145,9 +150,9 @@ def currency_converter(amount: float, target_currency: str) -> dict:
             "message": (
                 f"Currency code '{target_currency}' is invalid. "
                 "Must be a 3-letter uppercase ISO code (e.g., 'EUR', 'GBP', 'JPY')."
-            )
+            ),
         }
-    
+
     conversion_rates = {
         "EUR": 0.92,
         "GBP": 0.79,
@@ -161,27 +166,27 @@ def currency_converter(amount: float, target_currency: str) -> dict:
         "status": "success",
         "amount": converted_amount,
         "currency": target_currency,
-        "exchange_rate": rate
+        "exchange_rate": rate,
     }
+
 
 class EnterpriseSoftErrorPlugin(ReflectAndRetryToolPlugin):
     """Subclass of ReflectAndRetryToolPlugin that detects non-exception soft errors.
-    
+
     By default, ADK only retries when an actual Exception is raised. Overriding
     extract_error_from_result allows intercepting dictionary error contracts.
     """
-    
-    async def extract_error_from_result(
-        self, *, tool, tool_args, tool_context, result
-    ):
+
+    async def extract_error_from_result(self, *, tool, tool_args, tool_context, result):
         # Inspect return payload for enterprise error patterns
         if isinstance(result, dict) and result.get("status") == "error":
             error_message = result.get("message", "Unknown downstream API error")
             print(f"[Plugin Intercept] Detected soft API error: {error_message}")
             return error_message
-        
+
         # Returning None indicates the tool succeeded; no reflection triggered
         return None
+
 
 # Agent definition
 forex_agent = Agent(
@@ -192,46 +197,43 @@ forex_agent = Agent(
         "Use the `currency_converter` tool to fulfill customer currency exchange requests. "
         "If a tool call returns an error, read the feedback and correct your arguments."
     ),
-    tools=[FunctionTool(currency_converter)]
+    tools=[FunctionTool(currency_converter)],
 )
+
 
 async def main():
     # 1. Instantiate the custom plugin with bounded retries and invocation scope
     soft_error_plugin = EnterpriseSoftErrorPlugin(
         max_retries=3,
         throw_exception_if_retry_exceeded=True,
-        tracking_scope=TrackingScope.INVOCATION
+        tracking_scope=TrackingScope.INVOCATION,
     )
-    
+
     # 2. Register globally on the App
     app = App(
-        name="forex_enterprise_app",
-        root_agent=forex_agent,
-        plugins=[soft_error_plugin]
+        name="forex_enterprise_app", root_agent=forex_agent, plugins=[soft_error_plugin]
     )
-    
+
     # 3. Execute via Runner
     runner = InMemoryRunner(app=app)
     session = await runner.session_service.create_session(
-        app_name=app.name,
-        user_id="trader_42",
-        session_id="session_001"
+        app_name=app.name, user_id="trader_42", session_id="session_001"
     )
-    
+
     # Intentionally provide lowercase 'eur' in the user prompt to trigger formatting repair
     user_prompt = "Can you convert 250 USD into eur?"
     print(f"User: {user_prompt}\n")
-    
+
     async for event in runner.run_async(
         user_id="trader_42",
         session_id=session.id,
         new_message=types.Content(
-            role="user",
-            parts=[types.Part.from_text(text=user_prompt)]
-        )
+            role="user", parts=[types.Part.from_text(text=user_prompt)]
+        ),
     ):
         if event.is_final_response():
             print(f"\nFinal Agent Response: {event.content.parts[0].text}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

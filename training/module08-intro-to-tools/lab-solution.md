@@ -17,14 +17,20 @@ Beyond providing raw code, this solution guide acts as an **FDE Engineering Play
 
 When guiding developers or using AI coding assistants like **Antigravity** during enterprise agent development, use this **Master ADK 2.0 Steering Prompt** to ensure generated code strictly follows Google's official architectural standards:
 
-> **Master Antigravity Steering Prompt Template:**
-> *"You are an expert Google ADK 2.0 Forward-Deployed Engineer. Write an ADK 2.0 Agent configuration using built-in tools following strict standards:*
-> 1. *Use built-in grounding tool `google_search` for live web search capabilities.*
-> 2. *Attach tools via `tools=[google_search]` in the `Agent(...)` constructor.*
-> 3. *Use `from google.adk import Agent` and `from google.adk.tools import google_search`.*
-> 4. *Ensure environment is configured for Vertex AI when using grounding (`GOOGLE_GENAI_USE_VERTEXAI=1`).*
-> 5. *Use model `gemini-2.5-flash` with explicit search instructions.*
-> 6. *Access LLM response content via `.content` (NEVER legacy `.candidates`)."*
+```markdown
+Act as a Google Principal Forward-Deployed Engineer (FDE). I need to equip an ADK 2.0 Agent with tools to move beyond static language modeling into action-taking systems.
+
+Requirements:
+1. Tool Selection & Architecture:
+   - For live web research: attach the built-in `google_search` grounding tool via `tools=[google_search]`.
+   - For internal domain data: define deterministic Python functions with explicit type hints and complete docstrings, wrapped via `FunctionTool(func)`.
+2. Model & Instruction Standards:
+   - Configure model `gemini-3.5-flash`.
+   - Provide clear system instructions explicitly specifying WHEN to invoke the tool and HOW to handle tool outputs (success, empty, or error).
+3. Runtime & Execution:
+   - Explain the 5-stage Function Calling lifecycle: Schema Generation -> Intent Selection -> Function Call JSON -> Runtime Execution -> Observation Context.
+   - Grounding requires Vertex AI (`GOOGLE_GENAI_USE_VERTEXAI=1`). Access LLM response content via `.content` (never `.candidates`).
+```
 
 ---
 
@@ -34,7 +40,7 @@ When guiding developers or using AI coding assistants like **Antigravity** durin
 
 When an enterprise customer requests an AI research assistant to summarize current events, stock trends, or industry news, relying purely on the LLM's frozen training weights is a liability. The LLM will either state its knowledge cutoff date or hallucinate outdated facts.
 
-As a Google FDE, your job is to enforce **Live Information Grounding** by connecting Gemini directly to Google Search via Vertex AI.
+As a Google FDE, your job is to enforce **Live Information Grounding** by connecting Gemini directly to Google Search via Vertex AI, or to internal enterprise APIs via Custom Function Tools.
 
 Here is the exact Requirements-to-Code Matrix for this lab:
 
@@ -43,19 +49,16 @@ Here is the exact Requirements-to-Code Matrix for this lab:
 | **1** | *"Answer queries about live sports scores, recent news, or current stock prices."* | **Outdated Knowledge Cutoff:** Static LLM weights cannot know real-time events. | **Built-in Grounding Tool:** Pass `google_search` into the agent's tool list. | `from google.adk.tools import google_search`<br/>`tools=[google_search]` |
 | **2** | *"Verify that search results are backed by trusted web citations."* | **Unverifiable Output:** Un-grounded text cannot be audited for factual accuracy. | **Google Search Grounding Metadata:** Gemini automatically embeds `groundingMetadata` and web citations. | Inspect `event.content` and Dev UI `groundingMetadata` |
 | **3** | *"Use Google Cloud enterprise infrastructure for search compliance."* | **API Key Restrictions:** Grounding tools require full GCP project credentials via Vertex AI. | **Vertex AI Configuration:** Set `GOOGLE_GENAI_USE_VERTEXAI=1` in environment. | `.env` settings:<br/>`GOOGLE_GENAI_USE_VERTEXAI=1` |
-| **4** | *"Ensure the agent knows WHEN to search vs. when to use general reasoning."* | **Unnecessary Search Latency:** Searching for basic math or static facts wastes API quota. | **Explicit System Instructions:** Steer the model to invoke `google_search` only when up-to-date facts are needed. | `instruction="Use google_search for recent events..."` |
+| **4** | *"Retrieve internal corporate filings without external web dependencies."* | **Data Sovereignty & Predictability:** Internal SEC filings or ERP data must not leak to public web search. | **Custom Function Tool:** Define typed Python function with docstrings wrapped in `FunctionTool`. | `tools=[FunctionTool(lookup_sec_filing)]` |
 
 ---
 
-## ⚙️ Part 2: Step-by-Step Implementation Guide
+## ⚙️ Part 2: Track A Implementation Guide (Cloud Grounding via `google_search`)
 
 ### Step 1: Initialize Project Directory & Environment
 
 ```bash
-# 1. Create a new ADK 2.0 agent project using UV
 uv run adk create researcher_agent
-
-# 2. Navigate into the created agent folder
 cd researcher_agent
 ```
 
@@ -65,9 +68,6 @@ GOOGLE_GENAI_USE_VERTEXAI=1
 GOOGLE_CLOUD_PROJECT=your_actual_gcp_project_id
 GOOGLE_CLOUD_LOCATION=us-central1
 ```
-
-> [!IMPORTANT]
-> The `google_search` grounding tool requires a Google Cloud project with the Vertex AI API (`aiplatform.googleapis.com`) enabled.
 
 ---
 
@@ -79,11 +79,11 @@ Open `researcher_agent/agent.py`. Read the extensive inline comments explaining 
 """
 Researcher Agent Configuration Node (ADK 2.0)
 
-This module configures Gemini 2.5 Flash with Google's built-in `google_search`
+This module configures Gemini 3.5 Flash with Google's built-in `google_search`
 grounding tool for live, cited web research.
 """
 
-from google.adk import Agent
+from google.adk.agents import Agent
 from google.adk.tools import google_search
 
 # ---------------------------------------------------------------------------
@@ -97,9 +97,8 @@ from google.adk.tools import google_search
 
 root_agent = Agent(
     name="researcher_agent",
-    model="gemini-2.5-flash",
+    model="gemini-3.5-flash",
     description="An enterprise research assistant grounded in live Google Web Search.",
-    # Singular 'instruction' parameter (ADK 2.0 standard)
     instruction="""
 You are an expert enterprise research assistant.
 
@@ -109,14 +108,116 @@ Grounding Steering Rules:
 3. Do NOT rely on your internal training weights for facts that could have changed recently.
 4. Synthesize search results into clear, professional summaries and cite source facts accurately.
 """,
-    # Attach built-in google_search handle directly
     tools=[google_search],
 )
 ```
 
 ---
 
-## 🔬 Part 3: Deep Dive — How Built-in Grounding Works Under the Hood
+## 💻 Part 3: Track B Implementation Guide (Deterministic Local Function Tool)
+
+For developers working offline or without active Google Cloud billing, this complete script demonstrates how custom Python functions turn into tools executed locally via `InMemoryRunner`:
+
+```python
+"""Track B Complete Solution: Local SEC Filing Lookup Tool."""
+
+import asyncio
+from dotenv import load_dotenv
+from google.adk.agents import Agent
+from google.adk.tools import FunctionTool
+from google.adk.apps.app import App
+from google.adk.runners import InMemoryRunner
+from google.genai import types
+
+load_dotenv()
+
+def lookup_sec_filing(ticker: str, filing_type: str = "10-K") -> dict:
+    """Retrieves corporate regulatory filings and financial metrics from SEC EDGAR.
+    
+    Args:
+        ticker (str): The stock ticker symbol (e.g. 'GOOGL', 'AAPL', 'MSFT'). Required.
+        filing_type (str, optional): The SEC filing type ('10-K', '10-Q', '8-K'). Defaults to '10-K'.
+        
+    Returns:
+        dict: A structured dictionary containing filing status, revenue, and core risk factors.
+    """
+    mock_edgar_database = {
+        "GOOGL": {
+            "company_name": "Alphabet Inc.",
+            "fiscal_year": 2026,
+            "annual_revenue": "$307.4B",
+            "net_income": "$73.8B",
+            "ai_infrastructure_capex": "$48.0B",
+            "audit_opinion": "Unqualified (Clean)"
+        },
+        "AAPL": {
+            "company_name": "Apple Inc.",
+            "fiscal_year": 2026,
+            "annual_revenue": "$383.3B",
+            "net_income": "$97.0B",
+            "flagship_segment": "Services & Devices",
+            "audit_opinion": "Unqualified (Clean)"
+        }
+    }
+    
+    ticker_clean = ticker.strip().upper()
+    filing = mock_edgar_database.get(ticker_clean)
+    if not filing:
+        return {
+            "status": "error",
+            "message": f"Ticker '{ticker}' not found in SEC EDGAR repository. Verify the symbol and try again."
+        }
+        
+    return {
+        "status": "success",
+        "ticker": ticker_clean,
+        "filing_type": filing_type,
+        "filing_data": filing
+    }
+
+# Agent definition
+filing_agent = Agent(
+    name="equity_researcher",
+    model="gemini-3.5-flash",
+    instruction="""You are a senior equity research analyst at an institutional investment bank.
+    When asked about company earnings, capital expenditures, or regulatory disclosures:
+    1. ALWAYS call the `lookup_sec_filing` tool to obtain verified SEC data.
+    2. Quote exact financial figures (revenue, net income, capex) from the tool response.
+    3. Never speculate or extrapolate beyond the verified filing data.""",
+    tools=[FunctionTool(lookup_sec_filing)]
+)
+
+async def main():
+    app = App(name="sec_research_app", root_agent=filing_agent)
+    runner = InMemoryRunner(app=app)
+    session = await runner.session_service.create_session(
+        app_name=app.name,
+        user_id="analyst_vip",
+        session_id="research_session_001"
+    )
+
+    query = "What was Alphabet's (GOOGL) revenue and AI capex in their latest 10-K filing?"
+    print(f"User Query: {query}\n")
+
+    async for event in runner.run_async(
+        user_id="analyst_vip",
+        session_id=session.id,
+        new_message=types.Content(
+            role="user",
+            parts=[types.Part.from_text(text=query)]
+        )
+    ):
+        # Inspect event stream
+        if event.is_final_response():
+            print(f"Agent Final Response:\n{event.content.parts[0].text}\n")
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+---
+
+## 🔬 Part 4: Deep Dive — How Built-in Grounding Works Under the Hood
 
 It is crucial to understand the architectural difference between **Custom Python Function Tools** (Module 9 & 10) and **Built-in Grounding Tools** (Module 8):
 
