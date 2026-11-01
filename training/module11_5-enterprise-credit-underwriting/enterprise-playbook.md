@@ -103,8 +103,59 @@ flowchart LR
 
 ---
 
+## 🏛️ The 4 Tenets of Production Credit Underwriting Agents
+
+```mermaid
+graph TD
+    T1["1. Deterministic Math Boundary<br/>(Pydantic BaseModel in Python)"]
+    T2["2. Zero-Adapter Spec Subsetting<br/>(Least-Privilege OpenAPI Synthesis)"]
+    T3["3. Zero-Trust Identity Injection<br/>(tool_context.user_id Isolation)"]
+    T4["4. Dual-Control HITL Sign-Off<br/>(Cryptographic Officer Authorization)"]
+
+    T1 --> T2
+    T2 --> T3
+    T3 --> T4
+```
+
+### Tenet 1: The Deterministic Math Boundary (Zero LLM Arithmetic)
+Large language models must never perform division, rounding, or covenant ratio calculations. All financial metrics—including Debt Service Coverage Ratio (DSCR), Debt-to-EBITDA leverage, and Current Ratio—must be executed in typed Python tools returning validated Pydantic `BaseModel` schemas.
+
+### Tenet 2: Zero-Adapter Spec Subsetting (Least Privilege)
+Never expose an entire enterprise core banking API (500+ endpoints) to the agent's context window. Always use an in-memory spec normalizer to filter routes with regex whitelisting, auto-generate explicit `operationId` symbols, and enforce required path parameters.
+
+### Tenet 3: Zero-Trust Transport Identity Injection
+Never accept employee IDs, customer tax IDs, or OAuth bearer tokens from the model's function-calling arguments. The model cannot be trusted with identity assertions. Always resolve caller identity from the cryptographically verified session context (`tool_context.user_id`) at the HTTP transport layer.
+
+### Tenet 4: Dual-Control HITL Sign-Off
+Consequential banking actions (loan drawdowns, collateral releases, credit line increases) must never execute autonomously. High-stakes mutations require two distinct human identities: an initiating credit analyst and an independent Senior Credit Officer providing a one-time cryptographic authorization code before funds disburse.
+
+---
+
+## ⚠️ Enterprise Anti-Pattern Comparison Matrix
+
+| Architectural Dimension | ❌ High-Risk Anti-Pattern | ✅ Google FDE Production Standard | Consequence of Failure |
+|---|---|---|---|
+| **Financial Calculations** | Asking Gemini in prompts: *"Calculate DSCR = NOI / Debt Service"* | Deterministic Python custom tools returning Pydantic `DscrResult` | Model hallucination causes multimillion-dollar under-hedged defaults. |
+| **API Ingestion** | Writing 1,000 lines of custom `requests` or `urllib` client wrappers | Zero-adapter `OpenAPIToolset` ingestion from versioned `.json` specs | Massive tech debt; wrapper crashes upon backend API upgrades. |
+| **Spec Whitelisting** | Dumping monolithic Swagger specs into `OpenAPIToolset` | In-memory normalizer filtering strictly permitted banking endpoints | Token context exhaustion; model invokes sensitive `/admin` endpoints. |
+| **Caller Identity** | Tool signature accepting `user_id: str` or `tax_id: str` from model | Identity resolved strictly from `tool_context.user_id` | Prompt injection allows attackers to forge officer credentials. |
+| **Disbursement Execution** | Agent autonomously calls `POST /drawdowns` based on model decision | Mandatory dual-control HITL checkpoint with Senior Officer sign-off | Unregulated capital flight and Fed SR 11-7 supervisory sanctions. |
+
+---
+
 ## 🔗 Related Course Curriculum
 
 * [Module 10 Enterprise Playbook](../module10-advanced-function-tools/enterprise-playbook.md) — Custom Pydantic tools and stateful session memory.
 * [Module 11 Theory](../module11-openapi-tools/README.md) — Foundations of OpenAPI 3.0 tools with ADK 2.0.
+* [Module 11.6 Theory](../module11_6-enterprise-apigee-gateway-auth/README.md) — Secure bank API access with Apigee gateway authentication.
 * [Enterprise ADK Roadmap](../enterprise-adk-roadmap.md) — The complete master roadmap for Google ADK enterprise architecture.
+
+---
+
+## 📚 Official References
+
+- Google ADK Documentation (latest): https://google.github.io/adk-docs/
+- Google ADK Custom Tools: https://adk.dev/tools-custom/
+- Google ADK OpenAPI Toolset: https://adk.dev/tools-custom/openapi-tools/
+- OpenAPI 3.0 Specification: https://spec.openapis.org/oas/v3.0.3
+- Federal Reserve SR 11-7 (Model Risk Management): https://www.federalreserve.gov/supervisionreg/srletters/sr1107.htm

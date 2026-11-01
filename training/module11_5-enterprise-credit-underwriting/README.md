@@ -54,6 +54,23 @@ Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [
 
 ---
 
+### 🚨 The Operational Disaster: The $42M Default Spiral at Sovereign Horizon Bank
+
+On November 14, Sovereign Horizon Bank issued a **$42,000,000 multi-draw syndicated term loan** to a nationwide freight and logistics holding company.
+
+Ninety days later, the borrower defaulted on their first scheduled quarterly interest payment. The ensuing internal audit revealed a catastrophic breakdown at the intersection of manual spreadsheet workflows and generative AI prototyping:
+
+1. **The Arithmetic Hallucination in the Credit Memo:**
+   The junior credit analyst had relied on an ungrounded LLM prototype to summarize the borrower's 180-page 10-K filing. When asked to compute the borrower's **Debt Service Coverage Ratio (DSCR)**, the LLM hallucinated a healthy DSCR of **`1.48x`** (comfortably above the bank's covenant floor of `1.25x`). In reality, the model had failed to account for operating lease liabilities mandated under ASC 842 and divided unadjusted Net Operating Income by principal-only debt service. The true DSCR was **`1.02x`**—a critical deficit that should have triggered an immediate decline.
+2. **The Leaked Core Banking Token:**
+   To allow the prototype to query borrower balance limits, the development team had hardcoded an internal core ledger service account token inside the model's system prompt instructions. When a contractor queried the agent, the raw bearer token was regurgitated in model output logs, breaching bank data boundary controls.
+3. **The Regulatory Enforcement Action (Fed SR 11-7):**
+   The Federal Reserve and OCC placed Sovereign Horizon Bank under a formal Supervisory Consent Order for failure to establish model risk validation boundaries under **Fed SR 11-7**. The bank was barred from expanding its commercial lending portfolio until all algorithmic credit triage systems were placed under strict, deterministic mathematical validation, zero-trust transport identity injection, and mandatory human-in-the-loop (HITL) dual control.
+
+> *"This is why we brought Google in,"* says Victoria Sterling. *"We cannot afford another arithmetic hallucination or an unverified token in a prompt. Math must be deterministic in Python; core banking endpoints must be synthesized zero-adapter from OpenAPI; and credit committee assessments must be auditable down to the byte."*
+
+---
+
 ## 🚫 Why Traditional Code & Basic LLM Prompting Failed
 
 * **Why Pure Deterministic Code Failed:**
