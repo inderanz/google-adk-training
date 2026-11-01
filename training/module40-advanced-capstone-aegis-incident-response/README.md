@@ -35,23 +35,67 @@ Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [
 
 ## Theory & Architecture
 
-### 1. The Scenario: Enterprise Security Operations & Threat Remediation
-In a modern enterprise security operations center (SOC), analysts are overwhelmed by the sheer volume of system audit logs, security alerts, and vulnerability notices. Sifting through BigQuery access logs, cross-referencing system vulnerabilities with the NIST/CVE database, and drafting actionable mitigation playbooks is slow, manual, and prone to human error.
+### 1. The Scenario: The 2:00 AM Crisis at Meridian Financial
 
-### 2. The Solution: Aegis Incident Response System (AIRS)
-To solve this, you will implement an advanced, distributed multi-agent system called **Aegis Incident Response System (AIRS)**. This is a secure, automated threat hunting and patching coordinator built with **ADK 2.0**, using a real Model Context Protocol (MCP) server and the Agent-to-Agent (A2A) protocol.
+*It is 2:14 AM on a rainy Tuesday.*
 
-**A note on scope:** this capstone runs entirely on your local machine — no GCP project or billing required. Model Armor, Vertex AI Search (RAG), the GCS upload, and the AgentOps telemetry export are represented with **simplified, simulated implementations**, clearly marked as such in the code. What's real and fully functional is the part this capstone is actually testing: three independent ADK agents cooperating correctly over A2A, backed by a real MCP server and real AgentOps callback hooks. The diagram below shows the target production architecture this design is modeled on; see "Going Further" at the end for how to wire the simulated pieces up to the real services.
+Inside the Security Operations Center (SOC) of Meridian Global Bank, red alerts flash across the central monitoring wall. A sudden deluge of anomalous traffic is battering the core billing databases. Audit logs in BigQuery are growing by tens of thousands of rows per second.
+
+The on-call junior analyst sits paralyzed by three competing tabs:
+1. **Raw Log Ingestion:** Incomprehensible database connection dumps and SQL strings (`' OR '1'='1`).
+2. **NIST & CVE Vulnerability Playbooks:** A massive 600-page internal document library detailing remediation protocols.
+3. **The Incident Commander's Chat:** Executive leadership demanding an immediate risk assessment and an executive containment brief.
+
+Manually hunting down the rogue IP address, correlating it against database clusters, researching the exact CIS remediation recipe, drafting a sanitized containment script, and uploading an executive brief would take at least 45 minutes of panic-stricken engineering.
+
+In banking cybersecurity, **45 minutes is an eternity**. Data exfiltration happens in milliseconds.
+
+---
+
+### 2. The Solution: Project Aegis (The Autonomous Incident Response Pod)
+
+To rescue the on-call team, you are going to deploy **Project Aegis**—an automated, resilient multi-agent incident response pod powered by **Google ADK 2.0**.
+
+Instead of building a single, fragile "do-everything" prompt, you will architect three cooperative, specialized AI agents operating as an elite triage team:
 
 ```mermaid
 flowchart TB
-  A[Local analyst request] --> B[Local Aegis coordinator]
-  B <-->|A2A| C[Local threat specialist]
-  C <-->|MCP| D[Local simulated-log tool server]
-  B <-->|A2A| E[Local mitigation specialist]
+    Analyst["🚨 SOC Analyst Prompt:<br/>'Detect brute-force attacks on billing databases<br/>and generate a verified patching plan.'"]
+    
+    subgraph Aegis_Pod["Project Aegis: Distributed Multi-Agent Response Pod"]
+        Coordinator["🛡️ 1. Aegis Orchestrator (Port 8000)<br/>Central Incident Dispatcher & Evaluator"]
+        ThreatIntel["🕵️ 2. Threat Intel Specialist (Port 8001)<br/>A2A Server + Model Armor Sanitizer"]
+        LogMCP["📦 Isolated MCP Log Server<br/>Low-level BigQuery Audit Provider"]
+        Mitigator["⚙️ 3. Mitigation Specialist (Port 8003)<br/>A2A Server + RAG Playbook Search"]
+    end
+
+    Analyst --> Coordinator
+    Coordinator <-->|A2A Protocol| ThreatIntel
+    ThreatIntel <-->|Model Context Protocol| LogMCP
+    Coordinator <-->|A2A Protocol| Mitigator
+    Mitigator -.-> Brief["📄 Executive Security Brief & Patch Script"]
 ```
 
-This diagram describes the local exercise. Managed inspection, search, storage and telemetry export are separate proposed integrations. A2A arrows show possible consultations; they do not force the model to select both services.
+#### How the Pod Solves the Crisis in Seconds:
+1. **The Orchestrator (`aegis_orchestrator`)** receives the frantic command from the analyst. It decomposes the crisis into two mission-critical phases: *Forensic Investigation* followed by *Actionable Containment*.
+2. **The Threat Specialist (`threat_intel_agent`)** receives an A2A task from the orchestrator. It queries an isolated **Model Context Protocol (MCP)** audit log server, extracts the attacker's footprint (e.g. 47 brute-force attempts and an injection payload), masks private corporate IPs with simulated **Model Armor**, and measures latency through **AgentOps hooks**.
+3. **The Mitigation Specialist (`mitigation_agent`)** takes the corroborated incident profile from the orchestrator, queries NIST remediation playbooks via simulated **Vertex AI Search (RAG)**, drafts an automated firewall containment script, and uploads a signed Executive Security Brief.
+4. **The Orchestrator** formats the final verified briefing and hands it back to the analyst, ready for human sign-off.
+
+---
+
+### 3. A Word of Confidence: From Scavenger Hunt to Distributed Multi-Agent Mastery
+
+If you are feeling intimidated by terms like *A2A (Agent-to-Agent)*, *MCP (Model Context Protocol)*, and *AgentOps Callbacks*, pause for a moment and look back at your journey:
+* In **Module 01**, you began with zero code—just exploring the vocabulary of AI agents.
+* In **Modules 08–14**, you mastered Tools, Pydantic schemas, and external API connectors.
+* In **Modules 15–21.5**, you graduated from simple bots to multi-agent static and dynamic coordination graphs.
+* In **Modules 22–30**, you grounded agents with state, evaluation benchmarks, callbacks, and native MCP servers.
+* In **Modules 31–39.5**, you explored production containerization on Cloud Run, GKE, and progressive skills.
+
+**Module 40 is not a foreign mountain.** It is simply the joyful convergence of everything you have already mastered. Everything in this lab runs **100% locally on your machine with zero cloud costs and zero billing setup**.
+
+The local exercise uses simulated Google services (Model Armor regex, static playbook strings, mock GCS URLs) so you can focus entirely on the core architectural breakthrough: **coordinating independent agent microservices over HTTP with production-grade telemetry.**
 
 ---
 
