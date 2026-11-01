@@ -34,16 +34,81 @@ Use native ADK function tools or an appropriate supported integration. The bank 
 Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
 
 ## Draw the execution boundary
+## The Great Transition: From Prompts to Programmatic Execution
 
 A tool call is proposed by the model and executed by trusted application code.
+> [!IMPORTANT]
+> **The Mental Shift:** In Modules 01 through 07, you interacted with Gemini through **prompts**. You asked a question, and the model generated text from its static weights.
+> Starting in Module 08, you transition from **prompting an LLM** to **building an agent that controls software**.
 
+### 1. Comparative Mental Models
+
+#### Until Module 07: Pure Prompting (Generative & Frozen)
 ```mermaid
 flowchart TB
   A[Gemini receives tool declaration] --> B[Model requests named tool]
   B --> C[ADK resolves the call]
   C --> D[Tool validates and performs operation]
   D --> E[Result returns to model context]
+flowchart LR
+    User["Learner / User"] -- "User Prompt" --> LLM["Gemini LLM<br/>(Frozen Weights)"]
+    LLM -- "Generated Text Response<br/>(May hallucinate facts)" --> User
 ```
+
+#### From Module 08 Onward: Agentic Tool Execution (Deterministic & Grounded)
+```mermaid
+flowchart TD
+    User["Learner / User"] -- "1. User Prompt" --> LLM["Gemini LLM (The Brain)<br/>Reasons over intent"]
+    LLM -- "2. Emits ToolCall<br/>name='lookup_sec_filing', args={'ticker': 'GOOG'}" --> ADK["ADK Runtime Orchestrator"]
+    ADK -- "3. Invokes Python Function" --> LocalCode["Your Python Code (The Hands)<br/>Runs locally on YOUR machine / cloud VM"]
+    LocalCode -- "4. Returns Structured Data<br/>{'revenue': '$88.2B', 'status': 'filed'}" --> ADK
+    ADK -- "5. Injects ToolResponse" --> LLM
+    LLM -- "6. Synthesizes Grounded Answer" --> User
+
+    classDef brain fill:#e8f0fe,stroke:#1a73e8,stroke-width:2px;
+    classDef hands fill:#e6f4ea,stroke:#137333,stroke-width:2px;
+    class LLM brain;
+    class LocalCode hands;
+```
+
+---
+
+### 2. The Core Insight: Who Runs the Code?
+
+A common stumbling block for developers new to AI agents is the belief that the Large Language Model executes your code in the cloud.
+
+> **Crucial Reality Check:**
+> **Gemini does NOT execute your Python code.**
+> Gemini is an orchestrator of intent. When you equip an agent with tools:
+> 1. ADK inspects your Python function name, type annotations, and docstrings.
+> 2. ADK translates those into a standard OpenAPI JSON schema (`FunctionDeclaration`) and sends it to Gemini.
+> 3. Gemini decides *if* and *when* to call that function, outputting a structured JSON request (`ToolCall`).
+> 4. **Your local Python interpreter (or cloud container) executes the function.**
+> 5. The return value is fed back to Gemini so it can formulate a factual, grounded response.
+
+```
+       ┌────────────────────────────────────────────────────────┐
+       │                   THE AGENT DIVISION                   │
+       ├──────────────────────────┬─────────────────────────────┤
+       │     GEMINI (THE BRAIN)   │      PYTHON (THE HANDS)     │
+       ├──────────────────────────┼─────────────────────────────┤
+       │ • Understands language   │ • Connects to databases     │
+       │ • Decides WHICH tool     │ • Calls external REST APIs  │
+       │ • Extracts arguments     │ • Performs exact math       │
+       │ • Explains results       │ • Enforces security & auth  │
+       │ • CANNOT access internet │ • Runs deterministically    │
+       │   or private databases   │   on your CPU / container   │
+       └──────────────────────────┴─────────────────────────────┘
+```
+
+---
+
+### 3. The Three Invariants of Production Tool Engineering
+
+1. **Type Annotations are the API Contract:** Because Gemini reads your Python type hints to generate tool schemas, untyped arguments (`def lookup(ticker):`) lead to model confusion and schema failures. Always write strict type hints (`def lookup(ticker: str) -> dict:`).
+2. **Docstrings are Prompt Engineering:** The docstring is the only manual Gemini reads to know *why* and *when* to invoke your function. A vague docstring guarantees tool hallucination or missed invocations.
+3. **Zero-Trust Boundary:** The model is an external caller. Treat arguments from Gemini with the same scrutiny as input from an untrusted web form: validate bounds, sanitize strings, and never trust an LLM with raw SQL injection vectors.
+
 
 ## Theory
 

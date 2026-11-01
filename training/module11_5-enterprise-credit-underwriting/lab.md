@@ -23,6 +23,30 @@ In this lab, you will follow the **4-Step FDE Development Loop** to build the **
 
 ---
 
+## 🧭 The Two-Tier Learning Pathway
+
+To support both developers mastering ADK custom tools and senior architects implementing complex commercial risk engines, this lab offers two progressive tiers:
+
+```
+  ┌─────────────────────────────────────────────────────────────┐
+  │ TIER 1: THE APPRENTICE (15 Mins) - Deterministic Math Tool  │
+  │ • Define DscrResult typed Pydantic schema                   │
+  │ • Implement calculate_dscr with zero-division safety guard  │
+  │ • Verify with: python verify_lab.py                        │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │
+                                 ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │ TIER 2: THE ENTERPRISE FDE (45 Mins) - Full Credit Engine   │
+  │ • Implement evaluate_covenant_policy (declines & borderline)│
+  │ • Define Core Banking OpenAPI spec for exposure & risk      │
+  │ • Wire unified Agent node combining Math + OpenAPI tools    │
+  │ • Run live committee triage: uv run adk run .              │
+  └─────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## 🔁 The 4-Step FDE Development Loop
 
 ```mermaid
@@ -30,7 +54,9 @@ flowchart LR
     A["1. Scaffold & Ground<br/>(update_docs.sh + adk create)"] --> B["2. Spec-Driven Synthesis<br/>(adk-enterprise-fde-workflow)"]
     B --> C["3. Interactive CLI Test<br/>(uv run adk run .)"]
     C --> D["4. Empirical Evaluation<br/>(adk-student-evaluator)"]
+    D["4. Empirical Evaluation<br/>(adk-student-evaluator)"]
 ```
+
 
 ---
 
@@ -251,6 +277,19 @@ from tools.financial_math import (
 
 ---
 
+### 3.4 Fast-Path Pre-Flight Validation
+
+Before launching the full CLI or runner, verify your models, financial calculations, and toolset attachments using the pre-flight verification script:
+
+```bash
+python verify_lab.py
+```
+
+* **Tier 1 Validation:** Asserts `DscrResult` Pydantic model structure, `calculate_dscr` math, and zero-division defensive guards.
+* **Tier 2 Validation:** Asserts `evaluate_covenant_policy` logic, `openapi/spec.py` paths and operation IDs, and unified `Agent` node tool registration.
+
+---
+
 ## ⚡ Step 4: Interactive CLI Testing (`uv run adk run .`)
 
 Test your agent in the interactive terminal using realistic banking queries:
@@ -258,6 +297,7 @@ Test your agent in the interactive terminal using realistic banking queries:
 ```bash
 uv run adk run .
 ```
+
 
 ### Test Case 1: Prime Approval
 > *"Triage loan application for Acme Industrial (TAX-99214). Requesting a \$5,000,000 credit facility expansion. Borrower reported: Net Operating Income \$3,200,000, Debt Service \$2,100,000, Total Debt \$8,000,000, EBITDA \$3,000,000, Current Assets \$5,000,000, Current Liabilities \$3,500,000."*

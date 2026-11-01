@@ -13,6 +13,8 @@ import Setup from '../_setup-snippet.mdx';
 ## 🏛️ Enterprise Scenario: Apex Global Financial Services
 ---
 
+## 🏛️ Enterprise Scenario: Apex Global Financial Services
+
 You are a **Google Forward-Deployed Engineer (FDE)** assigned to **Apex Global Financial Services**. The bank is modernizing its wealth management platform and wants to equip financial advisors with an AI Assistant capable of interacting with their **Core Banking Gateway**.
 ## 🎯 Lab Objectives
 
@@ -27,6 +29,30 @@ By completing this challenge lab, you will:
 5. **Programmatically Verify REST Tool Execution:** Write an automated test harness using `InMemoryRunner` verifying both `GET` balance inquiries and `POST` wire transfers.
 
 Your objective is to complete the OpenAPI specification dictionary and integrate it using ADK 2.0's **`OpenAPIToolset`** to equip your agent with automated REST capabilities.
+---
+
+## 🧭 The Two-Tier Learning Pathway
+
+To accommodate developers of all experience levels, this challenge is structured into two distinct, progressive tiers:
+
+```
+  ┌─────────────────────────────────────────────────────────────┐
+  │ TIER 1: THE APPRENTICE (15 Mins) - Core OpenAPI Synthesis   │
+  │ • Define 1 GET endpoint (/accounts/{account_id}/balance)    │
+  │ • Set operationId: "get_account_balance"                   │
+  │ • Synthesize OpenAPIToolset and attach to Agent             │
+  │ • Verify with: python verify_lab.py                        │
+  └──────────────────────────────┬──────────────────────────────┘
+                                 │
+                                 ▼
+  ┌─────────────────────────────────────────────────────────────┐
+  │ TIER 2: THE ENTERPRISE FDE (45 Mins) - Production Hardening │
+  │ • Add POST /transfers with complex requestBody schema       │
+  │ • Overcome Intranet DNS Wall ([Errno 8]) via MockTransport  │
+  │ • Inject custom httpx_client_factory into OpenAPIToolset    │
+  │ • Run automated verification harness: python run_verification.py │
+  └─────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -38,6 +64,10 @@ Your objective is to complete the OpenAPI specification dictionary and integrate
 | *"Query customer balance by account ID."* | `GET /v1/accounts/{account_id}/balance` | `get_account_balance` |
 | *"Submit wire transfer with source, target, amount, currency, and note."* | `POST /v1/transfers` | `execute_wire_transfer` |
 <Setup/>
+| Enterprise Banking Requirement | OpenAPI 3.0 Field Mapping | Expected ADK Tool Name (`operationId`) | Tier Level |
+|---|---|---|:---:|
+| *"Query customer balance by account ID."* | `GET /v1/accounts/{account_id}/balance` | `get_account_balance` | **Tier 1** |
+| *"Submit wire transfer with source, target, amount, currency, and note."* | `POST /v1/transfers` | `execute_wire_transfer` | **Tier 2** |
 
 ---
 ### 1. Initialize the Workspace
@@ -52,6 +82,7 @@ cd wealth_advisor
 ### Step 1: Create the Agent Project
 ### 2. Configure Environment Variables
 Create a `.env` file in `wealth_advisor/`:
+### Step 1: Environment & Project Setup
 
 <Setup/>
 ```env
@@ -61,6 +92,9 @@ GOOGLE_API_KEY=your_gemini_api_key_here
 1. **Create the agent project:**
    ```shell
    uv run adk create wealth_advisor
+1. **Initialize the workspace:**
+   ```bash
+   mkdir -p wealth_advisor
    cd wealth_advisor
    ```
    > **Note:** Select **"Other models (fill later)"** if prompted, as we will configure the model explicitly as `gemini-2.5-flash` in `agent.py`.
@@ -71,14 +105,29 @@ touch run_verification.py
 ```
 
 2. **Verify API Credentials:** Ensure your `.env` contains your Gemini API key or Vertex AI credentials.
+2. **Configure environment variables (`.env`):**
+   ```env
+   GOOGLE_API_KEY=your_gemini_api_key_here
+   ```
+   *(Or use Vertex AI credentials if testing on Google Cloud).*
+
+3. **Initialize project files:**
+   ```bash
+   touch agent.py
+   touch run_verification.py
+   ```
 
 ---
 
 ### Step 2: Implement the OpenAPI Specification & Agent Node
 ## Step 2: Implement the OpenAPI Specification & Agent Node (`agent.py`)
+### Step 2: Implement the OpenAPI Specification & Agent Node (`agent.py`)
 
 Open `agent.py` in `wealth_advisor`. Replace its contents with the starter skeleton below and complete all `TODO` sections.
 Open `agent.py`. Your challenge is to complete the OpenAPI 3.0 specification dictionary, configure the in-memory mock transport, and instantiate `OpenAPIToolset`.
+Open `agent.py`. Complete the starter skeleton below:
+- **Tier 1 Learners:** Complete `TODO 1A`, `TODO 2A`, and `TODO 3`.
+- **Tier 2 (FDE) Learners:** Complete all `TODO` items including `TODO 1B` and `TODO 2B` (Mock Transport).
 
 ```python
 # In agent.py
@@ -89,6 +138,7 @@ Wealth Advisor Agent powered by Zero-Adapter OpenAPI Synthesis in ADK 2.0.
 import json
 import httpx
 from google.adk import Agent
+from google.adk.agents import Agent
 from google.adk.tools.openapi_tool import OpenAPIToolset
 
 # ============================================================================
@@ -113,6 +163,9 @@ CORE_BANKING_SPEC = {
     },
     "servers": [{"url": "https://api.apexbank.internal/v1"}],
     "paths": {
+        # --------------------------------------------------------------------
+        # [TIER 1] TODO 1A: Balance Inquiry Endpoint
+        # --------------------------------------------------------------------
         "/accounts/{account_id}/balance": {
             "get": {
                 # TODO: Define operationId ("get_account_balance")
@@ -123,8 +176,12 @@ CORE_BANKING_SPEC = {
                 # TODO: 2. Set summary: "Retrieve current ledger balance for a customer account."
                 # TODO: 3. Define path parameter "account_id" (in: "path", required: True, schema: {"type": "string"})
                 # TODO: 4. Define 200 OK response with properties: account_id, available_balance, currency
+                # TODO: 4. Define 200 OK response with schema: account_id, available_balance, currency
             }
         },
+        # --------------------------------------------------------------------
+        # [TIER 2] TODO 1B: Wire Transfer Endpoint
+        # --------------------------------------------------------------------
         "/transfers": {
             "post": {
                 # TODO: Define operationId ("execute_wire_transfer")
@@ -153,9 +210,11 @@ CORE_BANKING_SPEC = {
 # ============================================================================
 # TODO 2: SYNTHESIZE OPENAPI TOOLSET
 # TODO 2: IMPLEMENT IN-MEMORY MOCK TRANSPORT (DNS DEFENSE)
+# [TIER 2] TODO 2B: IN-MEMORY MOCK TRANSPORT (DNS DEFENSE)
 # ============================================================================
 # Convert the spec dictionary to a JSON string and instantiate OpenAPIToolset.
 # Because https://api.apexbank.internal/v1 is an intranet URL, macOS/Linux will fail
+# Because https://api.apexbank.internal/v1 is a private intranet domain, macOS/Linux will fail
 # with [Errno 8] ConnectError unless intercepted in-memory via httpx.MockTransport.
 
 # spec_json_str = json.dumps(...)
@@ -182,11 +241,17 @@ def mock_banking_handler(request: httpx.Request) -> httpx.Response:
 # ============================================================================
 # TODO 3: DEFINE WEALTH ADVISOR AGENT NODE
 # TODO 3: SYNTHESIZE OPENAPI TOOLSET
+# TODO 2A & 2B: SYNTHESIZE OPENAPI TOOLSET
 # ============================================================================
 # Construct the Agent using model="gemini-2.5-flash" and attach banking_toolset.
 # 1. Serialize CORE_BANKING_SPEC to JSON string using json.dumps()
 # 2. Instantiate OpenAPIToolset with httpx_client_factory returning an AsyncClient
 #    configured with httpx.MockTransport(mock_banking_handler)
+# 2. For Tier 1: OpenAPIToolset(spec_str=..., spec_str_type="json")
+# 3. For Tier 2: Add httpx_client_factory returning an AsyncClient with MockTransport:
+#    httpx_client_factory=lambda: httpx.AsyncClient(
+#        transport=httpx.MockTransport(mock_banking_handler)
+#    )
 
 # root_agent = Agent(
 #     name="wealth_advisor_agent",
@@ -201,10 +266,12 @@ def mock_banking_handler(request: httpx.Request) -> httpx.Response:
 #         transport=httpx.MockTransport(mock_banking_handler)
 #     )
 # )
+banking_toolset = None  # Replace with OpenAPIToolset(...)
 
 
 # ============================================================================
 # TODO 4: DEFINE ROOT AGENT NODE
+# TODO 3: DEFINE ROOT AGENT NODE
 # ============================================================================
 # 1. Name: "wealth_advisor_agent"
 # 2. Model: "gemini-2.5-flash"
@@ -222,6 +289,20 @@ root_agent = None  # Replace with Agent(...)
 ---
 
 ## Step 3: Programmatic Verification Harness (`run_verification.py`)
+### Step 3: Fast-Path Pre-Flight Validation
+
+Before running full tests, execute the fast-path checker to verify your OpenAPI specification syntax and operation IDs:
+
+```bash
+python verify_lab.py
+```
+
+* **If you are on Tier 1:** The script will confirm that your specification syntax, `operationId: "get_account_balance"`, and `OpenAPIToolset` are valid.
+* **If you are on Tier 2:** The script will additionally verify `execute_wire_transfer` and the `MockTransport` DNS defense.
+
+---
+
+### Step 4: Programmatic Verification Harness (`run_verification.py`)
 
 Open `run_verification.py` and implement the automated test suite using `InMemoryRunner`:
 
@@ -301,6 +382,7 @@ Run the programmatic test harness:
 2. **Test Banking Queries:**
    * *"Check the current account balance for account `ACC-88392`."*
    * *"Transfer \$5,000 USD from `ACC-88392` to `ACC-99102` with reference note 'Q3 Portfolio Balancing'."*
+Run the harness:
 ```bash
 uv run python run_verification.py
 ```
@@ -308,6 +390,7 @@ uv run python run_verification.py
 3. **Inspect Logs:** Observe how ADK automatically maps user intent to the synthesized `get_account_balance` and `execute_wire_transfer` tools based on the OpenAPI `operationId` definitions.
 ### Expected Validation Output Criteria
 1. **Balance Inquiry Query:** The agent must invoke `get_account_balance` with `account_id="ACC-88392"` and report an available balance of **\$24,500.75 USD**.
+1. **Balance Inquiry Query:** The agent must invoke `get_account_balance` with `account_id="ACC-88392"` and report an available balance of **$24,500.75 USD**.
 2. **Wire Transfer Query:** The agent must invoke `execute_wire_transfer` with the correct JSON payload and confirm transaction ID **`TX-WIRE-99201`** with status **`SETTLED`**.
 3. **Hermetic In-Memory Execution:** Both requests must succeed instantly without any `ConnectError [Errno 8]` DNS crashes.
 

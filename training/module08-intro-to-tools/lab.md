@@ -168,6 +168,22 @@ if __name__ == "__main__":
 ```
 
 ### Step 2: Observe Function Calling in the Terminal
+### Step 2: Fast-Path Pre-Flight Verification
+
+Before running the full interactive agent, verify your tool definition and type signatures with the automated pre-flight checker:
+
+```bash
+python verify_lab.py
+```
+
+This tests:
+1. Python function type annotations (`ticker: str -> dict`) needed for OpenAPI schema generation.
+2. Docstring quality for Gemini tool selection.
+3. ADK agent node instantiation and tool attachment.
+
+If any check fails, the tool gives you an immediate, copy-pasteable fix!
+
+### Step 3: Observe Function Calling in the Terminal
 
 Run `python filing_agent.py`. Notice how:
 1. Gemini inspects the question and selects `lookup_sec_filing(ticker='GOOGL', filing_type='10-K')`.
