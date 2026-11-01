@@ -35,19 +35,53 @@ Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [
 
 ## Theory: make a deployed agent available to employees
 
-### Build, host and publish are three different steps
+### 1. The Scenario: The Shadow Agent Sprawl at Citadel Insurance
 
-ADK defines and runs the application logic. Agent Runtime is the managed hosting component of Gemini Enterprise Agent Platform used in this path. Registering a supported deployed agent with the Gemini Enterprise application makes it available through the employee experience. Registration does not upload arbitrary Python code in place of a deployment.
+*Consider the reality of enterprise AI adoption across large organizations.*
+
+Citadel Insurance rapidly embraced AI:
+- The claims division spun up three independent chatbots on rogue Cloud Run instances.
+- The actuarial risk team built an internal underwriter tool connected directly to production BigQuery tables without row-level security.
+- The customer support team created an agent using personal API keys stored in developer laptops.
+
+Within six months, the enterprise suffered an organizational and security crisis:
+1. **Zero Visibility & Shadow Agents:** Central IT had no inventory of what AI agents existed, who built them, or what enterprise data they were touching.
+2. **Permission Confusion:** An agent built for executive risk analysis was accidentally shared via an open URL, allowing junior claims adjusters to inspect unmasked executive salary claims.
+3. **No Centralized Discovery:** Front-line customer service representatives had no unified place to discover approved tools; they juggled 12 different web bookmarks.
+
+---
+
+### 2. The Solution: Gemini Enterprise & Centralized Agent Registry
+
+To solve this sprawl, Google provides **Gemini Enterprise (formerly AgentSpace) and the Agent Registry**.
+
+Publishing an agent to the enterprise workforce is a disciplined progression through four distinct boundaries:
 
 ```mermaid
 flowchart TB
-  A[Build and evaluate with ADK] --> B[Deploy to Agent Runtime]
-  B --> C[Test authenticated agent invocation]
-  C --> D[Register in Gemini Enterprise app]
-  D --> E[Test as an authorized employee]
+    Dev["1. Build & Test<br/>ADK Application Logic"] --> Deploy["2. Host & Containerize<br/>Vertex AI Agent Runtime / Cloud Run"]
+    Deploy --> Verify["3. Authenticated IAM Verification<br/>Verify Service Account & Least Privilege"]
+    Verify --> Publish["4. Publish to Agent Registry<br/>agents-cli publish gemini-enterprise"]
+    Publish --> Gateway["5. Gemini Enterprise Workspace<br/>RBAC & Discovery for Authorized Employees"]
 ```
 
-Use the [official ADK registration guide](https://docs.cloud.google.com/gemini/enterprise/docs/register-and-manage-an-adk-agent) for current prerequisites, permissions and supported agent behavior. A2A registration has its own contract; it is not interchangeable with the native ADK registration path.
+#### The Three Core Pillars of Fleet Governance:
+1. **Separation of Hosting from Publication:**
+   - **Agent Runtime / Cloud Run** *hosts* the container execution environment.
+   - **Gemini Enterprise** *publishes* the agent into the corporate directory. Registering an agent does not mean pasting Python scripts into a portal; it binds a hardened, running cloud endpoint into corporate identity.
+2. **Discovery vs. Authorization:**
+   - Just because an employee can *see* an agent listed in their Gemini Enterprise sidebar does not mean they have universal data access. 
+   - When the agent runs, the employee's OAuth identity propagates to downstream data connectors (Salesforce, BigQuery, SharePoint). An unauthorized user receives a clean `403 Forbidden` at the data tier.
+3. **Automated Fleet Lifecycle:**
+   - Platform teams use `google-agents-cli` to register, version, deprecate, and revoke agents programmatically in CI/CD pipelines.
+
+---
+
+### 3. A Word of Confidence: Taking Your Code to Corporate Users
+
+Up to Module 35, you focused on the engineering backend: writing tools, chaining multi-agent graphs, and building Docker containers.
+
+**Module 36 is where your code meets human employees.** You transition from a developer running scripts in a terminal to an Enterprise AI Architect providing secure, governed tools to thousands of daily knowledge workers.
 
 ### Discovery does not replace data authorization
 

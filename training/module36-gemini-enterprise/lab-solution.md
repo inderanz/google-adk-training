@@ -9,6 +9,25 @@ title: "Lab Solution"
 
 This file contains example answers and thought processes for the conceptual lab exercise on designing an enterprise agent strategy.
 
+## Steering Prompt Template
+
+Use this prompt to guide an AI coding assistant (such as Google Antigravity or Gemini Code Assist) or validate your Gemini Enterprise fleet strategy against Google Principal FDE standards:
+
+```markdown
+Act as a Google Principal Forward-Deployed Engineer (FDE). I need to formulate and implement a centralized enterprise agent publishing and governance strategy for Gemini Enterprise and the Google Cloud Agent Registry.
+
+Requirements:
+1. Fleet Registration Strategy:
+   - Formulate publication pipelines using `agents-cli publish gemini-enterprise`.
+   - Distinguish hosting environments (Cloud Run vs. Vertex AI Agent Runtime) from enterprise registration metadata.
+2. Enterprise Access Control & RBAC:
+   - Enforce Google Workspace Groups and Cloud IAM role bindings for discovery permissions.
+   - Decouple agent visibility in the Gemini Enterprise UI from backend data tier authorization (least privilege on Salesforce, BigQuery, SharePoint).
+3. Telemetry & Fleet Management:
+   - Plan BigQuery Agent Analytics integration to track token consumption, query volume, and latency across business cost centers.
+   - Establish deprecation and rollout policies for multi-version agent fleets.
+```
+
 ---
 
 ### Step 1: Identify the Agents (Example Ideas)

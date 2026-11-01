@@ -9,6 +9,28 @@ title: "Lab Solution"
 
 This solution provides the complete, tested code for the distributed, multi-agent personalized shopping assistant. It demonstrates the definitive ADK 2.0 A2A pattern.
 
+## Steering Prompt Template
+
+Use this prompt to guide an AI coding assistant (such as Google Antigravity or Gemini Code Assist) or validate your distributed multi-agent implementation against Google Principal FDE standards:
+
+```markdown
+Act as a Google Principal Forward-Deployed Engineer (FDE). I need to architect and implement an enterprise-grade distributed multi-agent shopping assistant using Google ADK 2.0/2.11 and the Agent-to-Agent (A2A) protocol.
+
+Requirements:
+1. Distributed Architecture & A2A Boundaries:
+   - Implement an Orchestrator Agent coordinating two remote micro-agents over HTTP A2A: a Personalization Agent and a Web Agent.
+   - Wrap remote agents via `AgentTool` (or `RemoteA2aAgent`) so the orchestrator delegates through standard tool invocation.
+   - Sandbox web catalog interactions behind typed Python functions (`search`, `click`), abstracting raw HTML and reducing context token load.
+2. State & Session Lifecycle:
+   - Isolate ephemeral browsing session state from durable customer preference state.
+   - Note the architectural boundary of child sessions in `AgentTool` and provide resilient fallback or durable external state store patterns for cross-turn persistence.
+3. Security & Transaction Gates:
+   - Establish strict action boundaries: browsing and search operations are unprivileged model actions; purchasing requires explicit user confirmation and authenticated execution.
+   - Inject observability hooks (`before_tool_callback` / `after_tool_callback`) to record audit telemetry for all specialist delegations.
+```
+
+---
+
 ### 0. `web_agent/webshop_data.py`
 A minimal, dependency-free mock e-commerce catalog standing in for a real
 webshop, so `web_agent`'s `search`/`click` tools have something to operate

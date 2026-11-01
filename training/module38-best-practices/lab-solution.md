@@ -9,6 +9,31 @@ title: "Lab Solution"
 
 This file contains the complete code for the `agent.py` script in the Best Practices lab, utilizing the ADK 2.0 Workflow Runtime and native resilience features.
 
+## Steering Prompt Template
+
+Use this prompt to guide an AI coding assistant (such as Google Antigravity or Gemini Code Assist) or validate your production reliability implementation against Google Principal FDE standards:
+
+```markdown
+Act as a Google Principal Forward-Deployed Engineer (FDE). I need to harden an ADK 2.0/2.11 agent application for mission-critical enterprise production environments with 99.99% availability requirements.
+
+Requirements:
+1. Input Validation & Fail-Closed Guardrails:
+   - Enforce typed Pydantic models for all tool and workflow node inputs.
+   - Reject malformed or invalid inputs immediately (fail-closed); never silently swallow validation exceptions.
+2. Failure Classification & Retry Budgets:
+   - Categorize failure types before configuring retries: distinguish transient network read failures from deterministic auth errors or domain results (e.g. `not_found`).
+   - Configure ADK native `RetryConfig` with bounded attempts (e.g. `max_attempts=3`) and exponential backoff with jitter on transient exceptions.
+   - Ensure attempt counts are respected: `max_attempts=3` means 1 initial attempt plus at most 2 retries.
+3. Idempotency & State Mutation Quarantines:
+   - For all state-mutating operations (writes, purchases, transfers), enforce an external idempotency key (`idempotency_key: UUIDv4`).
+   - Quarantining uncertain write timeouts: do not blindly retry writes without querying operation status via the idempotency key.
+4. Circuit Breaking & Observability:
+   - Implement custom execution timeout limits and circuit-breaker patterns for downstream dependencies.
+   - Emit structured audit logs for retry exhausted states and unrecoverable errors.
+```
+
+---
+
 ### `best_practices_v2/agent.py`
 
 ```python
