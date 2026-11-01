@@ -61,7 +61,7 @@ Instead of building a single, fragile "do-everything" prompt, you will architect
 ```mermaid
 flowchart TB
     Analyst["🚨 SOC Analyst Prompt:<br/>'Detect brute-force attacks on billing databases<br/>and generate a verified patching plan.'"]
-    
+
     subgraph Aegis_Pod["Project Aegis: Distributed Multi-Agent Response Pod"]
         Coordinator["🛡️ 1. Aegis Orchestrator (Port 8000)<br/>Central Incident Dispatcher & Evaluator"]
         ThreatIntel["🕵️ 2. Threat Intel Specialist (Port 8001)<br/>A2A Server + Model Armor Sanitizer"]

@@ -47,9 +47,22 @@ import mcp.server.stdio
 app = Server("bigquery_security_audit_mock")
 
 FAKE_AUDIT_LOGS = [
-    {"timestamp": "2026-08-20T03:14:22Z", "source_ip": "192.168.1.45", "event": "failed_login", "target": "billing_db", "attempts": 47},
-    {"timestamp": "2026-08-20T03:15:01Z", "source_ip": "192.168.1.45", "event": "sql_injection_attempt", "target": "mid_market_segment_logs", "query_snippet": "' OR '1'='1"},
+    {
+        "timestamp": "2026-08-20T03:14:22Z",
+        "source_ip": "192.168.1.45",
+        "event": "failed_login",
+        "target": "billing_db",
+        "attempts": 47,
+    },
+    {
+        "timestamp": "2026-08-20T03:15:01Z",
+        "source_ip": "192.168.1.45",
+        "event": "sql_injection_attempt",
+        "target": "mid_market_segment_logs",
+        "query_snippet": "' OR '1'='1",
+    },
 ]
+
 
 @app.list_tools()
 async def list_mcp_tools() -> list[mcp_types.Tool]:
@@ -60,20 +73,27 @@ async def list_mcp_tools() -> list[mcp_types.Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "What to look for, e.g. 'brute-force attacks on billing_db'."}
+                    "query": {
+                        "type": "string",
+                        "description": "What to look for, e.g. 'brute-force attacks on billing_db'.",
+                    }
                 },
                 "required": ["query"],
             },
         )
     ]
 
+
 @app.call_tool()
 async def call_mcp_tool(name: str, arguments: dict) -> list[mcp_types.Content]:
     if name == "query_security_audit_logs":
         response_text = json.dumps({"status": "success", "rows": FAKE_AUDIT_LOGS})
         return [mcp_types.TextContent(type="text", text=response_text)]
-    response_text = json.dumps({"status": "error", "message": f"Tool '{name}' not found."})
+    response_text = json.dumps(
+        {"status": "error", "message": f"Tool '{name}' not found."}
+    )
     return [mcp_types.TextContent(type="text", text=response_text)]
+
 
 async def run_mcp_stdio_server():
     async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
@@ -86,6 +106,7 @@ async def run_mcp_stdio_server():
                 capabilities=app.get_capabilities(NotificationOptions(), {}),
             ),
         )
+
 
 if __name__ == "__main__":
     asyncio.run(run_mcp_stdio_server())
@@ -115,10 +136,16 @@ mcp_toolset = McpToolset(
     connection_params=StdioConnectionParams(
         server_params=StdioServerParameters(
             command="python3",
-            args=[os.path.join(os.path.dirname(os.path.abspath(__file__)), "bigquery_mock_server.py")],
+            args=[
+                os.path.join(
+                    os.path.dirname(os.path.abspath(__file__)),
+                    "bigquery_mock_server.py",
+                )
+            ],
         ),
     ),
 )
+
 
 def mask_security_secrets(text: str) -> str:
     """
@@ -128,17 +155,23 @@ def mask_security_secrets(text: str) -> str:
     ip_regex = r"\b(192\.168\.\d+)\.(\d+)\b"
     return re.sub(ip_regex, r"\1.***", text)
 
+
 def start_timer(callback_context: CallbackContext, llm_request: LlmRequest) -> None:
     """AgentOps: mark the start of a model call to measure latency."""
     callback_context.state["start_time"] = time.time()
     print("[AgentOps] Starting query generation span...")
 
-def end_timer_and_sanitize(callback_context: CallbackContext, llm_response: LlmResponse):
+
+def end_timer_and_sanitize(
+    callback_context: CallbackContext, llm_response: LlmResponse
+):
     """AgentOps: mask secrets in the response and log (simulated) telemetry export."""
     elapsed_time = time.time() - callback_context.state.get("start_time", time.time())
     print("[AgentOps] Agent execution completed successfully.")
     print(f"[AgentOps] Latency: {elapsed_time:.3f}s")
-    print("[AgentOps] (Simulated) Exporting OpenTelemetry span and token usage to Cloud Logging...")
+    print(
+        "[AgentOps] (Simulated) Exporting OpenTelemetry span and token usage to Cloud Logging..."
+    )
 
     # The model's first response here is often a function call (e.g. to
     # query_security_audit_logs) rather than text. A function-call part has
@@ -154,9 +187,14 @@ def end_timer_and_sanitize(callback_context: CallbackContext, llm_response: LlmR
     redacted_text = mask_security_secrets(original_text)
     if redacted_text == original_text:
         return None
-    return llm_response.model_copy(update={
-        "content": types.Content(parts=[types.Part(text=redacted_text)], role="model")
-    })
+    return llm_response.model_copy(
+        update={
+            "content": types.Content(
+                parts=[types.Part(text=redacted_text)], role="model"
+            )
+        }
+    )
+
 
 threat_agent = Agent(
     model="gemini-3.5-flash",
@@ -183,7 +221,10 @@ if __name__ == "__main__":
 
 ```python
 from google.adk.agents import Agent
-from google.adk.agents.remote_a2a_agent import RemoteA2aAgent, AGENT_CARD_WELL_KNOWN_PATH
+from google.adk.agents.remote_a2a_agent import (
+    RemoteA2aAgent,
+    AGENT_CARD_WELL_KNOWN_PATH,
+)
 from google.adk.apps.app import App
 from google.adk.runners import InMemoryRunner
 from google.adk.tools.agent_tool import AgentTool
@@ -239,6 +280,7 @@ import uvicorn
 
 load_dotenv()
 
+
 def search_remediation_playbooks(vulnerability_type: str) -> str:
     """
     Simulated Vertex AI Search (RAG) lookup over CIS/NIST playbooks.
@@ -246,7 +288,10 @@ def search_remediation_playbooks(vulnerability_type: str) -> str:
     """
     return "Remediation Playbook #40: For database log attacks, isolate port 3306, enable VPC Service Controls, and rotate target IAM passwords."
 
-async def build_and_upload_mitigation_brief(target_node: str, incident_type: str, tool_context: ToolContext) -> dict:
+
+async def build_and_upload_mitigation_brief(
+    target_node: str, incident_type: str, tool_context: ToolContext
+) -> dict:
     """
     Generates an executive security brief and simulates a signed upload to GCS.
     A production system would render a real PDF and call a GCS MCP server or
@@ -256,14 +301,15 @@ async def build_and_upload_mitigation_brief(target_node: str, incident_type: str
     return {
         "status": "success",
         "brief_url": gcs_dest_url,
-        "message": f"Successfully generated security patch script and uploaded executive brief to {gcs_dest_url}"
+        "message": f"Successfully generated security patch script and uploaded executive brief to {gcs_dest_url}",
     }
+
 
 mitigation_agent = Agent(
     model="gemini-3.5-flash",
     name="mitigation_agent",
     instruction="You generate patch scripts and executive briefings. Use the playbook search and brief-upload tools.",
-    tools=[search_remediation_playbooks, build_and_upload_mitigation_brief]
+    tools=[search_remediation_playbooks, build_and_upload_mitigation_brief],
 )
 
 a2a_app = to_a2a(mitigation_agent, port=8003)
