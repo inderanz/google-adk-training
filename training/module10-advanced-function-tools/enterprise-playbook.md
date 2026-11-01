@@ -5,185 +5,202 @@ title: "Module 10 Enterprise Playbook: Stateful Tools and Memory as an Operating
 
 # Module 10 Enterprise Playbook: Stateful Tools and Memory as an Operating Layer
 
-This module is where the agent starts to act less like a one-shot prompt responder and more like a real operational assistant. In Module 09, the focus was on custom function tools as business capabilities. In Module 10, the focus shifts to a more advanced requirement: how do you remember facts across turns, preserve user context, and apply that context to future decisions?
+In this module, the agent transitions from a one-shot prompt responder into a **continuous operational assistant**. While Module 09 established custom function tools as deterministic capabilities, Module 10 introduces the operating layer that governs enterprise context: **how to maintain state across turns, isolate customer identity, and apply historical context safely to future decisions**.
 
-For a forward-deployed engineer, this is the transition from tool execution to tool-enabled memory. In enterprise AI, memory is not a novelty; it is a design decision with consequences for trust, privacy, and business correctness.
-
-## The forward-deployed engineer lens
-
-Customers rarely ask for “stateful memory” in abstract terms. They often say things like:
-
-- “Remember this user’s preferences for future conversations.”
-- “Keep track of the customer’s current case and use it in follow-up steps.”
-- “The agent should know the user’s region, role, and account context without re-asking every time.”
-- “We need the agent to maintain workflow context during a multi-step task.”
-
-The real engineering challenge is to decide:
-
-- what facts should persist,
-- what should be transient,
-- which data is sensitive,
-- how long state should live,
-- and when memory supports the business versus when it becomes a reliability risk.
-
-## Business translation
-
-The ADK pattern in this module, `ToolContext.state`, gives the agent a controlled and structured memory mechanism.
-
-In business terms, that means the agent can maintain:
-
-- customer profile attributes
-- workflow progress flags
-- preference selections
-- recent outputs from tools
-- intermediate decisions made during a task
-
-The important question is not merely “can we store this?” It is: “Does storing it improve the user experience and the operating reliability without creating privacy or consistency issues?”
-
-## Core ADK concept
-
-In ADK, a tool can accept a `ToolContext` parameter. This gives the tool access to the runtime execution state without exposing that framework object to the LLM schema itself.
-
-That means the tool can:
-
-- read conversation state
-- update conversation state
-- enforce structured memory patterns
-- coordinate a multi-step workflow
-
-This is one of the most practical patterns in the framework because it allows the developer to preserve business context without overloading the model with raw conversation memory alone.
-
-## Enterprise pattern
-
-### Pattern 1: preference memory
-Store user preferences that should influence later decisions.
-
-Examples:
-
-- preferred communication style
-- region or locale
-- account preference
-- default workflow settings
-
-This is very useful when the user expects continuity across sessions or multi-turn work.
-
-### Pattern 2: workflow state memory
-Track the current lifecycle of a multi-step process.
-
-Examples:
-
-- draft request created
-- options retrieved
-- approval pending
-- executed
-- escalated
-
-This pattern is especially helpful for customer service and operational assistants.
-
-### Pattern 3: retrieval context memory
-Store a small set of working facts that are needed repeatedly during the same task.
-
-Examples:
-
-- customer ID
-- case ID
-- current order ID
-- selected product configuration
-
-This is often better than forcing the model to re-derive context from long conversation history.
-
-## Why this matters in production
-
-Stateful tools are powerful, but they also introduce responsibility.
-
-A forward-deployed engineer must think carefully about:
-
-- whether state is required for user experience or if it is simply convenient
-- whether the stored information is valid, current, and safe to use
-- whether it should persist across sessions or only within a short task lifecycle
-- whether secrets or sensitive data are being placed into agent memory
-- whether stale memory could cause wrong decisions later
-
-The best memory design is intentional, not accidental.
-
-## Best practices for real customer work
-
-### 1. Keep state small and explicit
-Do not store everything. Store only the values that materially affect decisions or user experience.
-
-### 2. Use clear keys and names
-A state key like `user_profile` or `current_case_id` is easier to reason about than a generic dump of raw conversation text.
-
-### 3. Separate memory from the model prompt
-Memory should support execution, not replace the need for a well-defined prompt and well-scoped task.
-
-### 4. Treat memory as an operational contract
-The agent should be able to explain what it remembers, why it remembers it, and how it uses it. This matters for trust and debugging.
-
-### 5. Validate state before acting on it
-If memory is stale or incomplete, the tool or workflow should fail safely rather than acting on assumptions.
-
-## Common enterprise anti-patterns
-
-### Anti-pattern 1: hidden memory sprawl
-Storing every fact from every conversation eventually creates confusion and stale data.
-
-### Anti-pattern 2: storing sensitive data without controls
-PII, internal IDs, secrets, and operational data should be handled with explicit governance and security review.
-
-### Anti-pattern 3: using memory as a substitute for proper orchestration
-The model should not rely on vague memory to replace a well-defined state machine or workflow.
-
-### Anti-pattern 4: forgetting to clear or refresh state
-Memory can become stale if not refreshed when the business context changes.
-
-## State as a design artifact
-
-The most practical way to think about `ToolContext.state` is as a controlled business memory layer.
-
-It is not a freeform “AI memory.” It is a structured, programmatic store that supports specific operational decisions. This distinction matters because enterprise AI depends on reliability, not just cleverness.
-
-## Related modules
-
-- [Module 09 Enterprise Playbook](../module09-intro-custom-function-tools/enterprise-playbook.md)
-- [Module 11 OpenAPI Tools](../module11-openapi-tools/README.md)
-- [Module 13 Firestore Persistence](../module13_5-firestore-persistence/README.md)
-- [Module 15 Multi-Agent Systems](../module15-intro-to-multi-agent-systems/README.md)
-- [Module 22 State and Memory](../module22-state-and-memory/README.md)
-
-## Recommended next move in the learning path
-
-The next step after mastering tool context is to understand how external API integrations and retrieval systems become the next layer of agent capability. That is where the agent begins operating across larger enterprise systems instead of only local functions and local state.
-
-## Final enterprise takeaway
-
-Module 10 teaches a crucial lesson: a useful agent does not just reason; it remembers what matters in a structured, business-aware way.
-
-Stateful tools turn the agent from a reactive assistant into a workflow-aware collaborator. That is a major step toward enterprise-grade ADK systems.
-
-## Official ADK / Google references
-
-- ADK docs home: https://google.github.io/adk-docs/
-- ADK sessions and state guidance: https://google.github.io/adk-docs/sessions/
-- ADK tools documentation: https://google.github.io/adk-docs/tools/
-- Gemini API docs: https://ai.google.dev/gemini-api/docs
-- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
-
-These are the official references for tool state, session context patterns, and future updates to ADK memory and runtime behavior.
+For a Google Principal Forward-Deployed Engineer (FDE), tool-enabled state is not a novelty; it is a critical system architecture with direct consequences for compliance, security, and financial accuracy.
 
 ---
 
-## Related roadmap
+## 1. The FDE Perspective: The Meridian Asset Management Lesson
 
-- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
-- [Module 10 README](./README.md)
+Recall the crisis at **Meridian Asset Management** detailed in [Module 10 README](./README.md): a wealth advisory assistant relied on conversational prompt history for customer risk profiles and accepted model-supplied user IDs, resulting in an unauthorized \$6.2M high-risk allocation breach during volatile market conditions.
+
+When executive leadership asked how a sophisticated LLM could drift so severely, the FDE assessment was clear:
+> *"Conversational prompt history is probabilistic, malleable, and subject to attention decay and prompt injection. It is not an enterprise system-of-record. In production, stateful facts—customer identity, compliance tier, draft applications, and preference settings—must be managed deterministically in server-side `ToolContext`."*
+
 ---
 
-## Official References
+## 2. The 4 Non-Negotiable Tenets of Stateful Tool Engineering
 
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+```mermaid
+flowchart TD
+    subgraph Tenet1["1. Zero-Trust Identity Grounding"]
+        AUTH[Upstream Gateway / OAuth] -->|Verified user_id| TC[ToolContext]
+        LLM[Gemini Reasoning] -.->|NEVER Allowed to Supply Caller ID| TC
+    end
 
+    subgraph Tenet2["2. Controlled State Scoping"]
+        TC -->|Writes JSON Primitives| STATE[tool_context.state]
+        STATE -->|Namespaced Keys| NS["loan:draft | user:prefs | kyc:status"]
+    end
+
+    subgraph Tenet3["3. Idempotent State Mutation"]
+        MUT[State Mutation] -->|Idempotency Key| AUDIT[Audit Telemetry & Log Event]
+        AUDIT -->|Safe for Retries| COMMIT[Committed Session State]
+    end
+
+    subgraph Tenet4["4. Distributed Session Persistence"]
+        COMMIT -->|In-Memory Dev| MEM[InMemoryRunner]
+        COMMIT -->|Production Enterprise| CLOUD[Cloud Firestore / Spanner]
+    end
+```
+
+### Tenet 1: Zero-Trust Identity Grounding
+The LLM is an untrusted reasoning component in an enterprise security boundary.
+- **The Core Rule:** A tool must **never** accept `user_id`, `account_number`, or `security_clearance` as a model-supplied argument.
+- **The Execution Model:** Identity is established at the transport gateway (Google Cloud Identity-Aware Proxy, Cloudflare Access, or Apigee) and injected into `tool_context.user_id`. The tool accesses this verified identity on the host server, preventing conversational prompt injection from spoofing customer accounts.
+
+### Tenet 2: Controlled State Scoping & Serialization Hygiene
+`tool_context.state` is a persistent dictionary across turns within a session.
+- **Strictly JSON Primitives:** Store only primitives: `dict`, `list`, `str`, `int`, `float`, `bool`. Never store un-pickleable objects, open database handles, sockets, or thread locks in `tool_context.state`.
+- **Namespaced Keys:** Avoid flat, ambiguous keys like `"data"` or `"temp"`. Use namespaced keys: `"banking:loan_draft"`, `"user:preferences"`, `"risk:tier"`.
+
+### Tenet 3: Idempotent State Mutation & Audit Logging
+Stateful tools frequently execute over unstable network connections or experience client retries:
+- **Idempotency:** Re-executing a stateful tool with the same arguments must not corrupt state or trigger duplicate billing drafts.
+- **Audit Trails:** Every state mutation (updating an address, selecting an investment allocation, modifying a draft) must emit structured audit logs containing the `session_id`, `user_id`, key modified, and before/after values to Google Cloud Logging.
+
+### Tenet 4: Ephemeral Session State vs. Durable Systems of Record
+Developers often confuse conversational session state with permanent database persistence:
+- **`tool_context.state`** is ephemeral and scoped to the active session. It is designed for multi-turn draft accumulation, intermediate calculations, and UI caching.
+- **Durable Enterprise Systems of Record:** Booked loans, completed wire transfers, and verified legal contracts must be committed to transactional databases (Cloud SQL, Spanner, or Firestore as covered in Module 13.5). Never rely on `tool_context.state` as your sole permanent database.
+
+---
+
+## 3. Production Architecture Blueprint: Enterprise Stateful Tool
+
+Here is the reference architectural blueprint for implementing stateful, audited banking tools in Google ADK:
+
+```python
+"""
+production_stateful_tool.py
+Enterprise-grade ADK stateful tool with audit logging, zero-trust identity, and defensive bounds.
+"""
+from typing import Dict, Any, Optional
+import time
+import logging
+from pydantic import BaseModel, Field
+from google.adk.tools import ToolContext
+
+logger = logging.getLogger("enterprise.banking.stateful")
+
+
+class LoanDraftResponse(BaseModel):
+    """Structured Pydantic response for loan draft accumulation."""
+    status: str = Field(description="'in_progress', 'ready_for_submission', or 'error'")
+    user_id: str = Field(description="Server-authenticated caller ID")
+    captured_fields: Dict[str, Any] = Field(description="Currently accumulated draft values")
+    missing_fields: list[str] = Field(description="Mandatory fields still missing")
+    error_message: Optional[str] = Field(default=None, description="Validation failure details")
+
+
+def accumulate_loan_draft_enterprise(
+    field_name: str,
+    field_value: str,
+    tool_context: ToolContext
+) -> LoanDraftResponse:
+    """Accumulates verified fields for an active personal loan application draft.
+
+    Use this tool turn-by-turn as the client provides loan application details.
+
+    Args:
+        field_name: The loan parameter ('annual_income', 'loan_amount', 'tenure_months').
+        field_value: The value provided by the client.
+
+    Returns:
+        LoanDraftResponse containing updated draft state and missing requirements.
+    """
+    start_time = time.time()
+    
+    # 1. Zero-Trust Identity Verification
+    verified_user = tool_context.user_id
+    if not verified_user:
+        logger.error("Unauthenticated invocation attempted on loan draft tool.")
+        return LoanDraftResponse(
+            status="error",
+            user_id="UNKNOWN",
+            captured_fields={},
+            missing_fields=[],
+            error_message="Unauthorized: caller session lacks verified user identity."
+        )
+
+    clean_field = field_name.strip().lower()
+    clean_val = field_value.strip()
+
+    # 2. Field Whitelisting & Input Guard Clauses
+    allowed_fields = {"annual_income", "loan_amount", "tenure_months"}
+    if clean_field not in allowed_fields:
+        return LoanDraftResponse(
+            status="error",
+            user_id=verified_user,
+            captured_fields={},
+            missing_fields=list(allowed_fields),
+            error_message=f"Field '{field_name}' is not recognized. Allowed: {list(allowed_fields)}."
+        )
+
+    # 3. Read & Mutate Namespaced Session State
+    state_key = f"loan_draft:{verified_user}"
+    draft = tool_context.state.get(state_key, {})
+    draft[clean_field] = clean_val
+    tool_context.state[state_key] = draft
+
+    # 4. Evaluate Missing Fields
+    missing = [f for f in allowed_fields if f not in draft]
+    progress_status = "ready_for_submission" if not missing else "in_progress"
+
+    duration_ms = (time.time() - start_time) * 1000
+    logger.info(
+        "User %s updated draft field '%s'. Status: %s (Duration: %.2fms)",
+        verified_user, clean_field, progress_status, duration_ms
+    )
+
+    return LoanDraftResponse(
+        status=progress_status,
+        user_id=verified_user,
+        captured_fields=draft,
+        missing_fields=missing
+    )
+```
+
+---
+
+## 4. Anti-Patterns vs. Production Standards
+
+| Enterprise Anti-Pattern | Operational Failure Mode | Google FDE Production Standard |
+| :--- | :--- | :--- |
+| **Prompt-Based State Tracking** | Conversational drift and attention truncation cause the agent to forget or alter customer risk tiers. | Store multi-turn facts exclusively in **`tool_context.state`**. |
+| **Model-Supplied Identity** | Accepting `user_id` as an LLM argument invites prompt-injection account takeover. | Read identity strictly from **`tool_context.user_id`** authenticated by upstream gateways. |
+| **Mentioning ToolContext in Docstrings** | Writing `"tool_context: internal state"` in docstrings confuses Gemini and triggers hallucinated arguments. | **Strip all references** to `tool_context` from docstrings; ADK handles injection transparently. |
+| **Complex Object Serialization** | Storing database connections or threading locks in state crashes the session serializer. | Enforce **JSON-serializable primitives** (`dict`, `list`, `str`, `int`, `float`, `bool`) only. |
+| **Unbounded State Growth** | Storing megabytes of raw files in session state causes latency and token exhaustion. | Offload binary files using **`tool_context.save_artifact()`**. |
+
+---
+
+## 5. Enterprise Stateful Tool Readiness Gate
+
+Before approving any stateful tool for staging or production, verify all 7 gates:
+
+- [ ] **Context Stripping:** Function declares `tool_context: ToolContext` with zero mention in docstrings.
+- [ ] **Zero-Trust Identity:** Identity is sourced strictly from `tool_context.user_id`; never accepted as an LLM argument.
+- [ ] **Serialization Guarantee:** All values written to `tool_context.state` are strictly JSON-serializable primitives.
+- [ ] **Namespaced Keys:** State keys use domain prefixes (e.g., `loan:draft`, `user:preferences`) to prevent cross-tool collisions.
+- [ ] **Draft Accumulation Logic:** Multi-step forms clearly report captured fields and missing fields to guide user conversation.
+- [ ] **Binary Offloading:** Generated PDFs, images, and tabular exports are saved via `tool_context.save_artifact()`.
+- [ ] **Audit Telemetry:** State mutations emit structured log events with user ID, session ID, and duration to Google Cloud Logging.
+
+---
+
+## 6. Official References & Citations
+
+- **Google ADK Custom Tools & ToolContext Reference:**  
+  [https://adk.dev/tools-custom/](https://adk.dev/tools-custom/) *(Accessed November 2026)*  
+  Canonical specification for `ToolContext`, dependency injection, and tool execution boundaries.
+- **Google ADK Sessions & State Architecture:**  
+  [https://adk.dev/sessions/](https://adk.dev/sessions/) *(Accessed November 2026)*  
+  Deep dive on session services, state scopes, and memory retention across turns.
+- **Gemini API Function Calling Documentation:**  
+  [https://ai.google.dev/gemini-api/docs/function-calling](https://ai.google.dev/gemini-api/docs/function-calling) *(Accessed November 2026)*  
+  Core specification for OpenAPI parameter extraction and tool schema generation.
+- **Vertex AI Generative AI Enterprise Architecture:**  
+  [https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling) *(Accessed November 2026)*  
+  Enterprise SLA, Workload Identity Federation, and private VPC deployment on Google Cloud.
