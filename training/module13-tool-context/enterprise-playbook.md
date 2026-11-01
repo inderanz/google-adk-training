@@ -55,3 +55,4 @@ sequenceDiagram
 3. **Session State Isolation:** Never store uncommitted transactional state in global variables or process memory; bind proposal drafts to authenticated session state in durable stores (e.g., Firestore or Cloud SQL).
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module13-enterprise-playbook -->
+

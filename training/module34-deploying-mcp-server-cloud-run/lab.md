@@ -74,23 +74,27 @@ We need to modify our server so it doesn't store the shopping carts in memory.
     # TODO 1: Initialize FastMCP with name "stateless_shopping_cart_server"
     mcp = ...
 
+
     def get_session_id(ctx: Context) -> str:
         # TODO 2: Extract the session ID from the standard HTTP header 'mcp-session-id'
         # Default to 'unknown' if not present
         ...
 
+
     # Helper functions to simulate external state
     def get_cart(session_id: str) -> list:
         cart_file = os.path.join(STATE_STORAGE_PATH, f"{session_id}.json")
         if os.path.exists(cart_file):
-            with open(cart_file, 'r') as f:
+            with open(cart_file, "r") as f:
                 return json.load(f)
         return []
 
+
     def save_cart(session_id: str, cart: list):
         cart_file = os.path.join(STATE_STORAGE_PATH, f"{session_id}.json")
-        with open(cart_file, 'w') as f:
+        with open(cart_file, "w") as f:
             json.dump(cart, f)
+
 
     # TODO 3: Decorate add_item_to_cart with @mcp.tool()
     # It should extract session_id via ctx, append item to retrieved cart, and persist via save_cart
@@ -98,11 +102,13 @@ We need to modify our server so it doesn't store the shopping carts in memory.
         """Adds an item to the cart."""
         ...
 
+
     # TODO 4: Decorate view_cart with @mcp.tool()
     # It should extract session_id via ctx, load cart, and return {"status": "success", "cart": cart}
     def view_cart(ctx: Context) -> dict:
         """Views items in the cart."""
         ...
+
 
     # --- ASGI app for HTTP, suitable for Cloud Run ---
     # TODO 5: Mount the MCP endpoint as a streamable HTTP ASGI app for Uvicorn
@@ -126,7 +132,7 @@ We need to modify our server so it doesn't store the shopping carts in memory.
     COPY requirements.txt .
     RUN pip install --no-cache-dir -r requirements.txt
     COPY stateless_cart_server.py .
-    
+
     # Cloud Run provides the PORT env var (defaults to 8080 locally).
     # Shell form (not exec/JSON-array form) is required here so $PORT expands.
     CMD python -m uvicorn stateless_cart_server:app --host 0.0.0.0 --port ${PORT:-8080}
@@ -181,9 +187,9 @@ Now, create an ADK agent that connects to your newly deployed server.
 
     # TODO 6: Initialize root_agent with McpToolset and StreamableHTTPConnectionParams pointing to MCP_SERVER_URL
     root_agent = Agent(
-        model='gemini-3.5-flash',
-        name='cloud_shopping_agent',
-        instruction='You are a shopping assistant. Help the user by adding items to their cart and showing them their cart contents.',
+        model="gemini-3.5-flash",
+        name="cloud_shopping_agent",
+        instruction="You are a shopping assistant. Help the user by adding items to their cart and showing them their cart contents.",
         tools=[
             # Configure McpToolset here
             ...

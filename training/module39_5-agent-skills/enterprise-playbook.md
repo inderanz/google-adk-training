@@ -39,3 +39,4 @@ flowchart TD
 3. **Registry Attestation:** Cryptographically sign skill releases in the corporate skill repository to prevent unauthorized tampering.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module39_5-agent-skills-enterprise-playbook -->
+

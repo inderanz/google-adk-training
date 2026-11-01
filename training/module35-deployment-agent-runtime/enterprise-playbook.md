@@ -37,3 +37,4 @@ flowchart LR
 3. **Automated Rollback:** Configure CI/CD pipelines to run synthetic evaluation suites (`agents-cli eval`) against canary instances before directing 100% of production traffic to newly deployed agent versions.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module35-enterprise-playbook -->
+
