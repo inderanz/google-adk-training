@@ -78,53 +78,157 @@ flowchart TD
 
 ---
 
-### 2. The Solution: App-Level Plugins & Bounded Self-Correction
+### 2. The Solution: App-Level Plugins & The Self-Healing Fabric
 
 Rather than expecting 100% deterministic perfection from probabilistic LLM tool generation, production Google Cloud engineering builds **self-healing execution fabrics**.
 
-In **Module 25** (Observability) and **Module 25.5** (Responsible AI Guardrails), you built custom plugins inheriting from `BasePlugin`. You learned that plugins attach at the **App** level—governing the entire lifecycle across all sub-agents and runners.
+In **Module 26** (Callbacks), you attached functions directly to an individual agent or a specific tool. While callbacks are excellent for task-specific logic, real-world enterprise architectures require **cross-cutting governance** that applies uniformly across an entire application without modifying dozens of agent scripts.
 
-The Google ADK provides powerful built-in production plugins, chief among them: **`ReflectAndRetryToolPlugin`**.
+This is the power of the **Google ADK Plugin Architecture**.
 
-#### The Three Operational Superpowers of ReflectAndRetryToolPlugin:
-1. **Name Hallucination Repair:** When an agent invents a synonym (e.g., calling `super_calc` instead of `secret_calculator`), the plugin catches the dispatch error, amends the message history with available tool candidates, and lets the model self-correct.
-2. **Schema & Argument Type Recovery:** When an agent passes `"100"` as a string to a tool requiring `int`, the Pydantic validation error is bounced back to the model, which immediately re-casts the argument into a valid integer.
-3. **Bounded Safety Loops (`max_retries`):** It strictly bounds recovery attempts (defaulting to 2 or 3). If an error is permanent (e.g., database connection refused), it avoids infinite token-burning loops and fails cleanly with full audit trails.
+#### Plugins vs. Callbacks: The Architectural Difference
+
+| Dimension | ADK Callbacks (`before_turn`, `after_tool`) | ADK Plugins (`BasePlugin`) |
+|---|---|---|
+| **Attachment Target** | Configured on a *single agent* or a *single tool*. | Registered globally on the **`App`** object. |
+| **Operational Scope** | Local to that specific agent's prompt lifecycle. | **Global** across every agent, tool, and LLM call in the workflow. |
+| **Ownership** | Authored by individual application developers. | Injected by Central Platform, Security, and CISO teams. |
+| **Packaging** | Python functions inside an agent declaration file. | Modular, versioned classes packaged in enterprise libraries. |
 
 ---
 
-### 3. A Word of Confidence: Separation of Concerns
+### 3. The Three Operational Plugin Patterns
 
-Notice the architectural beauty of this design:
-* **The Agent Prompt stays clean:** You do not have to write 50 paragraphs of defensive prompting like: *"Please, I beg you, do NOT call super_calc, only call secret_calculator, and if you fail try again!"*
-* **The Tools stay pure:** Your Python functions focus exclusively on business logic without messy internal retry wrappers.
-* **The App enforces the safety net:** The `ReflectAndRetryToolPlugin` sits at the infrastructure boundary, quietly rescuing your agents from runtime glitches before users ever notice.
+Every ADK Plugin inherits from `google.adk.plugins.BasePlugin` and implements one or more callback hooks using one of three fundamental patterns:
+
+1. **Observing (Return `None`):**
+   - The plugin passively watches execution without altering data flow.
+   - *Use cases:* Emitting OpenTelemetry traces, exporting latency metrics to Cloud Monitoring, or streaming audit logs to BigQuery.
+2. **Intervening (Return an Object):**
+   - The plugin halts or short-circuits standard execution and returns an immediate response.
+   - *Use cases:* Returning a cached response from Redis (skipping model inference), blocking unauthorized tool calls with a security error, or screening prompts with Google Cloud Model Armor.
+3. **Amending (Modify in place or return amended payload):**
+   - The plugin intercepts an in-flight payload, enriches or sanitizes it, and allows execution to proceed.
+   - *Use cases:* Masking PII in prompts, normalizing tool argument types, or appending error diagnostics to message history for self-correction.
+
+---
+
+### 4. The Complete ADK Plugin Lifecycle Hook Matrix
+
+The ADK executes plugin hooks at precise lifecycle checkpoints across the agent workflow:
+
+| Lifecycle Hook Method | Signature & Payload | Description & Primary Use Case |
+|---|---|---|
+| `before_run_callback` | `(callback_context) -> None` | Fires once when `runner.run_async()` starts. Initialize request timers or tenant sessions. |
+| `after_run_callback` | `(callback_context) -> None` | Fires when the overall run completes. Emit request-level metrics and cleanup ephemeral resources. |
+| `before_agent_callback` | `(agent, callback_context) -> Optional[Content]` | Intercepts agent turn entry. Return `Content` to bypass agent execution entirely. |
+| `after_agent_callback` | `(agent, callback_context) -> Optional[Content]` | Intercepts agent completion. Return `Content` to replace the agent's output. |
+| `before_model_callback` | `(callback_context, llm_request) -> Optional[LlmResponse]` | Intercepts prompt before sending to Gemini. Return `LlmResponse` to return cached inference. |
+| `after_model_callback` | `(callback_context, llm_response) -> Optional[LlmResponse]` | Intercepts model response chunks. Redact PII or mutate generated output. |
+| `before_tool_callback` | `(tool, tool_args, tool_context) -> Optional[dict]` | Intercepts tool execution. Inspect arguments, validate RBAC permissions, or return pre-computed data. |
+| `after_tool_callback` | `(tool, tool_args, tool_context, result) -> Optional[dict]` | Intercepts tool response. Sanitize output, filter sensitive database columns, or transform schemas. |
+| `on_tool_error_callback` | `(tool, tool_args, tool_context, error) -> Optional[dict]` | Fires when a tool raises an unhandled Exception. Intercept and replace the exception with graceful fallback. |
+
+---
+
+### 5. App-Level Registration (Official Contract & Deprecation Warning)
+
+> [!WARNING]
+> **Official ADK Deprecation Notice:**
+> In Python, configuring the `plugins` parameter on `Runner` or `InMemoryRunner` is **deprecated** and raises a runtime `DeprecationWarning`.
+> 
+> Always register plugins globally on the **`App`** object (`App(name=..., root_agent=..., plugins=[...])`), and then pass that `App` to the runner: `InMemoryRunner(app=app)`. Passing `plugins` to both `App` and `Runner` raises an immediate `ValueError`.
 
 ```python
 from google.adk.apps.app import App
-from google.adk.runners import Runner
+from google.adk.runners import InMemoryRunner
 from google.adk.plugins import ReflectAndRetryToolPlugin
 
-# Configure the plugin
-retry_plugin = ReflectAndRetryToolPlugin(
-    max_retries=3  # Give agents 3 chances to fix their mistakes
-)
+# 1. Instantiate the plugin
+retry_plugin = ReflectAndRetryToolPlugin(max_retries=3)
 
-# In ADK 2.0, plugins are registered globally on the App object
+# 2. Register globally on App (Enterprise Best Practice)
 app = App(
-    name="my_robust_app",
-    root_agent=my_agent,
-    plugins=[retry_plugin] # <--- Registered globally here
+    name="financial_operations_app",
+    root_agent=reconciliation_agent,
+    plugins=[retry_plugin]  # <--- Globally protects all sub-agents and tools
 )
 
-runner = Runner(app=app, session_service=...)
+# 3. Instantiate Runner with the App
+runner = InMemoryRunner(app=app)
 ```
 
+---
+
+### 6. Deep Dive: `ReflectAndRetryToolPlugin`
+
+The **`ReflectAndRetryToolPlugin`** is Google ADK's flagship built-in resilience plugin. When an agent experiences tool failures, it dynamically intercepts the error and instructs Gemini to reflect, correct, and retry.
+
+#### Configuration Options:
+* **`max_retries`** (int, default: `3`):
+  Total number of *additional* attempts the system makes to receive a valid response. A value of `3` allows up to **4 total attempts** (1 initial attempt + 3 retries).
+* **`throw_exception_if_retry_exceeded`** (bool, default: `True` in Python):
+  If `True`, raises the original tool exception once retries are exhausted. If `False`, returns an error message telling the model that retries were exceeded, allowing the agent to degrade gracefully.
+* **`tracking_scope`** (`TrackingScope`, default: `TrackingScope.INVOCATION`):
+  * `TrackingScope.INVOCATION`: Failure counts track per-tool across a single turn/invocation. This is the recommended default.
+  * `TrackingScope.GLOBAL`: Failure counts persist across all turns and users in the application session.
+
+#### Advanced Production Pattern: Intercepting "Soft Errors" via `extract_error_from_result`
+In production, enterprise REST APIs often return HTTP 200 with an error body (e.g., `{"status": "error", "message": "Account balance insufficient"}`) rather than raising a Python exception. By default, `ReflectAndRetryToolPlugin` only retries when an actual exception is raised.
+
+You can customize this by subclassing `ReflectAndRetryToolPlugin` and overriding `extract_error_from_result`:
+
+```python
+from google.adk.plugins import ReflectAndRetryToolPlugin
+
+class EnterpriseApiRetryPlugin(ReflectAndRetryToolPlugin):
+    """Subclassed plugin that detects business-logic errors in dictionary outputs."""
+    
+    async def extract_error_from_result(
+        self, *, tool, tool_args, tool_context, result
+    ):
+        # Inspect dictionary responses for 'error' keys or failure status codes
+        if isinstance(result, dict) and result.get("status") == "error":
+            return result.get("message", "Unknown API failure occurred")
+        
+        # Return None when the tool executed successfully
+        return None
+```
+
+---
+
+### 7. Prebuilt Enterprise Plugins in the Google ADK Catalog
+
+Beyond `ReflectAndRetryToolPlugin`, Google ADK provides an ecosystem of prebuilt plugins:
+
+1. **`Model Armor Plugin` (`ModelArmorPlugin`):**
+   Integrates directly with Google Cloud Model Armor to sanitize prompt injections, hate speech, and sensitive data leakage before prompts reach Gemini.
+2. **`BigQuery Agent Analytics Plugin`:**
+   Captures all conversation events, tool invocation parameters, token usage, and latency metrics directly into Google Cloud BigQuery for enterprise BI dashboards.
+3. **`Tool Call Integrity Plugin`:**
+   Cryptographically signs tool calls stored in session history using HMAC secret keys, guaranteeing that session event states have not been tampered with.
+4. **`Context Filter Plugin`:**
+   Intelligently summarizes or truncates verbose multi-turn history to keep context windows lean and prevent token budget exhaustion.
+5. **`Save Files as Artifacts Plugin`:**
+   Automatically intercepts binary attachments, PDFs, and images from user turns and persists them into ADK’s managed `ArtifactService`.
+
+---
+
+### 8. A Word of Confidence: From Fragile Prompts to Self-Healing Infrastructure
+
+Notice how this transforms your agent engineering practice:
+* **Your System Prompts stay lean:** You no longer need to write 50 lines of desperate prompting pleading: *"Please make sure you call secret_calculator and not super_calc, and if you get an error try again!"*
+* **Your Tool Functions stay pure:** Your tools focus strictly on clean business logic without sprawling `try/except` retry loops.
+* **The Infrastructure handles reliability:** The `ReflectAndRetryToolPlugin` sits at the App boundary, quietly rescuing your agents from transient runtime discrepancies before users or on-call engineers ever notice.
+
+---
+
 ### Key Takeaways
-- **Plugins** provide global, cross-cutting functionality (logging, retries, security) across your entire application.
-- They inherit from `BasePlugin` and use three patterns: **Observing**, **Intervening**, and **Amending**.
-- App plugins apply across local App execution. At overlapping supported hooks, plugin processing precedes agent callbacks and a replacement may bypass the agent callback; verify the particular hook path.
-- The **`ReflectAndRetryToolPlugin`** can return supported tool failures to the model for a bounded repair attempt. It does not guarantee correction, catch every execution failure or make repeating a side effect safe.
+- **Plugins** provide global, cross-cutting functionality (logging, retries, security guardrails) across every agent and tool in your application.
+- They inherit from `BasePlugin` and operate across 3 primary patterns: **Observing**, **Intervening**, and **Amending**.
+- In Python ADK, always register plugins on **`App(plugins=[...])`**, never on `Runner`.
+- **`ReflectAndRetryToolPlugin`** provides concurrency-safe, bounded tool repair. It can be extended via `extract_error_from_result` to intercept soft dictionary errors from enterprise APIs.
+- Enterprise applications layer specialized plugins: Model Armor for safety, BigQuery for telemetry, and Reflect-and-Retry for runtime self-healing.
 
 ## Continue the course story
 
@@ -138,9 +242,10 @@ Before continuing, explain one input, one ADK execution boundary and one failure
 
 ## Official References
 
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Gemini API (multimodal): https://ai.google.dev/gemini-api/docs
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Vertex AI generative guidance: https://cloud.google.com/vertex-ai/generative-ai
-- Cloud Vision and OCR: https://cloud.google.com/vision
+- Google ADK Plugins Guide: https://adk.dev/plugins/
+- Google ADK Reflect and Retry Plugin: https://adk.dev/integrations/reflect-and-retry/
+- Google ADK BigQuery Analytics: https://adk.dev/integrations/bigquery-agent-analytics/
+- Google ADK Model Armor Guardrails: https://adk.dev/integrations/model-armor/
+- Google GenAI Python SDK: https://googleapis.github.io/python-genai/
+- Google Cloud Model Armor: https://cloud.google.com/security/products/model-armor
 
