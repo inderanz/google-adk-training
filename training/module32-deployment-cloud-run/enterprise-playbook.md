@@ -23,6 +23,13 @@ Deploying an ADK agent to Cloud Run requires configuring container concurrency, 
 
 ## 2. Cloud Run Zero-Trust Architecture
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart LR
     Client["Client / Web UI"] --> Ingress["Cloud Run Ingress<br/>(HTTPS / Cloud Armor)"]
@@ -41,3 +48,13 @@ flowchart LR
 3. **IAM Least Privilege:** Assign the Cloud Run service a dedicated Service Account with only `roles/aiplatform.user` and `roles/secretmanager.secretAccessor`.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module32-enterprise-playbook -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

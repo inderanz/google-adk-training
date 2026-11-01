@@ -73,6 +73,13 @@ commercial_credit_triage/
 
 ### Step 1: Financial Math Tools (`tools/financial_math.py`)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # tools/financial_math.py
 """Deterministic Financial Calculation Tools for Commercial Credit Underwriting.
@@ -304,6 +311,13 @@ def evaluate_covenant_policy(
 
 ### Step 2: External Core Banking OpenAPI Spec (`openapi/core_banking_openapi.json`)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```json
 {
   "openapi": "3.0.0",
@@ -402,6 +416,13 @@ def evaluate_covenant_policy(
 
 ### Step 3: The Legacy Normalizer Utility (`openapi/normalizer.py`)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # openapi/normalizer.py
 """Legacy OpenAPI Spec Normalizer for Google ADK 2.0.
@@ -496,6 +517,13 @@ def load_and_normalize_spec(
 
 ### Step 4: Legacy Brown-Field Spec Example (`openapi/legacy_raw_spec.json`)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```json
 {
   "openapi": "3.0.0",
@@ -532,6 +560,13 @@ def load_and_normalize_spec(
 
 ### Step 5: Root Agent Implementation (`agent.py`)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # agent.py
 """Sovereign Horizon Bank - Commercial Credit Underwriting Triage Agent.
@@ -629,6 +664,13 @@ Step 5: Synthesize a formalized Credit Committee Preliminary Assessment Memorand
 
 Create `test_underwriting.py` to verify mathematical accuracy, covenant threshold logic, edge cases, and legacy spec normalization:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # test_underwriting.py
 """Automated unit test suite verifying deterministic financial calculation tools,
@@ -821,6 +863,13 @@ Agent:
 
 ### 2. Automated Unit Testing Transcript (`uv run python -m unittest test_underwriting.py`)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run python -m unittest test_underwriting.py
 ```
@@ -841,6 +890,13 @@ All 10 test cases passed, verifying zero mathematical hallucinations, edge-case 
 
 As mandated by `GEMINI.md`, validate the lab instructions through the automated student evaluator:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 python3 -m google.adk.cli run .agent/skills/adk-student-evaluator --input_path training/module11_5-enterprise-credit-underwriting/lab.md
 ```

@@ -29,6 +29,13 @@ By completing this challenge lab, you will:
 ### 1. Initialize the Workspace
 Create a clean directory for your stateful banking agent project:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 mkdir -p banking_agent/tools
 cd banking_agent
@@ -44,6 +51,13 @@ GOOGLE_API_KEY=your_gemini_api_key_here
 ### 3. Initialize Package Files
 Create the package files:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 touch tools/__init__.py
 touch tools/banking.py
@@ -61,6 +75,13 @@ Open `tools/banking.py`. Your challenge is to implement the 4 stateful tools usi
 > **The Docstring Rule:**
 > Do NOT document `tool_context` in your function docstrings or parameter lists! ADK automatically strips `tool_context` from the Gemini schema. Mentioning it in docstrings will confuse the model and cause parameter hallucinations.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """
 tools/banking.py
@@ -163,6 +184,13 @@ def submit_loan_application(tool_context: ToolContext) -> Dict[str, Any]:
 
 Open `agent.py`. Register your stateful tools using ADK 2.0's `Agent` class:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """
 agent.py
@@ -207,6 +235,13 @@ In enterprise AI engineering, you must verify that state **persists across multi
 
 Open `run_verification.py` and implement the 3-turn test harness:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """
 run_verification.py
@@ -283,6 +318,13 @@ if __name__ == "__main__":
 
 Run the programmatic verification script:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run python run_verification.py
 ```

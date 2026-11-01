@@ -36,6 +36,13 @@ The tests exercise Python contracts and native ADK wiring with scripted transpor
 
 ## `bank_review/safety.py`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """ADK plugin hooks plus the official asynchronous Model Armor client.
 
@@ -192,6 +199,13 @@ class BankingSafety(BasePlugin):
 
 ## `bank_review/agent.py`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """Attach safety once at App scope; its hooks also cover local sub-agents."""
 import os
@@ -228,6 +242,13 @@ root_agent = app.root_agent
 
 ## `bank_review/__init__.py`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """Application-wide content inspection through Google Cloud Model Armor."""
 
@@ -244,6 +265,13 @@ google-cloud-aiplatform[agent_engines]==1.165.1
 
 ## `run.py`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """Run locally against real Gemini, managed Sessions and GCS services.
 
@@ -297,6 +325,13 @@ if __name__ == "__main__":
 
 ## `check_deployed.py`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """Call the native ADK HTTP surface of an already deployed Agent Runtime.
 
@@ -409,6 +444,13 @@ MODEL_ARMOR_TEMPLATE=projects/YOUR_DEVELOPMENT_PROJECT/locations/us-central1/tem
 
 ## `deployed-cases.json`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```json
 [
   {
@@ -424,6 +466,13 @@ MODEL_ARMOR_TEMPLATE=projects/YOUR_DEVELOPMENT_PROJECT/locations/us-central1/tem
 
 ## `eval/cases.evalset.json`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```json
 {
   "eval_set_id": "banking_25_5",
@@ -464,6 +513,13 @@ MODEL_ARMOR_TEMPLATE=projects/YOUR_DEVELOPMENT_PROJECT/locations/us-central1/tem
 
 ## `eval/eval_config.json`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```json
 {
   "criteria": {
@@ -496,3 +552,13 @@ MODEL_ARMOR_TEMPLATE=projects/YOUR_DEVELOPMENT_PROJECT/locations/us-central1/tem
 | State coverage precisely — where is this implemented? | Inspect text, tool arguments and tool results at native hooks. Demonstrate: Unsupported multimodal and streaming paths are rejected in this exercise. |
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

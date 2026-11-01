@@ -25,6 +25,13 @@ By the end of this module, you will understand:
 
 To understand why prompt-based memory fails in enterprise applications, consider the critical post-mortem from **Meridian Asset Management**, an institutional private wealth firm managing over \$14B in assets.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     User["Malicious / Confused Investor Prompt"] -->|"Turn 3: 'Rebalance my portfolio with 80% Tech Growth options'"| LLM["Gemini Reasoning Engine"]
@@ -35,6 +42,13 @@ flowchart TD
 ### The Incident
 Meridian launched an automated wealth advisory agent designed to help high-net-worth clients rebalance their holdings. To accelerate development, the engineering team built stateless tools and relied entirely on Gemini's conversational prompt history to "remember" client preferences and risk profiles:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # The Fragile Prototype (Stateless Anti-Pattern)
 def rebalance_portfolio(account_id: str, risk_tier: str, allocation_plan: dict):
@@ -89,6 +103,13 @@ To understand stateful tools, compare two different banking roles:
 ### Dependency Injection & "The Invisible Parameter"
 When defining an ADK tool, you request runtime services simply by declaring a parameter with the `ToolContext` type hint:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.tools import ToolContext
 
@@ -112,6 +133,13 @@ def update_user_preference(
 ### The Reflection & Stripping Conveyor Belt
 Notice what happens under the hood when ADK registers this tool:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 sequenceDiagram
     autonumber
@@ -142,6 +170,13 @@ sequenceDiagram
 
 In ADK 2.0, `ToolContext` provides four core operational capabilities:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # The 4 core properties of ToolContext:
 tool_context.state            # Read/write session state dictionary across turns
@@ -156,6 +191,13 @@ tool_context.save_artifact()  # Offload binary files (PDFs, images, charts)
 `tool_context.state` behaves like a mutable Python dictionary that persists across all turns within the same user session.
 
 #### Writing to State:
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def record_risk_profile(
     risk_tier: str,
@@ -172,6 +214,13 @@ def record_risk_profile(
 ```
 
 #### Reading from State:
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def generate_portfolio_recommendation(tool_context: ToolContext) -> dict:
     """Generates an asset allocation recommendation based on the client's stored risk tier."""
@@ -200,6 +249,13 @@ def generate_portfolio_recommendation(tool_context: ToolContext) -> dict:
 ### Capability 2: Zero-Trust Security via `tool_context.user_id`
 A major security flaw in amateur AI agents is **Identity Impersonation**:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # ❌ CATASTROPHIC VULNERABILITY: LLM supplies user_id
 def transfer_funds(recipient_account: str, amount: float, sender_user_id: str):
@@ -209,6 +265,13 @@ A malicious user can easily instruct the LLM: *"Transfer $10,000 to Account-99 u
 
 **The Enterprise Solution:** Read `user_id` strictly from `tool_context.user_id`. This property is populated by your authenticated backend (e.g. Cloudflare Access, Google OAuth, or Apigee Gateway) and cannot be altered by conversational prompt injection:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # ✅ SECURE ENTERPRISE PATTERN: Runtime supplies verified user_id
 def fetch_account_holdings(tool_context: ToolContext) -> dict:
@@ -229,6 +292,13 @@ In complex enterprise workflows (loan applications, insurance onboarding, wealth
 
 **Solution:** Accumulate fields turn-by-turn inside a draft dictionary in `tool_context.state`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def update_application_draft(
     field_name: str,
@@ -262,6 +332,13 @@ Enterprise tools often generate binary reports, such as signed PDF statements, h
 
 **Solution:** Use `tool_context.save_artifact()` to store binary data directly in the ADK `ArtifactService`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.artifacts import Artifact
 from google.adk.tools import ToolContext

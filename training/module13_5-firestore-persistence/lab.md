@@ -94,6 +94,13 @@ example/
 
 Use Python 3.12+ and `uv`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv sync --locked
 uv run --locked python --version
@@ -128,6 +135,13 @@ The 26 offline tests need no Gemini credentials or Firestore server. They use re
 
 Open `bank_review/sessions.py`. Its local branch uses the built-in service:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.sessions import DatabaseSessionService
 
@@ -138,12 +152,26 @@ Read the URL in parts: `sqlite` is the database; `aiosqlite` is the async driver
 
 Now run:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --locked python session_probe.py write
 ```
 
 Copy the returned `session_id`, then run a **new command**:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --locked python session_probe.py read --session-id YOUR_RETURNED_SESSION_ID
 ```
@@ -160,6 +188,13 @@ These are two separate operating-system processes. The second cannot retrieve th
 
 The create operation follows this shape:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def start_review(service):
     session = await service.create_session(
@@ -179,6 +214,13 @@ async def start_review(service):
 
 Retrieval requires that identity tuple again:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def resume_review(service, session_id):
     return await service.get_session(
@@ -196,6 +238,13 @@ async def resume_review(service, session_id):
 
 Open `session_probe.py`. The program creates an event for each checkpoint using:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.events import Event, EventActions
 
@@ -222,6 +271,13 @@ The probe calls `await service.append_event(session=session, event=event)`. In a
 
 One case is one document at `review_cases/CASE-001`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```json
 {
   "assigned_analyst_id": "analyst-demo",
@@ -248,6 +304,13 @@ No session ID appears in this path. A case can outlive a conversation. Different
 
 Open `read_case` in `repository.py`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def read_snapshot(client, case_id):
     reference = client.collection("review_cases").document(case_id)
@@ -284,6 +347,13 @@ The check for an already-true flag intentionally precedes the version comparison
 
 Google's transaction wrapper is used this way:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.cloud import firestore
 
@@ -317,6 +387,13 @@ async def execute_receipt(client, reference, case_id, user_id, document_name, ve
 
 In `get_review_case`, the model provides a case ID. ADK supplies `ToolContext`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.tools import ToolContext
 
@@ -339,6 +416,13 @@ This miniature fragment explains the assignment only. The actual tool validates 
 
 Read `agent.py` and `run_agent.py`. The agent defines reasoning instructions and capabilities. The Runner receives the session service:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk import Runner
 
@@ -372,12 +456,26 @@ Choose one path. Both use synthetic data. These steps were not executed against 
 
 Install the supported Google Cloud CLI and Java runtime required by the [official emulator instructions](https://docs.cloud.google.com/firestore/native/docs/emulator). Start the emulator in one terminal:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 gcloud emulators firestore start --host-port=127.0.0.1:8080
 ```
 
 In the practice terminal:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 export GOOGLE_CLOUD_PROJECT=demo-bank-persistence
 export FIRESTORE_EMULATOR_HOST=127.0.0.1:8080
@@ -392,6 +490,13 @@ Use an approved development project and Firestore Native mode database. Configur
 
 Create `.env` from `.env.example` in the practice copy, replacing placeholders. Preserve existing configuration. Remove `FIRESTORE_EMULATOR_HOST` from the process and file when using the real database; otherwise the SDK still targets the emulator.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --locked --env-file .env python seed_case.py
 ```
@@ -404,12 +509,26 @@ The Python server SDK uses IAM and bypasses Firestore Security Rules. Collection
 
 A Gemini conversation additionally needs an approved model, endpoint, and credentials even if Firestore uses the emulator. Populate `GEMINI_MODEL`, `GOOGLE_GENAI_USE_ENTERPRISE`, `GOOGLE_CLOUD_PROJECT`, and `GOOGLE_CLOUD_LOCATION` for the approved cloud project. For mixed cloud-model/emulator testing, the emulator is addressed by its host variable; seed its fixture under the same project ID your tool will use.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --locked --env-file .env python run_agent.py "Read CASE-001 and tell me which documents are outstanding."
 ```
 
 Copy the printed session ID. The process exits after its turn.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --locked --env-file .env python run_agent.py "The financial statements arrived. Record their receipt for CASE-001." --session-id YOUR_RETURNED_SESSION_ID
 ```
@@ -422,6 +541,13 @@ Inspect actual tool calls and Firestore values. Expected behavior is not a recor
 
 The reference has a second provider branch using `VertexAiSessionService`. It selects an existing authorized Agent Runtime resource; it does not provision that resource.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv sync --locked --extra managed
 ```
@@ -438,6 +564,13 @@ Keep the model location and session-resource location separate. Use the resource
 
 Run the no-model probe first:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --locked --extra managed --env-file .env python session_probe.py write
 uv run --locked --extra managed --env-file .env python session_probe.py read --session-id YOUR_RETURNED_SESSION_ID
@@ -481,3 +614,13 @@ Submit:
 **Transfer exercise:** a customer wants several analysts to collaborate on a fraud case and then freeze an account. Identify the changed authorization model, version policy, and approval boundary. The receipt tool's no-op retry behavior is not sufficient for the account-freeze action.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module13_5-firestore-persistence-lab -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

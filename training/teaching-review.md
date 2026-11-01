@@ -66,3 +66,13 @@ For a release, demonstrate at least: an authorized normal request, denied user/r
 - [Agent Platform overview](https://docs.cloud.google.com/gemini-enterprise-agent-platform/agents), [Agent Runtime deployment](https://adk.dev/deploy/agent-runtime/) and [ADK agent registration in Gemini Enterprise](https://docs.cloud.google.com/gemini/enterprise/docs/register-and-manage-an-adk-agent).
 - [Cloud Run authentication](https://docs.cloud.google.com/run/docs/authenticating/overview) and [Google Cloud compliance resources](https://cloud.google.com/security/compliance).
 - [Python cached_property behavior](https://docs.python.org/3/library/functools.html#functools.cached_property).
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

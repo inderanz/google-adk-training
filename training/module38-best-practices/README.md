@@ -37,6 +37,13 @@ Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [
 
 Classify before retrying; uncertain writes require reconciliation rather than blind repetition.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Operation did not complete normally] --> B[Identify business and technical outcome]
@@ -62,6 +69,13 @@ On a busy Tuesday morning during peak cross-border settlement volume, a transien
 3. **The "Fail-Open" Compliance Breach:**
    In another workflow, an engineer wrapped an input validator in a loose `try...except Exception: pass` block to "prevent crashes". When a sanctions-screening API failed with an HTTP 403 Forbidden, the agent silently swallowed the error, assumed the customer had no sanctions flags, and cleared an illegal transfer to an embargoed entity.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     Op["Agent Operation Encountered Failure"] --> Classify{"Classify Failure Type"}
@@ -132,6 +146,13 @@ The runtime can retry supported node failures when configured. It cannot make an
 
 ### Read retry configuration precisely
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.workflow import RetryConfig, node
 

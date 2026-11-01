@@ -173,6 +173,13 @@ Before accepting a solution, identify its input owner, exact ADK boundary, outpu
 
 ## Follow the control and data flow
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Customer acceptance rules] --> B[Cases and rubrics]
@@ -232,3 +239,13 @@ Before continuing, explain one input, one ADK execution boundary and one failure
 ## Continue with the integrated customer exercise
 
 The [integrated banking lab](../module26-callbacks/integrated-lab.md) connects the authorized Firestore read, deterministic next step, versioned artifacts, Gemini explanation, evaluation, logging and Model Armor in one App. Complete its live and deployed checkpoints after the isolated lesson. Its scope excludes an unimplemented ledger adapter and credit approval.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

@@ -44,6 +44,13 @@ Your objective is to complete the OpenAPI specification dictionary and integrate
 Create a clean directory for your wealth advisor agent project:
 
 ## 🚀 Hands-On Challenge
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 mkdir -p wealth_advisor
 cd wealth_advisor
@@ -65,6 +72,13 @@ GOOGLE_API_KEY=your_gemini_api_key_here
    ```
    > **Note:** Select **"Other models (fill later)"** if prompted, as we will configure the model explicitly as `gemini-2.5-flash` in `agent.py`.
 ### 3. Initialize Project Files
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 touch agent.py
 touch run_verification.py
@@ -80,6 +94,13 @@ touch run_verification.py
 Open `agent.py` in `wealth_advisor`. Replace its contents with the starter skeleton below and complete all `TODO` sections.
 Open `agent.py`. Your challenge is to complete the OpenAPI 3.0 specification dictionary, configure the in-memory mock transport, and instantiate `OpenAPIToolset`.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # In agent.py
 """
@@ -225,6 +246,13 @@ root_agent = None  # Replace with Agent(...)
 
 Open `run_verification.py` and implement the automated test suite using `InMemoryRunner`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """
 run_verification.py
@@ -301,6 +329,13 @@ Run the programmatic test harness:
 2. **Test Banking Queries:**
    * *"Check the current account balance for account `ACC-88392`."*
    * *"Transfer \$5,000 USD from `ACC-88392` to `ACC-99102` with reference note 'Q3 Portfolio Balancing'."*
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run python run_verification.py
 ```

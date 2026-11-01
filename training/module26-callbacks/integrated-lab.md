@@ -43,6 +43,13 @@ The CLI uses the synthetic identity analyst-demo. ToolContext.user_id is a scope
 
 ## Draw the dependencies before writing code
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A["Request passes<br/>input inspection"] --> B["Gemini calls<br/>prepare_case"]
@@ -90,6 +97,13 @@ case_version=7 means version 7 of the bank record. source artifact version=0 mea
 
 Read each comment as an answer to “which customer requirement caused this line?” The return dictionaries are consumed by ADK and then Gemini; their statuses must preserve incomplete outcomes.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """Compose earlier native ADK patterns into a read-only banking preparation path.
 
@@ -206,6 +220,13 @@ Tool output inspection happens after artifact writes. It does not inspect every 
 
 From the repository root:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 cd training/module26-callbacks/example
 uv sync --locked --python 3.11
@@ -218,18 +239,39 @@ The capstone tests use the real Runner, tool context, artifact implementation an
 
 Configure an authorized development project using the shared cloud guide: Gemini access, a Firestore database, managed Sessions resource, artifact bucket and regional Model Armor template. The workload requires appropriate access to each service; a resource name alone does not grant it. Use only synthetic records.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 cp .env.example .env
 ```
 
 Edit the placeholders. Set BANKING_CAPSTONE=true for native ADK loading/deployment and evaluation. Keep FIRESTORE_DATABASE at your selected database ID. Obtain local ADC as described in the shared guide. Seed only an empty teaching case:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python seed_capstone.py
 ```
 
 This calls document.create, so an existing CASE-001 is not overwritten. If Module 13.5 already created the case, inspect its assignment and current checklist through that authorized exercise instead of deleting it to match an expected answer. The seed identity is analyst-demo.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python run_capstone.py "Prepare CASE-001 for human review." --otel-to-cloud
 ```
@@ -238,6 +280,13 @@ Read the tool response: case_version, observed_at, next_step, missing_documents 
 
 ## Checkpoint 7: evaluate this same application
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv sync --locked --extra eval
 uv run --env-file .env adk eval bank_review eval/capstone.evalset.json --config_file_path eval/capstone_config.json --print_detailed_results
@@ -252,6 +301,13 @@ Retain individual case scores and examine false passes. The rubric checks return
 
 Follow the [native Agent Runtime deployment steps](../module23-artifacts/google-cloud-lab-guide.md#deploy-the-reviewed-package-to-agent-runtime) from this example directory, including copying the reviewed .env into the packaged bank_review directory. Verify BANKING_CAPSTONE=true in that deployment configuration. The requirements file includes the Firestore client. Set the runtime service identity's access to the teaching database, artifact bucket and inspection template.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python check_capstone_deployed.py --resource projects/PROJECT/locations/REGION/reasoningEngines/RUNTIME_ID
 uv run --env-file .env python verify_capstone.py deployment-results.json
@@ -266,3 +322,13 @@ Use the recorded invocation ID to find the deployed native trace and domain log.
 The customer now wants a report after two independent sources finish, including an authoritative ledger amount. Write the new source contract and authorization rule first. Define how mixed case versions and a failed ledger read affect completion. Then choose fan-out/join or sequential reads based on those dependencies. Keep the existing case-version/artifact-version distinction and add a policy version to any new threshold route.
 
 The exercise is complete when another learner can explain your chosen native ADK boundaries, reproduce the failure path and identify what remains unverified. Changing a prompt to claim exposure was checked earns no evidence of implementation.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

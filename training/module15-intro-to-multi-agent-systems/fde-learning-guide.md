@@ -194,3 +194,13 @@ A useful comment connects a requirement to a decision: `# Missing documents take
 Before writing a function, write four lines: input owner; operation; output consumer; failure outcome. Then write the Python signature, implement the smallest rule, and connect the native ADK boundary. Trace values through the function before explaining its implementation to someone else.
 
 For every new concept, complete this sentence: “ADK creates or receives ___, calls ___ when ___, and uses the returned ___ to ___.” If you cannot fill it in, revisit the execution model before adding another abstraction.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

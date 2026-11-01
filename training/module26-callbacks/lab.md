@@ -54,6 +54,13 @@ Write the desired outcome in one sentence, then identify inputs, operations, out
 
 From the repository root:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 cd training/module26-callbacks/example
 uv sync --locked --python 3.11
@@ -123,6 +130,13 @@ The blocks below follow the runnable files. Class-method excerpts belong inside 
 
 ### bank_review/controls.py
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.agents.callback_context import CallbackContext
 from google.adk.models.llm_request import LlmRequest
@@ -138,6 +152,13 @@ Imports make the documented Python, Google and ADK names available. Relative imp
 
 Return None for valid inputs and an error dictionary otherwise. This contract is used by both the callback and tool. Exact type checks reject booleans and strings before numerical comparisons can accept or crash on them.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def validate_request(case_id, max_items) -> dict | None:
     """Reject booleans as integers and unsupported scope before any lookup."""
@@ -153,6 +174,13 @@ def validate_request(case_id, max_items) -> dict | None:
 
 Call validation inside the tool, then return only the bounded synthetic checklist. This makes direct calls obey the same input contract. The slice demonstrates a work bound, although this fixture has only one missing item.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def read_checklist(case_id: str, max_items: int = 5) -> dict:
     """The tool validates even when called without the ADK callback."""
@@ -172,6 +200,13 @@ def read_checklist(case_id: str, max_items: int = 5) -> dict:
 
 Initialize the temporary checks list for this invocation. Returning None tells ADK to execute the agent. It does not initialize a durable user preference or authorize a case.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def before_agent(callback_context: CallbackContext) -> types.Content | None:
     # Initialize invocation-scoped diagnostic state before this agent starts its work.
@@ -183,6 +218,13 @@ def before_agent(callback_context: CallbackContext) -> types.Content | None:
 
 Read current-turn user_content through the public context property and join its text parts. Only the exact laboratory marker returns a replacement LlmResponse. Other requests proceed to Gemini and are evaluated normally.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def before_model(
     callback_context: CallbackContext, llm_request: LlmRequest
@@ -211,6 +253,13 @@ def before_model(
 
 Only intercept read_checklist. Validate arguments, copy and update the temporary diagnostic list, and return the validation result. A dictionary skips this execution; None lets the tool run. The callback argument is named args, unlike the plugin’s tool_args.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def before_tool(tool: BaseTool, args: dict, tool_context: ToolContext) -> dict | None:
     if tool.name != "read_checklist":
@@ -226,6 +275,13 @@ def before_tool(tool: BaseTool, args: dict, tool_context: ToolContext) -> dict |
 
 Add human decision ownership only to a successful checklist result. Dictionary unpacking creates a new result; failure dictionaries remain failures. This post-execution hook cannot undo a backend write.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def after_tool(
     tool: BaseTool, args: dict, tool_context: ToolContext, tool_response: dict
@@ -240,6 +296,13 @@ def after_tool(
 
 Walk every content part, copy changed text parts, and preserve untouched parts. model_copy retains the surrounding LlmResponse fields. Returning None when unchanged avoids constructing an unnecessary replacement. This exact marker transformation is not a security claim.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def after_model(
     callback_context: CallbackContext, llm_response: LlmResponse
@@ -274,6 +337,13 @@ def after_model(
 
 Record which invocation completed. The state update can yield a final event without text, which is why consumers inspect event content rather than blindly indexing the last event.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def after_agent(callback_context: CallbackContext) -> types.Content | None:
     # Tracked state assignment can emit a state-only event after the text response.
@@ -283,6 +353,13 @@ def after_agent(callback_context: CallbackContext) -> types.Content | None:
 
 ### bank_review/agent.py
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import os
 from google.adk.agents import Agent
@@ -296,6 +373,13 @@ Imports make the documented Python, Google and ADK names available. Relative imp
 
 Register each named function on its corresponding Agent hook. This wiring is local to this agent. The App itself has no safety plugin; to combine Modules 25.5 and 26, attach the native plugin explicitly and test the combined ordering.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def build_app(model=None) -> App:
     # Attach the configured root agent to an App; provider services are supplied by Runner.
@@ -343,6 +427,13 @@ Read `run.py` alongside the [Google Cloud lab guide](../module23-artifacts/googl
 
 After editing `.env` using the cloud guide:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python run.py "Read CASE-001 with max_items=1."
 ```
@@ -360,6 +451,13 @@ Use synthetic inputs. Live model calls, storage, inspection and telemetry can in
 
 Deploy through the [native Agent Runtime path](../module23-artifacts/google-cloud-lab-guide.md#deploy-the-reviewed-package-to-agent-runtime), then run:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python check_deployed.py \
   --resource projects/PROJECT/locations/REGION/reasoningEngines/RUNTIME_ID
@@ -388,3 +486,13 @@ Before changing the code, write the new requirement, changed boundary, failure s
 ## Continue with the integrated customer exercise
 
 The [integrated banking lab](../module26-callbacks/integrated-lab.md) connects the authorized Firestore read, deterministic next step, versioned artifacts, Gemini explanation, evaluation, logging and Model Armor in one App. Complete its live and deployed checkpoints after the isolated lesson. Its scope excludes an unimplemented ledger adapter and credit approval.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

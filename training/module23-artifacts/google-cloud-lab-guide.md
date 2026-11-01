@@ -38,6 +38,13 @@ The native ADK HTTP server's `user_id` is a scope parameter. It is not proof of 
 
 From the selected module's `example/` directory:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv sync --locked --python 3.11
 cp .env.example .env
@@ -62,6 +69,13 @@ Edit `.env`. Do not commit it. These are resource/configuration values, not down
 
 If a runtime does not yet exist, deploy the package in the next section first, then use its returned ID for the local managed-session exercise. Do not invent an ID or silently replace managed Sessions with in-memory storage to make the command pass.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python run.py "Prepare CASE-001 for human review."
 ```
@@ -82,6 +96,13 @@ The pinned ADK 2.11.0 CLI currently generates a `python:3.11-slim` base image. I
 
 After completing the module's local checks and live quality review, prepare an approved development deployment. The deployment command reads `.env` inside the agent package, whereas the local runner command explicitly reads the parent `.env`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 cp .env bank_review/.env
 uv run adk deploy agent_engine \
@@ -107,6 +128,13 @@ The command creates or updates a real billable resource. Retain the returned res
 
 From that module's `example/` directory:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python check_deployed.py \
   --resource projects/PROJECT/locations/REGION/reasoningEngines/RUNTIME_ID
@@ -130,6 +158,13 @@ For Module 23, use the native `GcsArtifactService.load_artifact` with `app_name=
 
 Module 23 supplies the complete readback program and explains it in the lab:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python verify_pack.py deployment-results.json
 ```
@@ -140,6 +175,13 @@ It creates a fresh GCS client, loads the manifest version returned by the deploy
 
 Every module includes native ADK cases and an explicit judge configuration:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv sync --locked --extra eval
 uv run --env-file .env adk eval bank_review eval/cases.evalset.json \
@@ -169,3 +211,13 @@ For each experiment record the code/dependency revision, resource and service re
 Delete disposable test sessions and deployments according to the development project's policy. Apply artifact/log retention through the approved infrastructure configuration. Do not delete a shared bucket, template or runtime merely because one lab has finished. Resource cleanup is a deliberate operation, not an unreviewed step hidden inside the checker.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

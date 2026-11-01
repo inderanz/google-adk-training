@@ -45,6 +45,13 @@ Cloud Run may reuse an instance across requests, so memory is not necessarily er
 
 A cart ID or case ID identifies a business resource. An authenticated caller must be authorized to access it. An MCP session ID coordinates protocol communication; do not use possession of that value as the only authorization check. A multi-instance design also needs the MCP server's supported strategy for protocol sessions/streams. Moving business rows to Firestore alone does not solve every transport-session problem.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[ADK McpToolset] --> B[Authenticated Cloud Run endpoint]

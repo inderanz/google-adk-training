@@ -46,6 +46,13 @@ When instructing an AI coding assistant (like Antigravity or Gemini) to build Op
 
 To truly master enterprise agent development, let's walk through the architectural story—from the beginner's initial assumption to the senior engineer's hermetic test suite.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     subgraph Act1["Act 1: Zero-Adapter Synthesis"]
@@ -107,6 +114,13 @@ ADK 2.0 provides an extension point: **`httpx_client_factory`**.
 
 When `OpenAPIToolset` issues an HTTP request, it invokes `httpx_client_factory` to obtain an `httpx.AsyncClient`. By pairing this with `httpx.MockTransport`, we intercept the outbound request **in-memory at the Python transport layer**:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # The request NEVER touches the OS network card or DNS resolver!
 mock_client_factory = lambda: httpx.AsyncClient(
@@ -126,6 +140,13 @@ mock_client_factory = lambda: httpx.AsyncClient(
 
 Below is the complete, runnable Python implementation for the Core Banking OpenAPI Integration Agent with built-in hermetic transport mocking:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # agent.py
 """
@@ -366,6 +387,13 @@ How should an engineering team organize this pattern across environments?
 ### Pattern: Environment-Aware Client Factory
 In real-world enterprise code, you switch between live mTLS transports in production and mock transports in test suites via environment configuration:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import os
 import httpx
@@ -396,6 +424,13 @@ banking_toolset = OpenAPIToolset(
 ### Pattern: Automated Pytest Integration
 In your automated test suite, you can write deterministic tests without running external web servers:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import pytest
 from google.adk.runners import AgentRunner

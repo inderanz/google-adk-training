@@ -50,6 +50,13 @@ The selected teaching path uses ADK’s LangchainTool around the existing compan
 
 The diagram is a **target deployment**, not a claim that the lab has provisioned these services. Solid arrows show requests or data flow. Dashed arrows show supporting services or policies that require configuration.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     Analyst["Authorized analyst"] --> Entry["Authenticated app or<br/>Gemini Enterprise entry"]
@@ -107,6 +114,13 @@ If adding [Model Armor](https://docs.cloud.google.com/model-armor/overview), con
 
 When retaining a foreign dependency, determine whether its code can share the agent process and identity. A separate service offers a stronger independently managed boundary, at the cost of authentication, deployment, networking, and failure handling.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     A["Agent service and its identity"] -->|"HTTPS with audience-bound ID token"| B["Separate Cloud Run connector service"]
@@ -194,6 +208,13 @@ Identify which assumptions no longer hold. Explain the new authorization boundar
 
 ## 🏛️ The 4 Tenets of Adapted & Third-Party Tool Architecture
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 graph TD
     T1["1. The Adapter Boundary<br/>(Interface Translation ≠ Data Authority)"]
@@ -248,3 +269,13 @@ If an entity record does not exist in the curated store, or if the `review_date`
 - LangChain Core Tools Documentation: https://python.langchain.com/docs/concepts/tools/
 - Google Cloud BigQuery Python Client: https://cloud.google.com/python/docs/reference/bigquery/latest
 - Federal Reserve SR 11-7 (Model Risk Management): https://www.federalreserve.gov/supervisionreg/srletters/sr1107.htm
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

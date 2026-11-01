@@ -138,6 +138,13 @@ An OpenAPI toolset is not a credential vault. A gateway is not the account-permi
 
 The diagram below is a **logical arrangement when both products are selected**, not a ready-to-deploy network topology:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A["ADK agent<br/>on Agent Runtime"] --> B["Agent Gateway<br/>approved destination access"]
@@ -162,6 +169,13 @@ Several agents can run in one process. A multi-agent design alone does not justi
 
 The model suggests the business action. ADK runs the tool. Trusted application and platform components supply credentials. Gateway and backend components enforce their own checks.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A["1. Meera signs in<br/>application verifies identity"] --> B["2. Gemini proposes<br/>get_balance with account ID"]
@@ -200,6 +214,13 @@ For client certificates, agree on issuer trust, permitted identities, validity, 
 
 This diagram shows one **load-balancer-based design** for an mTLS requirement. Additional intermediary connections depend on the actual Apigee topology:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A["Agent HTTP client<br/>bank-approved client certificate"] -->|"TLS connection 1: mTLS"| B["Supported HTTPS load balancer<br/>validates client certificate"]
@@ -219,6 +240,13 @@ A private IP tells us about routing, not user authorization. A certificate tells
 
 Google documents a private Agent Runtime-to-Apigee pattern using a PSC interface, a network attachment, DNS peering and a PSC endpoint targeting Apigee's service attachment:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A["Agent Runtime<br/>HTTPS call to Apigee hostname"] --> B["PSC interface<br/>attached to consumer VPC"]
@@ -267,6 +295,13 @@ The following snippets teach the **application-owned transport option**. They ar
 
 ### A. Build the TLS context using current Python and HTTPX APIs
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import ssl
 from pathlib import Path
@@ -333,6 +368,13 @@ The installed ADK 2.11.0 implementation accepts the following parameters:
 
 The code below assumes the first snippet is in the same Python module. Its arguments are deliberately supplied by trusted application setup. `bank_spec` must be a reviewed spec containing the generated tool name `get_balance`. The test must check the actual generated name rather than assume any `operationId` is preserved unchanged.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.agents.readonly_context import ReadonlyContext
 from google.adk.auth.auth_credential import AuthCredential
@@ -501,3 +543,13 @@ Module 11 described an API as a tool. This module explains how that tool crosses
 Use the [lab](./lab.md) and [solution](./lab-solution.md) for the local request-construction exercise. Read the [enterprise playbook](./enterprise-playbook.md) with its review notice: its earlier architectural claims are not deployment acceptance evidence.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module11_6-enterprise-apigee-gateway-auth-readme -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

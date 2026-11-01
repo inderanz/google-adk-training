@@ -58,6 +58,13 @@ To rescue the on-call team, you are going to deploy **Project Aegis**—an autom
 
 Instead of building a single, fragile "do-everything" prompt, you will architect three cooperative, specialized AI agents operating as an elite triage team:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
     Analyst["🚨 SOC Analyst Prompt:<br/>'Detect brute-force attacks on billing databases<br/>and generate a verified patching plan.'"]

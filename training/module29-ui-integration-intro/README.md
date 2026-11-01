@@ -41,6 +41,13 @@ The browser presents a request and displays results. The backend authenticates t
 
 The lab uses the native ADK API and its `/run_sse` endpoint to make the mechanics visible. A client sends a request and reads a stream of events; not every event is final answer text. Some events describe tool work, partial output or state changes.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Analyst browser] --> B[Application authentication and access checks]

@@ -37,6 +37,13 @@ Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [
 
 A repair attempt is bounded and still passes tool/backend validation.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Supported tool failure] --> B[Plugin returns bounded error feedback]
@@ -61,6 +68,13 @@ In a traditional, fragile agent architecture, this triggers an immediate fatal c
 
 The execution terminates abruptly. The quarter-end batch stalls. The on-call operations engineer is paged out of sleep at midnight to fix a trivial naming discrepancy.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     subgraph Fragile_Architecture["❌ Fragile Agent (Without Plugins)"]
@@ -139,6 +153,13 @@ The ADK executes plugin hooks at precise lifecycle checkpoints across the agent 
 >
 > Always register plugins globally on the **`App`** object (`App(name=..., root_agent=..., plugins=[...])`), and then pass that `App` to the runner: `InMemoryRunner(app=app)`. Passing `plugins` to both `App` and `Runner` raises an immediate `ValueError`.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.apps.app import App
 from google.adk.runners import InMemoryRunner
@@ -178,6 +199,13 @@ In production, enterprise REST APIs often return HTTP 200 with an error body (e.
 
 You can customize this by subclassing `ReflectAndRetryToolPlugin` and overriding `extract_error_from_result`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.plugins import ReflectAndRetryToolPlugin
 

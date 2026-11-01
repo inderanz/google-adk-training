@@ -54,6 +54,13 @@ Write the desired outcome in one sentence, then identify inputs, operations, out
 
 From the repository root:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 cd training/module23-artifacts/example
 uv sync --locked --python 3.11
@@ -124,6 +131,13 @@ The blocks below follow the runnable files. Class-method excerpts belong inside 
 
 ### bank_review/tools.py
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import hashlib
 import json
@@ -137,6 +151,13 @@ Imports make the documented Python, Google and ADK names available. Relative imp
 
 `json.dumps` serializes a dictionary; sorting keys gives stable ordering for these values. Encoding produces UTF-8 bytes. The explicit JSON MIME type lets the reader reject a different kind of artifact. The digest later covers these exact bytes, not a reserialized approximation.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def json_part(value: dict) -> types.Part:
     """Use UTF-8 bytes and an explicit media type for a portable JSON artifact."""
@@ -149,6 +170,13 @@ def json_part(value: dict) -> types.Part:
 
 The function accepts only injected ToolContext, so the model cannot choose another user or session namespace. Its dictionary is explicitly a fictional source snapshot. `await` waits for the native save. The returned version is passed onwards, including when it is zero; do not test it with `if version:`.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def save_checklist(tool_context: ToolContext) -> dict:
     """Save the supplied fictional checklist; this does not read a bank system."""
@@ -168,6 +196,13 @@ async def save_checklist(tool_context: ToolContext) -> dict:
 
 Read the guard clauses before the happy path. `type(value) is int` rejects Python booleans, which otherwise behave like integers. `load_artifact(..., version=...)` pins the evidence. Check MIME type and byte bound before parsing, then require the expected document keys and Boolean values. This avoids treating an empty checklist as complete. The comprehension derives the missing-document names. Each await saves one artifact; the final manifest links those saves. Errors from storage propagate instead of being mislabeled as successful completion.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def create_review_pack(source_version: int, tool_context: ToolContext) -> dict:
     """Build a report from one exact version; never silently switch to latest."""
@@ -229,6 +264,13 @@ async def create_review_pack(source_version: int, tool_context: ToolContext) -> 
 
 ### bank_review/agent.py
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import os
 from google.adk.agents import Agent
@@ -242,6 +284,13 @@ Imports make the documented Python, Google and ADK names available. Relative imp
 
 The factory constructs an Agent and App; it does not run Gemini. Tool functions are passed as callable objects, without parentheses. ADK turns their signatures into tool schemas and injects ToolContext at execution. The exported app is also what deployment loads.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def build_app(model=None) -> App:
     # Attach the configured root agent to an App; provider services are supplied by Runner.
@@ -261,6 +310,13 @@ def build_app(model=None) -> App:
 
 ### verify_pack.py
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import argparse
 import asyncio
@@ -277,6 +333,13 @@ Imports make the documented Python, Google and ADK names available. Relative imp
 
 Read the deployed checker report and find the actual create_review_pack result. Use its test user/session scope with a new GcsArtifactService client. Load the saved manifest version, then the exact source/report references recorded there. Recompute the digest from retrieved bytes and compare it; also check the returned report reference and the fixture content. This proves readback from the configured bucket when run against real GCS, not merely that an earlier save returned an integer.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def verify(report_path: str) -> dict:
     # Read the exact referenced objects using a fresh provider, then compare bytes and scope.
@@ -356,6 +419,13 @@ Read `run.py` alongside the [Google Cloud lab guide](../module23-artifacts/googl
 
 After editing `.env` using the cloud guide:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python run.py "Prepare CASE-001 review pack. Save the checklist then use its returned version."
 ```
@@ -373,6 +443,13 @@ Use synthetic inputs. Live model calls, storage, inspection and telemetry can in
 
 Deploy through the [native Agent Runtime path](../module23-artifacts/google-cloud-lab-guide.md#deploy-the-reviewed-package-to-agent-runtime), then run:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python check_deployed.py \
   --resource projects/PROJECT/locations/REGION/reasoningEngines/RUNTIME_ID
@@ -401,3 +478,13 @@ Before changing the code, write the new requirement, changed boundary, failure s
 ## Continue with the integrated customer exercise
 
 The [integrated banking lab](../module26-callbacks/integrated-lab.md) connects the authorized Firestore read, deterministic next step, versioned artifacts, Gemini explanation, evaluation, logging and Model Armor in one App. Complete its live and deployed checkpoints after the isolated lesson. Its scope excludes an unimplemented ledger adapter and credit approval.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

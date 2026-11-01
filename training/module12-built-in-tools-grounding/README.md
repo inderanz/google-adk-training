@@ -69,6 +69,13 @@ Grounding transforms an LLM from a closed-box next-token predictor into an **ope
 3. Ingests retrieved authoritative facts into its working context.
 4. Generates a response strictly rooted in those verified sources, accompanied by structured citation metadata.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Question requiring public evidence] --> B[Supported Gemini search grounding]
@@ -92,6 +99,13 @@ In Google ADK 2.0, **built-in tools** eliminate this operational burden:
 ### Minimal Grounded Agent
 Implementing web grounding in ADK 2.0 requires only importing `google_search` and passing it to the `Agent`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.agents import Agent
 from google.adk.tools import google_search
@@ -128,6 +142,13 @@ When an agent equipped with `google_search` receives a prompt:
 
 A common mistake made by developers is attempting to place `google_search` and custom Python functions inside the same agent's `tools` list:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # ❌ THIS WILL FAIL AT RUNTIME!
 from google.adk.agents import Agent
@@ -229,6 +250,13 @@ Iterate over `grounding_chunks` to extract `chunk.web.title` and `chunk.web.uri`
 
 Here is the complete, pedagogical Python implementation:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """Module 12 Concept: Programmatic Grounding Metadata Extraction.
 
@@ -387,3 +415,13 @@ By deploying `google_search` and capturing structured grounding metadata, enterp
 Previous: [Module 11.6](../module11_6-enterprise-apigee-gateway-auth/README.md) · Next: [Module 13](../module13-tool-context/README.md) · [See how the concepts build](../learning-journey.md)
 
 Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

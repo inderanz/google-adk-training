@@ -37,6 +37,13 @@ This code defines a tool named `secret_calculator`. However, the agent's system 
 
 **A note on the instruction wording:** it's forceful enough to guarantee the agent actually *attempts* the nonexistent `super_calc` call on its first try (a milder "you MUST use `super_calc`" gets ignored in practice — modern models tend to just call whatever tool is actually declared, regardless of what the prompt claims its name is), while explicitly scoping that no-deviation rule to "the first attempt only" — so that once the tool-not-found error comes back, the agent is free to adapt instead of stubbornly retrying the same broken name forever. Both halves matter: this is the wording that reliably reproduces both the failure (Step 3) and the plugin-assisted recovery (Step 5).
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.agents import Agent
 from google.adk.tools import FunctionTool
@@ -155,6 +162,13 @@ Now, let's fix this using the Plugin *instead* of fixing the prompt.
 ### Step 6: Advanced Challenge (Part 2) - Intercepting "Soft Errors" via `extract_error_from_result`
 
 In real-world enterprise environments, external microservices and ERP APIs often **do not raise Python exceptions**. Instead, they return an HTTP 200 payload containing a structured error response, such as:
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 {
     "status": "error",
@@ -167,6 +181,13 @@ By default, `ReflectAndRetryToolPlugin` only triggers when a tool raises an unha
 **Your Task:**
 Create an `enterprise_agent.py` that extends `ReflectAndRetryToolPlugin` to catch soft dictionary errors and steer the model to self-correct.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # In enterprise_agent.py (Starter Skeleton)
 import asyncio

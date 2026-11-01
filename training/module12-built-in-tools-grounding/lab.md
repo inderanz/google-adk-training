@@ -22,6 +22,13 @@ In this lab, you will act as a **Google Principal Forward-Deployed Engineer (FDE
 
 ## 🔁 The 4-Step FDE Development Loop
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart LR
     A["1. Scaffold Agent<br/>(adk create)"] --> B["2. Grounded Agent<br/>(agent.py)"]
@@ -52,6 +59,13 @@ Create `agent.py` and complete the active learning `TODO` section.
 
 Equip your agent with the built-in `google_search` tool:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # agent.py
 """Sovereign Horizon Bank - Corporate Market & Adverse Intelligence Radar Agent.
@@ -93,6 +107,13 @@ In enterprise banking, compliance officers cannot rely on raw text alone. To sat
 
 Create `main.py` and complete `TODO 2` (Pydantic audit models) and `TODO 3` (async runner and metadata extraction):
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # main.py
 """Programmatic Execution & Grounding Metadata Extraction.
@@ -192,6 +213,13 @@ Create `test_grounding.py` to verify:
 2. The metadata parser accurately converts `types.GroundingMetadata` into our typed `GroundedAuditReport`.
 3. The model coexistence boundary is documented and defended.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # test_grounding.py
 """Automated unit test suite for Web Grounding and Metadata Extraction.

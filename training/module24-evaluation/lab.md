@@ -54,6 +54,13 @@ Write the desired outcome in one sentence, then identify inputs, operations, out
 
 From the repository root:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 cd training/module24-evaluation/example
 uv sync --locked --python 3.11
@@ -123,6 +130,13 @@ The blocks below follow the runnable files. Class-method excerpts belong inside 
 
 ### bank_review/agent.py
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import os
 from google.adk.agents import Agent
@@ -135,6 +149,13 @@ Imports make the documented Python, Google and ADK names available. Relative imp
 
 The if statement rejects unknown identifiers before returning the fixture. The result contains both facts and provenance. A real adapter would additionally authorize the caller and retrieve the current bank record; changing the prompt cannot supply either guarantee.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def read_case(case_id: str) -> dict:
     """Read a synthetic record; unsupported identifiers never return CASE-001."""
@@ -154,6 +175,13 @@ def read_case(case_id: str) -> dict:
 
 The instruction defines the desired behavior for known, unknown and missing identifiers. Its correctness is evaluated through actual model runs. Passing a scripted test only establishes that ADK can call the tool and receive the dictionary.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def build_app(model=None) -> App:
     # Attach the configured root agent to an App; provider services are supplied by Runner.
@@ -176,6 +204,13 @@ def build_app(model=None) -> App:
 
 The bank says: “An unknown case must not become another customer's case.” This produces the following native case, copied from the supplied dataset:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```json
 {
   "eval_id": "unknown",
@@ -225,6 +260,13 @@ For an illustrative result, imagine known=1, unknown=0, clarify=1 and approval=1
 
 ### check_eval.py
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import argparse
 import math
@@ -242,6 +284,13 @@ First reject a dataset with duplicate case IDs and a configuration with no crite
 
 This gate is written for the supplied metrics, where a higher score is better. A future latency or cost criterion may need a maximum rather than a minimum. Define that comparison explicitly before reusing this function. A passing result also needs trusted provenance: retain the dataset, configuration, code revision and model settings from the run. The gate cannot prove that an edited result file was produced by the stated model.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def require_passed(result: EvalSetResult, dataset: EvalSet, config: EvalConfig) -> None:
     # A release gate needs complete case coverage and every required metric, not merely a zero process exit.
@@ -318,6 +367,13 @@ Read `run.py` alongside the [Google Cloud lab guide](../module23-artifacts/googl
 
 After editing `.env` using the cloud guide:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python run.py "Prepare CASE-001 for review."
 ```
@@ -335,6 +391,13 @@ Use synthetic inputs. Live model calls, storage, inspection and telemetry can in
 
 Install the pinned native evaluator extras and run the four cases:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv sync --locked --extra eval
 uv run --env-file .env adk eval bank_review eval/cases.evalset.json --config_file_path eval/eval_config.json --print_detailed_results
@@ -344,6 +407,13 @@ Read `eval/cases.evalset.json` first. Its four eval_id values cover known case, 
 
 Now evaluate only the known-case tool trajectory using the separate criterion:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env adk eval bank_review eval/cases.evalset.json:known --config_file_path eval/trajectory_config.json --print_detailed_results
 ```
@@ -352,6 +422,13 @@ An EXACT tool match is appropriate for this narrow exercise. Do not make every o
 
 The native local result manager stores EvalSetResult JSON under the application's `.adk/eval_history` directory. Inspect the emitted path/results; select the complete quality run you intend to gate, not an arbitrary newest file from another experiment:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run python check_eval.py bank_review/.adk/eval_history/YOUR_RESULT_FILE.evalset_result.json
 ```
@@ -362,6 +439,13 @@ In a practice copy, add an instruction that contradicts the customer contract, r
 
 Deploy through the [native Agent Runtime path](../module23-artifacts/google-cloud-lab-guide.md#deploy-the-reviewed-package-to-agent-runtime), then run:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python check_deployed.py \
   --resource projects/PROJECT/locations/REGION/reasoningEngines/RUNTIME_ID
@@ -390,3 +474,13 @@ Before changing the code, write the new requirement, changed boundary, failure s
 ## Continue with the integrated customer exercise
 
 The [integrated banking lab](../module26-callbacks/integrated-lab.md) connects the authorized Firestore read, deterministic next step, versioned artifacts, Gemini explanation, evaluation, logging and Model Armor in one App. Complete its live and deployed checkpoints after the isolated lesson. Its scope excludes an unimplemented ledger adapter and credit approval.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

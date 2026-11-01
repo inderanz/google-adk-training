@@ -64,6 +64,13 @@ Use **integer USD cents** throughout the tool. USD 75,000.00 is `7_500_000` cent
 
 **Order matters.** The confirmation wrapper runs before the function body. A USD 15 million request therefore asks for confirmation first; after approval, the tool rejects it for insufficient credit. A USD 2.5 million request asks for confirmation, then escalates without changing the balance.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     Call["Model proposes drawdown arguments"] --> Predicate{"Confirmation required?"}
@@ -88,12 +95,26 @@ The model supplies `facility_id`, `amount_cents`, and `disbursement_purpose`. AD
 
 Continue in your existing `adk-training` Python project (or use one of the launch options above). Check the active environment:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --no-sync python -c "import sys; from importlib.metadata import version; print(sys.version); print('google-adk', version('google-adk'))"
 ```
 
 If you are starting without an existing project, create a separate practice project first:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv init adk-training --python 3.12
 cd adk-training
@@ -102,6 +123,13 @@ uv add "google-adk==2.10.0" python-dotenv
 
 From your Python project directory:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 mkdir -p secure_finance/commercial_drawdown/tools
 cd secure_finance
@@ -131,6 +159,13 @@ Create `commercial_drawdown/tools/drawdown.py` using this starter. The formattin
 
 `uuid4()` creates a random demo reference. `divmod(cents, 100)` produces whole dollars and leftover cents; the two names on the left receive those values. In its f-string, `:,` adds thousands separators and `:02d` pads cents to two digits. This formats money without floating-point arithmetic.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """Practice ADK context, state, and actions with a simulated drawdown."""
 
@@ -263,6 +298,13 @@ The flag skips the calling agent's LLM summary of the function response. A clien
 
 Create `commercial_drawdown/agent.py`. Complete TODOs 8–10 and remove the deliberate `NotImplementedError` before importing or running the package.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """Wire the simulated drawdown tool into an ADK agent."""
 
@@ -319,6 +361,13 @@ Use the supplied harness below as `commercial_drawdown/test_drawdown.py`. It use
 <details>
 <summary>Expand the 12-case verification harness</summary>
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """Check deterministic tool behavior without calling an LLM."""
 
@@ -424,6 +473,13 @@ The harness is supporting infrastructure; explain your tool first. In the harnes
 
 From `secure_finance/`, run:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --no-sync python -m commercial_drawdown.test_drawdown
 ```
@@ -436,6 +492,13 @@ The harness verifies tool behavior, state deltas, and requested actions. It does
 
 Use your existing model credentials, then run from `secure_finance/`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --no-sync adk web .
 ```
@@ -501,3 +564,13 @@ Compare your work with the [Lab 13 solution](./lab-solution.md). It contains the
 - [Python data structures](https://docs.python.org/3/tutorial/datastructures.html)
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module13-tool-context-lab -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

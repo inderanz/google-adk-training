@@ -53,6 +53,13 @@ Build a Web-Grounded Market & Adverse Intelligence Radar Agent for commercial cr
 
 ## 🏗️ Architectural Data Flow
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     subgraph Input ["1. User & Client Request"]
@@ -118,6 +125,13 @@ adverse_intelligence_radar/
 2. **The Critical Constraint (The Coexistence Rule):** In Gemini 2.0 and 2.5, Google Search executes *server-side* inside Google's inference infrastructure. The Gemini API enforces that an agent may have multiple search tools (e.g. enterprise search + web search), but **cannot mix `google_search` with client-side function tools** in the same agent. Mixing them triggers an immediate `400 INVALID_ARGUMENT` exception. Therefore, an FDE creates a dedicated research agent whose sole tool is `google_search`.
 3. **Structured Instruction:** Commercial loan due diligence requires standard operating procedures. The prompt directs the agent to look for 4 specific risk vectors: regulatory enforcement, lawsuits, fraud, and sanctions.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # agent.py
 """Sovereign Horizon Bank - Corporate Market & Adverse Intelligence Radar Agent.
@@ -210,6 +224,13 @@ Let's break down the logic into **4 progressive building blocks** before assembl
 #### Detailed Line-by-Line Thought Process:
 
 ##### 1. Defining the Data Contracts (Block 1)
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 class GroundedSource(BaseModel):
     title: str = Field(description="Web page or publication title")
@@ -217,6 +238,13 @@ class GroundedSource(BaseModel):
 ```
 - **Why this exists:** Credit officers need to click directly on the source. We extract just what they need: the headline/title and the canonical URL.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 class GroundedAuditReport(BaseModel):
     entity_name: str
@@ -228,6 +256,13 @@ class GroundedAuditReport(BaseModel):
 - **Why Python 3.10+ typing:** Notice `list[str]` instead of `from typing import List`. We follow modern PEP 585 built-in generics.
 
 ##### 2. Crafting the Extraction Function (Block 2 & 3)
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def extract_grounding_audit(
     entity_name: str, final_text: str, event: Event
@@ -252,6 +287,13 @@ def extract_grounding_audit(
      Notice `if chunk.web and chunk.web.uri:`. In hybrid enterprise search, a chunk might come from a private datastore without a `.web` sub-object. Checking `chunk.web` prevents crashes.
 
 ##### 3. Orchestrating the Async Runner (Block 4)
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def run_grounded_research(entity_name: str) -> GroundedAuditReport:
 ```
@@ -282,6 +324,13 @@ async def run_grounded_research(entity_name: str) -> GroundedAuditReport:
 
 #### The Complete Production Implementation (`main.py`)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # main.py
 """Programmatic Execution & Grounding Metadata Extraction.
@@ -540,6 +589,13 @@ In enterprise CI/CD environments (Cloud Build, GitHub Actions), tests must execu
 
 By creating synthetic `types.GroundingMetadata` payloads, we test our extraction and error handling logic deterministically.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # test_grounding.py
 """Automated unit test suite verifying grounded agent configuration,
@@ -660,6 +716,13 @@ if __name__ == "__main__":
 
 ### 1. Direct ADK CLI Execution Transcript (`uv run adk run .`)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run adk run . "Screen Sovereign Chemical Corp for EPA fines or toxic spill lawsuits in 2026."
 ```
@@ -679,6 +742,13 @@ uv run adk run . "Screen Sovereign Chemical Corp for EPA fines or toxic spill la
 
 ### 2. Programmatic Execution & Metadata Audit Transcript (`uv run python main.py`)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run python main.py
 ```
@@ -719,6 +789,13 @@ Authoritative Web Sources (2):
 
 ### 3. Unit Test Verification Transcript (`uv run python -m unittest test_grounding.py`)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run python -m unittest test_grounding.py -v
 ```
@@ -784,3 +861,13 @@ How do you take the code and patterns from this lab and reuse them across differ
 - **Module 13 (Session State & Persistence):** Learn how to save session state and audit reports across application restarts using persistent database backends.
 - **Module 20 (Multi-Agent Systems):** Learn how to orchestrate a Grounded Search Specialist with an Internal Database Specialist using Orchestrator and Sequential agent patterns.
 - **Module 24 (Evaluation & Benchmark Flywheels):** Learn how to quantitatively score grounding faithfulness, citation precision, and hallucination rates using LLM-as-a-Judge evaluators.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

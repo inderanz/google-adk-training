@@ -47,6 +47,13 @@ To run an agent from Python, you must understand how ADK 2.0 separates intellige
 
 ADK 2.0 uses a modular separation of concerns. Instead of having a single monolithic class handle prompts, HTTP connections, and session storage, ADK divides responsibilities across three dedicated architectural layers:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Application submits scoped message] --> B[Runner drives execution]
@@ -110,6 +117,13 @@ The Runner achieves complete isolation by requiring two addressing keys for ever
 1.  **`user_id`**: Identifies the actor or entity communicating with the agent (e.g., `"alice_101"`, `"employee_482"`).
 2.  **`session_id`**: Identifies a specific conversation thread or ticket (e.g., `"ticket_nov_2026_01"`, `"chat_window_882"`).
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Alice request] --> C[Authenticate and bind session scope]
@@ -128,6 +142,13 @@ flowchart TB
 
 Here is the complete, minimal Python script required to wire an Agent, an App, and a Runner together and execute a query programmatically.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import asyncio
 from google.adk.apps import App
@@ -190,6 +211,13 @@ Let us dissect each section of `main.py` so you understand what happens beneath 
 *   `from support_analyzer.agent import root_agent`: The reasoning unit we developed earlier. Notice that the agent definition remains clean and self-contained; it does not care how it is called.
 
 #### 2. Creating the `App`
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 app = App(name="support_app", root_agent=root_agent)
 ```
@@ -197,12 +225,26 @@ app = App(name="support_app", root_agent=root_agent)
 *   `root_agent`: The primary entry point agent that handles initial messages.
 
 #### 3. Instantiating the `InMemoryRunner`
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 runner = InMemoryRunner(app=app)
 ```
 *   `InMemoryRunner` acts as a facade over `Runner`. Under the hood, it constructs an `InMemorySessionService`, binds your `app`, and sets up local memory storage without requiring database connection strings or environment variables.
 
 #### 4. Calling `run_debug()`
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 events = await runner.run_debug(
     user_messages=user_query,
@@ -217,6 +259,13 @@ events = await runner.run_debug(
 *   Note that `await` is required: this is a coroutine call that yields to the event loop until the model finishes generating.
 
 #### 5. Unpacking the ADK Event Model
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 for event in events:
     if event.is_final_response():
@@ -243,6 +292,13 @@ In production applications (like a web chat widget or streaming API endpoint), b
 #### The Architecture of Streaming Execution
 Unlike `run_debug()`, which returns a static list, `run_async()` is an **asynchronous generator** (`AsyncGenerator[Event, None]`) that yields `Event` objects the moment the model or tool emits them.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Create or load session] --> B[Submit Content to run_async]
@@ -255,6 +311,13 @@ flowchart TB
 
 Here is how to implement streaming execution using `run_async()`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import asyncio
 from google.adk.apps import App

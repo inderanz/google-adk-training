@@ -103,6 +103,13 @@ In financial services, AI agents must adhere to the same zero-trust security pos
 
 ## 🏛️ Apigee X Gateway Architecture Diagram
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     subgraph ClientZone["Client Zone (Cloud Run / GKE Agent Runtime)"]
@@ -141,6 +148,13 @@ flowchart TD
 
 Below is the authoritative OpenAPI 3.0 specification bundle representing the Apigee X secured endpoints, decorated with `securitySchemes` for OAuth2 and API Key:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```json
 {
   "openapi": "3.0.3",
@@ -277,6 +291,13 @@ Below is the authoritative OpenAPI 3.0 specification bundle representing the Api
 ## 🐍 Python Architecture: Component Specifications
 
 ### 1. `ApigeeOAuth2TokenManager`
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 class ApigeeOAuth2TokenManager:
     """Thread-safe, asynchronous in-memory OAuth2 token manager.
@@ -298,6 +319,13 @@ class ApigeeOAuth2TokenManager:
 ```
 
 ### 2. `ApigeeClientFactory`
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 class ApigeeClientFactory:
     """Configures the underlying httpx.AsyncClient for ADK tool execution.
@@ -312,6 +340,13 @@ class ApigeeClientFactory:
 ```
 
 ### 3. `header_provider`
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def apigee_header_provider(readonly_context: ReadonlyContext) -> Dict[str, str]:
     """ADK 2.0 runtime header provider.
@@ -334,3 +369,13 @@ def apigee_header_provider(tool_context: Optional[ReadonlyContext] = None) -> Di
 * Review the **[Lab Solution](./lab-solution.md)** for complete production code, test suites, and steering prompts.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module11_6-enterprise-apigee-gateway-auth-playbook -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

@@ -21,6 +21,13 @@ Do all three eventually. A beginner can begin with a single dictionary and a sma
 
 ## The story has six stages
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[1-7: Understand and run one agent] --> B[8-14: Give it approved capabilities]
@@ -105,3 +112,13 @@ Use diagrams in two ways: an execution diagram explains what the supplied progra
 The [teaching review record](./teaching-review.md) identifies the scope and limits of this course-wide pass. The [banking verification record](./module15-intro-to-multi-agent-systems/review-notes.md) contains the earlier executable checks for Modules 13.5–26. A documentation review does not certify a deployment or establish model quality.
 
 API names that retain `VertexAi` or `agent_engine` can coexist with current product naming. Use the public symbol actually supplied by the pinned SDK. Check the [official ADK documentation](https://adk.dev/) and [Agent Platform overview](https://docs.cloud.google.com/gemini-enterprise-agent-platform/agents) when upgrading, then repeat the relevant tests.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

@@ -66,3 +66,13 @@ Use this matrix to navigate directly from what you are learning to the authorita
 1. **Before Starting a Module:** Scan the corresponding section in the table above to understand what Google ADK 2.0 primitives you will be using.
 2. **During the Lab:** When implementing the `TODO` challenges, use the linked official guides if you need deeper clarity on method arguments or return types.
 3. **Beyond the Course:** Keep this index as your ongoing enterprise desk reference when architecting and building your own agent solutions in production.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

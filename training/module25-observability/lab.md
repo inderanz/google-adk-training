@@ -57,6 +57,13 @@ Write the desired outcome in one sentence, then identify inputs, operations, out
 
 From the repository root:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 cd training/module25-observability/example
 uv sync --locked --python 3.11
@@ -126,6 +133,13 @@ The blocks below follow the runnable files. Class-method excerpts belong inside 
 
 ### bank_review/telemetry.py
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import logging
 from google.adk.plugins import BasePlugin
@@ -139,6 +153,13 @@ Imports make the documented Python, Google and ADK names available. Relative imp
 
 The handler formats structured JSON without a per-message network API call. The isinstance check prevents adding the same handler repeatedly when factories are called in tests. propagate=False avoids also emitting the same record through the root logger.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def configure_logging() -> None:
     """Write Cloud Logging structured JSON to stdout; the runtime collects it."""
@@ -155,6 +176,13 @@ def configure_logging() -> None:
 
 Inheriting BasePlugin supplies native lifecycle integration. The constructor gives the plugin a stable name. App registration gives it application scope; it is not a fleet-wide service and does not automatically apply to another deployment.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 class ReviewTelemetry(BasePlugin):
     def __init__(self):
@@ -165,6 +193,13 @@ class ReviewTelemetry(BasePlugin):
 
 Build a small dictionary with allowed metadata fields. The current OpenTelemetry span supplies a trace ID only when valid. `extra={json_fields: ...}` is the Google logging handler contract. This function never serializes tool_args, result or the exception object.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def record(self, tool_context, tool, outcome: str) -> None:
     # Allowlist diagnostic metadata; copying tool arguments or raw results would disclose banking content.
@@ -185,6 +220,13 @@ def record(self, tool_context, tool, outcome: str) -> None:
 
 Plugin parameter names are tool_args and result; these differ from agent callback names in Module 26. The hook logs the status category and returns None so ADK keeps the original result.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def after_tool_callback(self, *, tool, tool_args, tool_context, result):
     # A returned result is available here; returning None preserves it for subsequent processing.
@@ -197,6 +239,13 @@ async def after_tool_callback(self, *, tool, tool_args, tool_context, result):
 
 Record an exception category and return an explicit unavailable outcome. Returning a dictionary changes execution by recovering this error. There is no automatic retry and no false success. In a real adapter, decide which exception classes are actually recoverable.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def on_tool_error_callback(self, *, tool, tool_args, tool_context, error):
     # Recovery returns an explicit unavailable result, which must never be interpreted as retrieved evidence.
@@ -207,6 +256,13 @@ async def on_tool_error_callback(self, *, tool, tool_args, tool_context, error):
 
 ### bank_review/agent.py
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import os
 from google.adk.agents import Agent
@@ -220,6 +276,13 @@ Imports make the documented Python, Google and ADK names available. Relative imp
 
 simulate_outage is a visible training switch. It must not become a customer-controlled production fault switch. The normal path returns a synthetic checklist with a source; the failing path raises an exception so the real ADK error hook runs.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def read_checklist(case_id: str, simulate_outage: bool = False) -> dict:
     """Read a synthetic checklist; outage injection is a training-only option."""
@@ -239,6 +302,13 @@ def read_checklist(case_id: str, simulate_outage: bool = False) -> dict:
 
 Configure the structured logger once, construct the agent and register the plugin on App. Standard tracing is configured at the execution/deployment boundary, separately from the business-outcome plugin.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def build_app(model=None) -> App:
     # Attach the configured root agent to an App; provider services are supplied by Runner.
@@ -282,6 +352,13 @@ Read `run.py` alongside the [Google Cloud lab guide](../module23-artifacts/googl
 
 After editing `.env` using the cloud guide:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python run.py "Read the checklist for CASE-001."
 ```
@@ -297,6 +374,13 @@ Use synthetic inputs. Live model calls, storage, inspection and telemetry can in
 
 ## Investigate the controlled incident
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python run.py --otel-to-cloud "Simulate an outage reading CASE-001."
 ```
@@ -311,6 +395,13 @@ Define the availability metric only after identifying whether one recovered erro
 
 Deploy through the [native Agent Runtime path](../module23-artifacts/google-cloud-lab-guide.md#deploy-the-reviewed-package-to-agent-runtime), then run:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python check_deployed.py \
   --resource projects/PROJECT/locations/REGION/reasoningEngines/RUNTIME_ID
@@ -339,3 +430,13 @@ Before changing the code, write the new requirement, changed boundary, failure s
 ## Continue with the integrated customer exercise
 
 The [integrated banking lab](../module26-callbacks/integrated-lab.md) connects the authorized Firestore read, deterministic next step, versioned artifacts, Gemini explanation, evaluation, logging and Model Armor in one App. Complete its live and deployed checkpoints after the isolated lesson. Its scope excludes an unimplemented ledger adapter and credit approval.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

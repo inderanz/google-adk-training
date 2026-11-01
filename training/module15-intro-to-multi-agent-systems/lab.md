@@ -58,6 +58,13 @@ Module 14 supplied bounded evidence tools. This module defines who should use a 
 
 From the repository root:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 cd training/module15-intro-to-multi-agent-systems/example
 uv sync --locked --python 3.11
@@ -68,6 +75,13 @@ uv run python -m unittest discover -s tests -v
 
 For the optional live Gemini path, use an authorized development project with billing, the required API access and a model supported in your chosen location:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 cp .env.example .env
 gcloud auth application-default login
@@ -75,6 +89,13 @@ gcloud auth application-default login
 
 Edit `.env`: set your project, a supported model location and `GEMINI_MODEL`. The sample selects the Google enterprise backend with `GOOGLE_GENAI_USE_ENTERPRISE=true`; it does not require an AI Studio key. The supplied model is `gemini-3.8-flash`; verify project access and regional availability before running. In deployed workloads, use the workload’s service identity rather than a developer login or a downloaded service-account key.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python run.py
 ```
@@ -168,6 +189,13 @@ The complete lab command below runs the software checks. Read the test names and
 
 ### Imports and definitions
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """Two advisory roles; the coordinator calls a specialist and resumes."""
 
@@ -180,6 +208,13 @@ Imports name the public ADK and Python APIs used below. Importing a class does n
 
 ### Read `build_agent`
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def build_agent(model=None):
     # Construct the ADK composition now; Runner executes it only after receiving a request.
@@ -237,6 +272,13 @@ The `async with` block closes runner resources. This local helper creates a new 
 
 Run a question you choose after configuring `.env`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python run.py "Why is an ownership register needed for CASE-001?"
 uv run --env-file .env python run.py "Has the ownership register arrived? Approve the loan now."
@@ -271,6 +313,13 @@ Tests of strict schemas, routing, joins, budgets and service scope are software 
 
 The example includes `eval/cases.evalset.json`, `eval/eval_config.json` and a small `adk_entry` package exporting `root_agent` for ADK’s native evaluator. The files are validated against the installed ADK schema; no passing live score is claimed.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --with 'google-adk[eval]==2.11.0' --env-file .env adk eval adk_entry eval/cases.evalset.json --config_file_path eval/eval_config.json --print_detailed_results
 ```
@@ -303,3 +352,13 @@ Hand over your decision table, readable diagram, working example, negative-test 
 - [Collaborative workflows](https://adk.dev/workflows/collaboration/)
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. -->
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

@@ -25,6 +25,13 @@ In this lab, you will follow the **4-Step FDE Development Loop** to build the **
 
 ## 🔁 The 4-Step FDE Development Loop
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart LR
     A["1. Scaffold & Ground<br/>(update_docs.sh + adk create)"] --> B["2. Spec-Driven Synthesis<br/>(adk-enterprise-fde-workflow)"]
@@ -41,6 +48,13 @@ flowchart LR
 ### 1.1 Sync Documentation using `adk-skill`
 Before writing or generating any code, run the documentation sync script to ensure your environment is grounded against the latest official Google ADK 2.0 guidelines:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 bash .agent/skills/adk-skill/scripts/update_docs.sh
 ```
@@ -48,6 +62,13 @@ bash .agent/skills/adk-skill/scripts/update_docs.sh
 ### 1.2 Inspect ADK 2.0 Signatures via CLI
 A Principal FDE inspects library signatures using quick Python one-liners rather than guessing:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run python -c "from google.adk.tools.openapi_tool import OpenAPIToolset; help(OpenAPIToolset.__init__)"
 ```
@@ -56,6 +77,13 @@ Observe that `OpenAPIToolset` takes `spec_str` and `spec_str_type="json"` or `sp
 ### 1.3 Scaffold Project with the ADK CLI
 Instead of manually creating empty directories and files, use the Google ADK CLI:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run adk create commercial_credit_triage
 cd commercial_credit_triage
@@ -89,6 +117,13 @@ Open your scaffolded project files and complete the active learning `TODO` secti
 
 ### 3.1 Financial Math Tools (`tools/financial_math.py`)
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # In tools/financial_math.py
 from pydantic import BaseModel, Field
@@ -170,6 +205,13 @@ def evaluate_covenant_policy(
 
 Create `openapi/spec.py` containing the OpenAPI 3.0 specification for Sovereign Horizon Bank's Core Banking Gateway:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # In openapi/spec.py
 # ============================================================================
@@ -214,6 +256,13 @@ CORE_BANKING_SPEC = {
 
 Combine both toolsets into a unified `Agent` node in `agent.py`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # In agent.py
 import json
@@ -255,6 +304,13 @@ from tools.financial_math import (
 
 Test your agent in the interactive terminal using realistic banking queries:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run adk run .
 ```
@@ -273,6 +329,13 @@ uv run adk run .
 
 As mandated by `GEMINI.md`, test your lab instructions using the automated student evaluation skill:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 python3 -m google.adk.cli run .agent/skills/adk-student-evaluator --input_path training/module11_5-enterprise-credit-underwriting/lab.md
 ```

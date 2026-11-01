@@ -57,6 +57,13 @@ Write the desired outcome in one sentence, then identify inputs, operations, out
 
 From the repository root:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 cd training/module25_5-rai-safety-plugins/example
 uv sync --locked --python 3.11
@@ -126,6 +133,13 @@ The blocks below follow the runnable files. Class-method excerpts belong inside 
 
 ### bank_review/safety.py
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import json
 import os
@@ -142,6 +156,13 @@ Imports make the documented Python, Google and ADK names available. Relative imp
 
 The service enums distinguish success from partial/failure and no-match from match/unspecified. The function maps these combinations to three explicit application outcomes; missing information is never treated as a clean scan.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def verdict(result) -> str:
     """An incomplete/unspecified service result never counts as a clean scan."""
@@ -159,6 +180,13 @@ def verdict(result) -> str:
 
 The object owns a reusable official asynchronous Google client. Client creation is deferred until a call is made, so imports and contract tests do not need credentials. The template resource supplies the regional endpoint; the Gemini model region is a separate setting.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 class ModelArmorInspector:
     def __init__(self):
@@ -169,6 +197,13 @@ class ModelArmorInspector:
 
 Validate the size and template shape, construct DataItem, select the user-prompt or model-response RPC, then await it with a ten-second timeout and automatic retries disabled. These choices make the latency/error budget visible. The returned service result is mapped by verdict.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def inspect(self, text: str, response: bool = False) -> str:
     # Use the template’s region and typed Google request; the timeout bounds this inspection attempt.
@@ -215,6 +250,13 @@ async def inspect(self, text: str, response: bool = False) -> str:
 
 Release the asynchronous client transport when Runner closes the plugin. Resource cleanup matters in tests, CLI runs and hosted worker shutdown.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def close(self):
     # Release the owned asynchronous transport when the application runtime shuts down.
@@ -226,6 +268,13 @@ async def close(self):
 
 Package one fixed text string in a correctly typed Content/Part object. The role distinguishes the replacement user message from the assistant reply.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def message(role: str, text: str) -> types.Content:
     # Content holds the role and Parts; a Python string alone is not an ADK replacement message.
@@ -236,6 +285,13 @@ def message(role: str, text: str) -> types.Content:
 
 This BasePlugin subclass holds an inspector, not request counters. Tests inject a deterministic inspector; the live factory uses ModelArmorInspector. The same lifecycle hooks execute in both cases.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 class BankingSafety(BasePlugin):
     def __init__(self, inspector=None):
@@ -247,6 +303,13 @@ class BankingSafety(BasePlugin):
 
 Convert inspection exceptions and unsupported verdicts to unavailable. Do not expose exception details or raw content to the user. Cancellation is not caught by this Exception handler on the tested Python version.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def check(self, text: str, response: bool = False) -> str:
     # Translate an inspection failure into unavailable so missing evidence of safety does not grant permission.
@@ -262,6 +325,13 @@ async def check(self, text: str, response: bool = False) -> str:
 
 Reject unsupported parts, inspect all user text, and return None only for allow. A replacement Content changes what ADK stores. The temporary flag includes invocation_id so unrelated invocations do not share one Boolean control flag.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def on_user_message_callback(self, *, invocation_context, user_message):
     # Replace blocked input before persistence, and pass the decision to the subsequent run hook.
@@ -282,6 +352,13 @@ async def on_user_message_callback(self, *, invocation_context, user_message):
 
 Reject streaming mode, then remove and consume this invocation’s block flag. Returning a model Content short-circuits the run. Returning None allows normal execution. Serialize simultaneous turns within one conversation at the serving boundary.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def before_run_callback(self, *, invocation_context):
     # Consume only this invocation’s decision so a previous blocked request cannot stop an unrelated run.
@@ -298,6 +375,13 @@ async def before_run_callback(self, *, invocation_context):
 
 Serialize the proposed tool name and arguments as data for inspection. A withheld dictionary becomes the result instead of executing the tool. Content inspection is distinct from the tool’s own authorization checks.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def before_tool_callback(self, *, tool, tool_args, tool_context):
     # Inspect before executing the body; replacing its response prevents this proposed operation.
@@ -311,6 +395,13 @@ async def before_tool_callback(self, *, tool, tool_args, tool_context):
 
 Inspect the returned dictionary before the model consumes it. A withheld dictionary replaces it if inspection blocks or fails. The underlying tool may already have produced side effects; this is not rollback.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def after_tool_callback(self, *, tool, tool_args, tool_context, result):
     # A returned result is available here; returning None preserves it for subsequent processing.
@@ -324,6 +415,13 @@ async def after_tool_callback(self, *, tool, tool_args, tool_context, result):
 
 Handle absent content, reject unsupported non-text shapes, inspect all generated text, and copy the response when replacing it. The entire blocked content is removed deliberately. Function-call-only output is inspected later at before_tool.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def after_model_callback(self, *, callback_context, llm_response):
     # Inspect every supported text part before publishing this non-streaming model response.
@@ -349,6 +447,13 @@ async def after_model_callback(self, *, callback_context, llm_response):
 
 Release the asynchronous client transport when Runner closes the plugin. Resource cleanup matters in tests, CLI runs and hosted worker shutdown.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async def close(self):
     # Release the owned asynchronous transport when the application runtime shuts down.
@@ -357,6 +462,13 @@ async def close(self):
 
 ### bank_review/agent.py
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import os
 from google.adk.agents import Agent
@@ -370,6 +482,13 @@ Imports make the documented Python, Google and ADK names available. Relative imp
 
 This deterministic fixture returns one allowed teaching record. Real bank access belongs in a trusted adapter; a no-match inspection verdict must never be used as an access grant.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def read_checklist(case_id: str) -> dict:
     """Return a fictional case summary; content inspection does not authorize access."""
@@ -387,6 +506,13 @@ def read_checklist(case_id: str) -> dict:
 
 Attach one BankingSafety instance to App.plugins. The agent itself stays focused on review preparation. Deployment must load app, preserving plugin registration, rather than reconstructing an unprotected Runner around root_agent alone.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def build_app(model=None, inspector=None) -> App:
     # Attach the configured root agent to an App; provider services are supplied by Runner.
@@ -428,6 +554,13 @@ Read `run.py` alongside the [Google Cloud lab guide](../module23-artifacts/googl
 
 After editing `.env` using the cloud guide:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python run.py "Read the checklist for CASE-001."
 ```
@@ -453,6 +586,13 @@ The built-in Gemini safety settings and Model Armor are distinct controls. Recor
 
 Deploy through the [native Agent Runtime path](../module23-artifacts/google-cloud-lab-guide.md#deploy-the-reviewed-package-to-agent-runtime), then run:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```bash
 uv run --env-file .env python check_deployed.py \
   --resource projects/PROJECT/locations/REGION/reasoningEngines/RUNTIME_ID
@@ -481,3 +621,13 @@ Before changing the code, write the new requirement, changed boundary, failure s
 ## Continue with the integrated customer exercise
 
 The [integrated banking lab](../module26-callbacks/integrated-lab.md) connects the authorized Firestore read, deterministic next step, versioned artifacts, Gemini explanation, evaluation, logging and Model Armor in one App. Complete its live and deployed checkpoints after the isolated lesson. Its scope excludes an unimplemented ledger adapter and credit approval.
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+

@@ -23,6 +23,13 @@ By the end of this module, you will understand:
 
 To understand why custom tool engineering requires strict discipline, consider the post-mortem from **FinTech Nexus**, an enterprise financial services provider managing billing automation for over 80,000 corporate clients.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     User["Corporate Client Prompt"] -->|"Apply 15% promotional discount"| LLM["Gemini Reasoning Engine"]
@@ -34,6 +41,13 @@ flowchart TD
 ### The Incident
 During a major Black Friday promotional campaign, FinTech Nexus rolled out an autonomous account executive agent equipped with a hastily written tool:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # The Fragile Prototype (Anti-Pattern)
 def apply_discount(account_id, discount):
@@ -100,6 +114,13 @@ Think of an elite private bank:
 
 When you attach a Python function to an ADK `Agent(tools=[...])`, ADK executes an automated reflection pipeline using Python's `inspect` module:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart LR
     A["Python Function Definition<br/>(Signature + Type Hints + Docstring)"] --> B["ADK Schema Inspector"]
@@ -110,6 +131,13 @@ flowchart LR
 ### The Translation in Action
 Look at how each element of your Python function maps directly into the JSON schema sent to Gemini:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from typing import Literal
 
@@ -132,6 +160,13 @@ def calculate_shipping(
 
 ADK automatically compiles this into the following **OpenAPI 3.0 / Gemini FunctionDeclaration**:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```json
 {
   "name": "calculate_shipping",
@@ -186,6 +221,13 @@ To prevent the financial and operational crashes experienced by FinTech Nexus, e
 ### 4. Structured Output Models (`Pydantic.BaseModel`)
 * While Python dictionaries work, returning a typed `pydantic.BaseModel` provides compile-time checking, IDE autocomplete, and enforces strict schema contracts with Gemini:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from pydantic import BaseModel, Field
 
@@ -207,6 +249,13 @@ class TaxReport(BaseModel):
 In real enterprise systems, tools often need access to the current session, database connection pools, or authenticated user credentials.
 
 **Critical Enterprise Vulnerability:** Never ask Gemini to pass authentication tokens or user IDs as tool arguments:
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # ❌ CATASTROPHIC SECURITY VULNERABILITY
 def view_account_balance(user_id: str, bearer_token: str):
@@ -217,6 +266,13 @@ If you do this, a malicious user can use prompt injection to trick Gemini into p
 ### The Secure Solution: `ToolContext`
 ADK 2.0 provides `ToolContext`. When you add `tool_context: ToolContext` to your function parameters, **ADK automatically intercepts it and injects the live context on the host runtime**. Gemini never sees `tool_context` in its schema and cannot alter it:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk.tools import ToolContext
 
@@ -238,6 +294,13 @@ def view_account_balance(tool_context: ToolContext) -> dict:
 
 In ADK 2.0, registering custom tools is clean and declarative. You simply import your Python functions and pass them to the `tools` list of your `Agent` node:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.adk import Agent
 from .tools.calculator import (

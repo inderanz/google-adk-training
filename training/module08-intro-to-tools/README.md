@@ -37,6 +37,13 @@ Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [
 
 A tool call is proposed by the model and executed by trusted application code.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Gemini receives tool declaration] --> B[Model requests named tool]
@@ -67,6 +74,13 @@ Believing the AI had synthesized the morning's breaking disclosure, the trading 
 
 Within 45 minutes, the stock cratered **68%**, wiping out **\$9.5M in capital** in a single morning, triggering emergency risk freezes, and prompting an immediate inquiry from compliance regulators.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     subgraph BlindModel["❌ The Ungrounded Model Trap (BioPharm Disaster)"]
@@ -109,6 +123,13 @@ In an LLM without tools, the model is purely generative: it predicts the most st
 
 How does a probabilistic neural network invoke a typed Python function? Google ADK orchestrates this through a standardized 5-stage cycle known as **Function Calling**:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 sequenceDiagram
     autonumber
@@ -169,6 +190,13 @@ When building custom tools, **type hints and docstrings are not optional formatt
 
 Gemini uses your parameter descriptions to decide what data to pass. Consider this official pattern from the Google ADK specification:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 def lookup_company_filing(
     ticker: str, filing_type: str = "10-K", year: int = 2026

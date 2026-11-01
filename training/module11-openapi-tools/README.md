@@ -40,6 +40,13 @@ ADK provides the toolset. The bank's API service, optionally governed through Ap
 To understand why hand-crafted API wrappers fail in enterprise production, consider the post-mortem from **GlobalCore Bank**, an international commercial institution processing over \$40B in daily transactions.
 
 ### Review this lesson through three perspectives
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     User["Adviser Prompt:<br/>'Wire $50,000 to Account-99'"] --> LLM["Gemini Reasoning Engine"]
@@ -55,6 +62,13 @@ flowchart TD
 GlobalCore deployed an autonomous wealth management copilot to help portfolio advisers execute customer transactions. To connect the agent to the bank's core payments gateway, the engineering team wrote custom Python wrappers using `requests`:
 
 Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # The Fragile Hand-Coded Wrapper (Anti-Pattern)
 def execute_wire_transfer(source_account: str, dest_account: str, amount: float):
@@ -131,6 +145,13 @@ Compare the two architectural approaches to enterprise API integration:
 When you instantiate `OpenAPIToolset`, ADK parses the OpenAPI 3.0 document and constructs tool definitions dynamically:
 
 An OpenAPI 3.0 specification is a machine-readable JSON or YAML document describing RESTful HTTP endpoints. Key fields parsed by ADK 2.0 include:
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart LR
     A["OpenAPI 3.0 Spec<br/>(JSON / YAML)"] --> B["ADK OpenAPIToolset Engine"]
@@ -181,6 +202,13 @@ In enterprise systems, internal APIs require authentication:
 
 **The Solution:** Inject headers at the HTTP transport layer using `httpx_client_factory`. The model never sees the credentials; they are attached automatically during outbound dispatch:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import json
 import httpx
@@ -215,6 +243,13 @@ Large enterprise systems often have monolithic OpenAPI specifications covering 5
 **Production Rule:** Filter the OpenAPI specification dictionary before instantiating `OpenAPIToolset`. Strip un-approved paths and expose only the specific operations required for the agent's business role:
 
 In enterprise banking, endpoints require strict authentication (OAuth2 Bearer Tokens, Mutual TLS, API Keys).
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # Whitelist only approved business operations:
 ALLOWED_OPERATIONS = {"get_account_balance", "execute_wire_transfer"}
@@ -242,6 +277,13 @@ Because the developer's laptop is not on the corporate VPN, macOS/Linux DNS cann
 
 * **Spec Whitelisting:** When dealing with 1,000+ endpoint specs, filter the dictionary to expose ONLY business-approved operations to Gemini, reducing prompt token bloat and preventing accidental invocation of administrative endpoints.
 * **Defensive Error Handling:** Handle HTTP 401 (Unauthorized), 403 (Forbidden), 404 (Not Found), and 422 (Validation Error) gracefully so the agent explains API issues politely without crashing the execution loop.
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import httpx
 
@@ -272,6 +314,13 @@ toolset = OpenAPIToolset(
 Below is the complete, production-grade Python solution demonstrating a Banking Agent connected to a Core Banking OpenAPI 3.0 specification:
 Here is the production-grade implementation of an enterprise Core Banking Agent using `OpenAPIToolset` and `httpx.MockTransport`:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 """
 Enterprise Banking Agent with OpenAPI 3.0 Toolset (ADK 2.0)
@@ -495,6 +544,13 @@ Always confirm transaction IDs and dollar figures clearly.
 Here is the exact runtime sequence when Gemini invokes an OpenAPI tool generated by `OpenAPIToolset`:
 Before approving any OpenAPI-integrated agent for staging or production, verify all 6 gates:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Approved OpenAPI operation] --> B[OpenAPIToolset exposes schema]

@@ -55,6 +55,13 @@ Imagine you are building an IT Support Agent for an enterprise client. A user re
 > *"My VPN connection dropped with error code 0x80070002. Here is a screenshot of my network adapter settings."*
 
 If your agent framework only accepted Python strings (`str`), you would be stuck:
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # The Fragile "Raw String" Approach:
 user_input = "My VPN dropped. [Screenshot data: iVBORw0KGgoAAAANSUhEUgAA...]"
@@ -71,6 +78,13 @@ That container is **`google.genai.types.Content`**.
 
 In ADK 2.0 and the `google-genai` SDK, every message exchanged between a user, an agent, and an LLM is represented as a **`Content`** object made of one or more **`Part`** objects.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     subgraph ContentObject["Content: Represents One Conversational Turn"]
@@ -117,6 +131,13 @@ If you are new to Python, the syntax for creating `types` objects might look unf
 In Python, when you call a class like a function, you are creating a new **instance** of that object:
 In Python, when you write `ClassName(argument=value)`, you are calling a **constructor** to create a brand-new object in memory:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 from google.genai import types
 
@@ -129,6 +150,13 @@ text_part = types.Part(text="Hello, how can I configure SSO?")
 Typing `types.Part(text=...)` works, but the Google SDK provides **factory methods**—convenient helper functions attached to the class that construct the object cleanly for you:
 Typing `types.Part(text=...)` works, but the SDK provides **factory methods**—specialized helper functions attached directly to the `Part` class that make object creation cleaner, self-documenting, and less error-prone:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # Equivalent, but more explicit and canonical in ADK:
 # 'from_text' is a factory method that packages a plain string into a typed Part object
@@ -139,6 +167,13 @@ For binary files (like an image or a PDF):
 #### Python Deep Dive: How to Read and Attach Binary Files (PDFs, Images, Audio)
 When dealing with non-text files (like a PDF report, screenshot, or audio recording), we cannot read them as normal text. We must read their raw **binary bytes** (the exact 0s and 1s stored on disk):
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # 1. 'open()' is a built-in Python function that accesses a file on your hard drive.
 # 2. "rb" stands for "Read Binary" mode (mandatory for PDFs, PNGs, and audio).
@@ -160,6 +195,13 @@ part_b = types.Part.from_bytes(
 #### 3. Assembling the `Content` Object
 Once you have your individual parts (whether text, PDFs, or images), you group them into a single `types.Content` object representing one turn:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # Create a single conversation turn containing both the text summary and the PDF attachment
 user_turn = types.Content(
@@ -184,6 +226,13 @@ Now you have a structured, type-safe payload ready for the ADK runner.
 
 In Module 06, you saw how `runner.run_async()` executes. Here is the exact interaction where `types.Content` enters the pipeline:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Build Content with Parts] --> B[Submit through Runner]
@@ -204,6 +253,13 @@ When inspecting streaming events emitted by an agent, not every event contains t
 
 In production code, always inspect `event.content` defensively:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 async for event in runner.run_async(
     user_id="alice", session_id="s1", new_message=user_turn
@@ -233,6 +289,13 @@ Here is why FDEs strictly use `google.genai.types`:
 
 #### 1. Compile-Time Type Checking (`mypy` / `pyright`)
 If you use raw dictionaries:
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # DANGEROUS: Silent runtime bug!
 bad_message = {
@@ -243,6 +306,13 @@ bad_message = {
 An untyped dictionary does not by itself tell Python which keys are valid. Depending on the receiving API, an error may be caught locally, rejected remotely or remain unnoticed until the value is used.
 
 With `google.genai.types`:
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # SAFE: MyPy flags invalid arguments instantly
 message = types.Content(role="user", parts=[types.Part.from_text(text="Hello")])
@@ -256,6 +326,13 @@ ADK session providers persist conversation data; Module 13.5 stores case records
 
 Enterprise clients require strict security and compliance controls. In production agent architectures, security is never a single toggle. Instead, enterprise Forward-Deployed Engineers (FDEs) implement a **Defense-in-Depth** strategy separating **In-Model Safety Settings** from **Perimeter Guardrails (Model Armor)**.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
     User["Untrusted User Input"] --> Layer1["Layer 1: Perimeter Guardrail\n(Google Cloud Model Armor)"]
@@ -295,6 +372,13 @@ flowchart TB
 
 `generate_content_config` is part of the agent's core model settings. You configure it inside `agent.py` to tune temperature, output length, and Gemini's built-in neural harm filters:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # File: agent.py
 from google.adk import Agent
@@ -345,6 +429,13 @@ This is where **Google Cloud Model Armor** sits at the application perimeter.
 
 ###### Real Model Armor API Implementation:
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 # File: main.py
 import asyncio

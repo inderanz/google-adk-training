@@ -37,6 +37,13 @@ Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [
 
 Illustrative progressive disclosure. Model selection must be evaluated, and tool access stays explicit.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TB
   A[Request and skill metadata] --> B[Select relevant skill]
@@ -64,6 +71,13 @@ By month six, disaster struck:
 
 The team attempted to fix this with more prompt engineering, but it was impossible: **you cannot dump an entire enterprise's operating manuals into a single agent prompt.**
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     subgraph Monolithic_Bloat["❌ The Monolithic Trap (180k Tokens)"]
@@ -108,6 +122,13 @@ In enterprise environments (such as Gemini Enterprise or banking platforms), org
 * **Semantic Discovery (`search_skills`):** Agents execute vector semantic search against the enterprise skill catalog to discover relevant skills dynamically.
 * **Sandboxed Execution:** In production, scripts are never executed via `UnsafeLocalCodeExecutor`. They run inside isolated Google Cloud Run containers or gVisor sandboxes with strict network boundaries.
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```python
 import pathlib
 from google.adk.agents import Agent

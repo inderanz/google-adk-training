@@ -49,6 +49,13 @@ The following is a target deployment. The example implements the agent/tools and
 
 ### Conversation path
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     Analyst["Authenticated bank analyst"] --> Entry["Application authorizes<br/>the session request"]
@@ -60,6 +67,13 @@ Gemini model calls happen during Runner execution. Agent Runtime, Cloud Run, or 
 
 ### Business-data path
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 flowchart TD
     Tool["ADK tool validates arguments<br/>and obtains trusted user ID"] --> Read["Firestore transaction<br/>reads the case"]
@@ -230,6 +244,13 @@ Hand over the specification, architecture, identity map, source/record owners, t
 
 ## 🏛️ The 4 Tenets of Production Session & Record Persistence
 
+<!-- TEACHER_NOTE_START -->
+**Teacher's note (ADK instructor view):**
+- **Learning goal:** Explain the concept clearly from beginner to advanced, with a simple mental model first.
+- **Why it matters:** Connect the concept to real Google agentic workflows, Python engineering habits, and production-ready decisions.
+- **Version watch:** Validate against the latest official ADK / Google docs before teaching; call out deprecations or migration notes when needed.
+- **Module linkage:** Connect this idea to the previous and next modules so learners see the progression across the course.
+<!-- TEACHER_NOTE_END -->
 ```mermaid
 graph TD
     T1["1. The Storage Triad<br/>(Events vs. Working State vs. System of Record)"]
@@ -286,3 +307,13 @@ Do not write custom `FirestoreSessionService` classes. Official ADK exports `Dat
 - Google Cloud Firestore Python SDK: https://cloud.google.com/python/docs/reference/firestore/latest
 - Gemini Enterprise Agent Platform Sessions: https://docs.cloud.google.com/gemini-enterprise-agent-platform/agents
 - Federal Reserve SR 11-7 (Model Risk Management): https://www.federalreserve.gov/supervisionreg/srletters/sr1107.htm
+---
+
+## Official References
+
+- Google ADK docs (latest): https://google.github.io/adk-docs/
+- Google AI / Gemini docs: https://ai.google.dev/
+- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
+- Context7 / current SDK lookup for the exact installed version and API signatures
+- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+
