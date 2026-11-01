@@ -1,6 +1,5 @@
 ---
 sidebar_position: 2
-title: "Challenge Lab"
 title: "Challenge Lab: Enterprise Core Banking OpenAPI Integration"
 ---
 

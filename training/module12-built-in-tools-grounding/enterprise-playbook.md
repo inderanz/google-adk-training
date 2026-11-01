@@ -109,6 +109,54 @@ Many enterprise decisions depend on internal documents, policies, procedures, an
 ### Anti-pattern 4: ignoring source quality and retrieval quality
 A grounded answer is only as strong as the retrieval layer feeding it.
 
+---
+
+## 🏛️ The 4 Tenets of Production Grounding Architecture
+
+```mermaid
+graph TD
+    T1["1. Tool Coexistence Boundary<br/>(Isolate google_search from Client Functions)"]
+    T2["2. Forensic Citation Lineage<br/>(Extract event.grounding_metadata)"]
+    T3["3. Tri-Modal Grounding Routing<br/>(Web vs. Geospatial vs. Private RAG)"]
+    T4["4. Defensive Fallback Governance<br/>(Fed SR 11-7 Audit Lineage)"]
+
+    T1 --> T2
+    T2 --> T3
+    T3 --> T4
+```
+
+### Tenet 1: The Tool Coexistence Boundary (Isolate Search from Function Calling)
+The underlying Gemini API treats Google Search grounding as a managed server-side execution pipeline distinct from the client-side function-calling protocol. Placing `google_search` and custom Python functions inside the same `Agent.tools` list triggers an immediate `400 INVALID_ARGUMENT` runtime error. In enterprise workflows, always decouple search into a dedicated specialist agent and compose via sequential multi-agent pipelines (Module 15).
+
+### Tenet 2: Forensic Citation Lineage (Capture Metadata at the Source)
+A plain text response is legally indefensible in regulated industries. Production applications must extract `event.grounding_metadata` programmatically via `InMemoryRunner`, capturing:
+1. `web_search_queries`: Proves what queries the model formulated.
+2. `grounding_chunks`: Clickable primary-source URLs (`chunk.web.uri`) and page titles.
+3. `grounding_supports`: Sentence-level attribution linking specific paragraphs to retrieved source indices.
+
+### Tenet 3: Tri-Modal Grounding Routing (Select the Right Knowledge Layer)
+Enterprises must route questions to the correct grounding modality rather than treating all external lookups as generic web searches:
+- **Public Web Grounding (`google_search`):** For adverse news, litigation dockets, and competitor moves.
+- **Geospatial Grounding (`google_maps_grounding`):** For branch verification and logistics routing.
+- **Private Enterprise Grounding (Vertex AI Search Datastores):** For proprietary underwriting manuals, loan agreements, and customer PII.
+
+### Tenet 4: Defensive Fallback Governance (Fed SR 11-7 Compliance)
+Never allow an agent to hallucinate facts when a search query yields zero results or when conversational turns bypass search (`event.grounding_metadata is None`). The application must enforce defensive fallback schemas, confirming whether a clean background check is a verified finding or a retrieval failure.
+
+---
+
+## ⚠️ Enterprise Anti-Pattern Comparison Matrix
+
+| Architectural Dimension | ❌ High-Risk Anti-Pattern | ✅ Google FDE Production Standard | Consequence of Failure |
+|---|---|---|---|
+| **Tool Registration** | `tools=[google_search, query_database]` in a single agent | Dedicated search agent composed sequentially with data agents | Immediate `400 INVALID_ARGUMENT` runtime crash. |
+| **Citation Handling** | Displaying raw text and discarding `event.grounding_metadata` | Parsing metadata into typed Pydantic models (`GroundedAuditReport`) | Inability to prove provenance under Fed SR 11-7 regulatory audit. |
+| **Search Verification** | Trusting the model's self-generated URLs in generated prose | Extracting verified `chunk.web.uri` from Google Search metadata | Hallucinated dead-link URLs presented to executives. |
+| **Private Data Queries** | Using `google_search` to query internal bank policies or borrower PII | Using Vertex AI Search Datastores with IAM access controls | Data leak into public search engine pipelines; zero hits on private docs. |
+| **Conversational Guarding** | Assuming `event.grounding_metadata` is always populated | Defensive `if event.grounding_metadata:` checks before access | `AttributeError: 'NoneType' object has no attribute 'web_search_queries'` crash on greeting turns. |
+
+---
+
 ## Grounding as a design asset
 
 The real value of this module is not simply that the model can search the web. The value is that the model can operate in context with real-world information and can make a better decision when the answer depends on current external facts.
