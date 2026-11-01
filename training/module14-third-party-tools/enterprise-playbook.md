@@ -190,3 +190,61 @@ A customer changes the request: “We need private, per-region supplier risk dat
 Identify which assumptions no longer hold. Explain the new authorization boundary, approved public-query inputs, source comparison policy, regional deployment decisions, and evaluation cases. Then propose a staged delivery plan and measurable acceptance criteria before adding tools.
 
 <!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module14-third-party-tools-enterprise-playbook -->
+---
+
+## 🏛️ The 4 Tenets of Adapted & Third-Party Tool Architecture
+
+```mermaid
+graph TD
+    T1["1. The Adapter Boundary<br/>(Interface Translation ≠ Data Authority)"]
+    T2["2. Bounded Parameter Schema<br/>(Strict Pydantic Input Validation)"]
+    T3["3. Curated Repository Governance<br/>(BigQuery IAM vs Public Scrapes)"]
+    T4["4. Explicit Abstention<br/>(Fail Closed on Stale or Missing Data)"]
+
+    T1 --> T2
+    T2 --> T3
+    T3 --> T4
+```
+
+### Tenet 1: The Adapter Isolation Boundary (Interface Translation ≠ Data Authority)
+ADK's `LangchainTool` adapter bridges Python calling interfaces between LangChain and the Google ADK runtime. It converts argument schemas and serializes returns. Crucially, the adapter DOES NOT validate whether the data source is accurate, authenticated, or compliant. Enterprises must treat adapted tools with the same zero-trust scrutiny as raw custom functions.
+
+### Tenet 2: Bounded Parameter Schema (Canonical Keys Over Fuzzy Names)
+Never allow third-party tools to perform uncontrolled free-text searches for sensitive corporate entities. Require explicit Pydantic schemas (`args_schema=CompanyLookupArgs`) demanding canonical identifiers (`company_id: "ACME-001"`). If an identifier is missing or ambiguous, the agent must ask for clarification rather than inferring an identity.
+
+### Tenet 3: Curated Repository Governance (Scoped BigQuery Over Web Scraping)
+In high-stakes enterprise workflows, replace open-web tools (e.g., Wikipedia scrapers) with curated enterprise repositories. Use Google Cloud BigQuery tables governed by strict IAM (`roles/bigquery.jobUser` and `roles/bigquery.dataViewer`), reviewed data freshness metadata, and deterministic SQL queries.
+
+### Tenet 4: Explicit Abstention & Freshness Enforcement
+If an entity record does not exist in the curated store, or if the `review_date` exceeds the bank's 90-day freshness ceiling, the tool must return an explicit structured error (`status="stale"` or `status="not_found"`). The model must never fall back to generative fiction or guess details about unverified companies.
+
+---
+
+## ⚠️ Enterprise Anti-Pattern Comparison Matrix
+
+| Architectural Dimension | ❌ High-Risk Anti-Pattern | ✅ Google FDE Production Standard | Consequence of Failure |
+|---|---|---|---|
+| **Data Authority** | Plugging community LangChain Wikipedia tools into credit triage | Curated enterprise BigQuery tables with audited schemas | Entity name collision causes $9.5M wrongful credit rejection lawsuit. |
+| **Input Arguments** | Model passes loose search strings: `query="Apex Robotics"` | Strict Pydantic model with canonical ID: `company_id="ACME-001"` | Multiple subsidiaries or unrelated companies confused in reports. |
+| **Data Freshness** | Accepting company records without timestamp verification | Enforcing 90-day freshness check (`status="stale"`) | Outdated bankruptcy or ownership records treated as current truth. |
+| **Missing Records** | Model hallucinates plausible company details on lookup failure | Explicit abstention: agent reports record missing and stops | Hallucinated revenue or leadership profiles presented to committee. |
+| **Dependency Scope** | Importing monolithic framework libraries into production runtimes | Lean adapter wrapper importing strictly `langchain_core` | Dependency bloat, container startup delays, and CVE security exposure. |
+
+---
+
+## 🔗 Related Course Curriculum
+
+* [Module 09 Theory](../module09-intro-custom-function-tools/README.md) — Custom function tools and Pydantic schemas.
+* [Module 11 Theory](../module11-openapi-tools/README.md) — Zero-adapter OpenAPI tools.
+* [Module 13.5 Theory](../module13_5-firestore-persistence/README.md) — Durable ADK sessions and Firestore persistence.
+* [Enterprise ADK Roadmap](../enterprise-adk-roadmap.md) — Complete master roadmap for Google ADK enterprise architecture.
+
+---
+
+## 📚 Official References
+
+- Google ADK Third-Party Tools: https://google.github.io/adk-docs/tools/
+- Google ADK LangChain Integration: https://adk.dev/tools-custom/
+- LangChain Core Tools Documentation: https://python.langchain.com/docs/concepts/tools/
+- Google Cloud BigQuery Python Client: https://cloud.google.com/python/docs/reference/bigquery/latest
+- Federal Reserve SR 11-7 (Model Risk Management): https://www.federalreserve.gov/supervisionreg/srletters/sr1107.htm

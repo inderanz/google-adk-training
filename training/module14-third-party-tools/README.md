@@ -69,6 +69,26 @@ If the company ID is missing, the assistant asks for it. It does not guess an ID
 
 The assistant prepares background information. It does not approve a loan or establish that the company has passed financial or regulatory checks.
 
+---
+
+### 🚨 The Operational Disaster: The $9.5M Wikipedia Entity Collision at Sovereign Horizon Bank
+
+During preliminary underwriting for a \$25,000,000 commercial expansion facility, an eager innovation team deployed a prototype due diligence agent. To save engineering time, the developers equipped the agent with an off-the-shelf open-source LangChain community tool: `WikipediaQueryRun`.
+
+When relationship manager Meera asked the agent:
+> *"Provide a commercial company overview for Apex Robotics before my credit committee briefing."*
+
+The unvalidated third-party tool queried Wikipedia with an unconstrained fuzzy text search. Instead of retrieving the audited profile of **Apex Robotics Inc.** (a highly profitable, ISO-13485-certified surgical robotics manufacturer based in San Jose, California), the tool matched a defunct Florida entity named *Apex Robotics LLC*—a defunct theme park animatronics workshop that had filed for Chapter 7 liquidation in 2023 following a fatal equipment collapse.
+
+The consequences were immediate and severe:
+1. **Wrongful Credit Denial:** The model synthesized a devastating report: *"Borrower is currently undergoing Chapter 7 liquidation following catastrophic safety violations."* The credit committee promptly rejected the loan facility.
+2. **The $9.5M Breach-of-Contract Lawsuit:** Apex Robotics Inc. was forced to forfeit a \$50,000,000 hospital procurement contract due to delayed financing and filed a \$9.5M commercial tort and defamation suit against Sovereign Horizon Bank.
+3. **The Architectural Mandate:** The bank's Chief Risk Officer immediately banned all uncurated third-party tools and unconstrained public scrapers.
+
+> *"Reusing existing Python tools through adapters like `LangchainTool` is an excellent way to prevent framework rewrites,"* notes the Principal FDE. *"However, an adapter connects code interfaces—it does NOT validate data authority. In enterprise banking, third-party tools must query curated, schema-enforced repositories like **Google Cloud BigQuery** using canonical entity IDs (`ACME-001`), with strict freshness thresholds, bounded IAM permissions, and explicit abstention when records are missing or stale."*
+
+---
+
 ## Why is this a lesson about third-party tools?
 
 Now consider a separate request from the bank's technology team:
