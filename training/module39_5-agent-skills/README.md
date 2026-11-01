@@ -47,34 +47,66 @@ flowchart TB
 
 ## Theory
 
-### What is a Skill?
+### 1. The Scenario: The Bloated 400-Tool Support Bot at Horizon Telecom
 
-You've learned how to give agents basic tools (like calculators or weather APIs) to extend their capabilities. But what happens when an agent needs to perform a highly complex, domain-specific task? 
+*Consider this classic architectural breakdown at enterprise scale.*
 
-A **Skill** is a self-contained package that provides an agent with specialized procedural knowledge. Think of it as an "onboarding manual" for a specific job. While a basic tool is just a function, a Skill bundles together:
+Horizon Telecom built an ambitious AI assistant to support 15,000 corporate agents and retail stores. The team started enthusiastically:
+- They added tools for SIM provisioning.
+- They added tools for broadband diagnostics.
+- They added tools for corporate billing adjustments, eSIM swaps, roaming packs, and 5G network towers.
+- Each time a department joined, their 20-page Standard Operating Procedure (SOP) was pasted into the agent's system prompt.
 
-1.  **Instructions (`SKILL.md`):** High-level guidance on *when* and *how* to perform the task.
-2.  **References (`references/`):** Domain-specific documentation (e.g., schemas, style guides) that the agent can read *if* it needs it.
-3.  **Scripts (`scripts/`):** Executable code for tasks that require deterministic reliability (e.g., a Python script to parse a complex PDF, rather than trusting the LLM to write the code from scratch).
-4.  **Tools (`additional_tools`):** The standard Python functions the skill relies on.
+By month six, disaster struck:
+1. **Context Window Suffocation:** The agent's base system prompt swelled past **180,000 tokens** before a single customer even typed "hello".
+2. **First-Token Latency Crisis:** Every prompt took 14 seconds just to process the static prompt tokens.
+3. **Severe Tool Confusion:** When a user asked: *"Can you help reset my device PIN?"*, the LLM got confused between the 40 different reset tools and called `factory_reset_cellular_tower_node()`.
 
-### The Problem: Context Window Bloat
+The team attempted to fix this with more prompt engineering, but it was impossible: **you cannot dump an entire enterprise's operating manuals into a single agent prompt.**
 
-If you put the instructions, schemas, and logic for every possible task directly into your agent's system prompt, you will quickly exhaust the LLM's context window. This makes the agent slow, expensive, and easily confused.
+```mermaid
+flowchart TD
+    subgraph Monolithic_Bloat["❌ The Monolithic Trap (180k Tokens)"]
+        M1["Root Prompt Loaded with 400 Tools<br/>& 20 Enterprise Manuals"] --> M2["Massive 14s Latency<br/>Skyrocketing Token Bills"]
+        M2 --> M3["💥 Tool Confusion & Hallucinations"]
+    end
 
-### The Solution: Progressive Disclosure
+    subgraph Progressive_Disclosure["✅ Enterprise Agent Skills (Under 1k Tokens)"]
+        S1["Lightweight Root Agent<br/>(Only loads skill name & description)"] --> S2{"User Intent Match?<br/>'Device PIN Reset'"}
+        S2 -- Dynamic Load --> S3["Load 'pin-reset-skill'<br/>(Reads SKILL.md on-demand)"]
+        S3 --> S4["Deterministic Script Execution<br/>Isolated & Sandboxed"]
+        S4 --> S5["🚀 Instant Latency & Zero Tool Confusion"]
+    end
+```
 
-Skills solve this through **Progressive Disclosure**:
-1.  The agent is only given the name and a short description of the Skill.
-2.  If the user's request matches the description, the agent *activates* the Skill.
-3.  Only then are the instructions (`SKILL.md`) loaded into the context window.
-4.  If the instructions say to read a specific reference file, the agent uses a tool to read just that file.
+---
 
-This keeps the main agent incredibly lightweight, loading heavy documentation only precisely when needed.
+### 2. The Solution: Agent Skills & Progressive Disclosure
 
-### Using Skills in the ADK
+To resolve this crisis, Google ADK introduced **Agent Skills**—a standardized framework for packaging and delivering on-demand procedural intelligence.
 
-In the modern ADK, Skills are managed using the `SkillToolset`. Note that as of ADK 2.0, the Skills feature is still marked **experimental** in the official documentation — pin the API used by the lab and recheck compatibility before adopting or upgrading it. An experimental feature is not a stability promise.
+A **Skill** is not a simple Python function; it is a self-contained, versioned operational package containing:
+1. **`SKILL.md` (Metadata + Instructions):** 
+   - **Frontmatter (`name`, `description`):** The only part loaded initially. It tells the agent *when* the skill is relevant.
+   - **Markdown Body:** The exact procedural step-by-step instructions, loaded into context *only when the skill is invoked*.
+2. **`references/` (Domain Knowledge):** Auxiliary schemas, error codes, and style guides that the agent reads dynamically using file-reading tools if needed.
+3. **`scripts/` (Deterministic Code):** Production-grade Python scripts that run deterministic operations (like calculating complex taxes or validating cryptographic signatures) instead of asking the LLM to write code from scratch.
+4. **`additional_tools`:** Native Python functions bundled specifically with that skill.
+
+#### How Progressive Disclosure Works in Production:
+* **Stage 1 (Discovery):** The agent knows only that `pin-reset-skill` exists (~50 tokens).
+* **Stage 2 (Activation):** When the user asks about PINs, the agent invokes `load_skill("pin-reset-skill")`. The ADK framework loads `SKILL.md` into the conversation.
+* **Stage 3 (Execution):** The agent executes the prescribed SOP, optionally invoking scripts via a secure `code_executor`.
+* **Stage 4 (Unload):** When the task completes, the skill's instructions do not permanently bloat subsequent unrelated questions.
+
+---
+
+### 3. Enterprise Fleet Governance: Corporate Skill Registries
+
+In enterprise environments (such as Gemini Enterprise or banking platforms), organizations manage thousands of skills across disparate engineering squads. Rather than hardcoding paths on local filesystems, enterprises maintain **Centralized Skill Registries**:
+* **Corporate GitHub/GitLab Repositories:** Skills are maintained under version control with PR reviews and automated linting.
+* **Semantic Discovery (`search_skills`):** Agents execute vector semantic search against the enterprise skill catalog to discover relevant skills dynamically.
+* **Sandboxed Execution:** In production, scripts are never executed via `UnsafeLocalCodeExecutor`. They run inside isolated Google Cloud Run containers or gVisor sandboxes with strict network boundaries.
 
 ```python
 import pathlib

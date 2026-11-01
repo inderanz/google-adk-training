@@ -9,6 +9,26 @@ title: "Lab Solution"
 
 This solution demonstrates how to use the `ReflectAndRetryToolPlugin` to automatically recover from tool usage errors (like incorrect tool names) without modifying the agent's prompt code.
 
+## Steering Prompt Template
+
+Use this prompt to guide an AI coding assistant (such as Google Antigravity or Gemini Code Assist) or validate your self-healing implementation against Google Principal FDE standards:
+
+```markdown
+Act as a Google Principal Forward-Deployed Engineer (FDE). I need to harden an ADK 2.0 application against tool hallucinations, invalid arguments, and runtime exceptions using the built-in `ReflectAndRetryToolPlugin`.
+
+Requirements:
+1. Agent Definition:
+   - Configure a `FunctionTool` wrapping a function `secret_calculator(a: int, b: int) -> int`.
+   - The agent's prompt is purposefully confused (instructed to call `super_calc`), simulating prompt drift or hallucination.
+2. Self-Healing App Architecture:
+   - Import `ReflectAndRetryToolPlugin` from `google.adk.plugins`.
+   - Instantiate `retry_plugin = ReflectAndRetryToolPlugin(max_retries=3)`.
+   - Register the plugin globally on the `App` instance (`App(name="retry_app", root_agent=root_agent, plugins=[retry_plugin])`).
+3. Verification & Execution:
+   - Run programmatically via `InMemoryRunner(app=app)`.
+   - Verify that upon invoking `What is 5 + 5?`, the plugin intercepts the initial `super_calc` failure, passes tool feedback back to the LLM, and successfully returns `10` from `secret_calculator` without crashing.
+```
+
 ### `retry_agent/agent.py`
 
 ```python
