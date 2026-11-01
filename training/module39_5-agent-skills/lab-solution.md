@@ -9,6 +9,26 @@ title: "Lab Solution"
 
 This file contains the complete code for the `agent.py` script in the Agent Skills lab.
 
+## Steering Prompt Template
+
+Use this prompt to guide an AI coding assistant (such as Google Antigravity or Gemini Code Assist) or validate your Agent Skills implementation against Google Principal FDE standards:
+
+```markdown
+Act as a Google Principal Forward-Deployed Engineer (FDE). I need to package specialized procedural knowledge into an Agent Skill and integrate it into a Google ADK 2.0 Agent using Progressive Disclosure.
+
+Requirements:
+1. Skill Packaging:
+   - Create a skill directory with `SKILL.md` containing YAML frontmatter (`name: greeting-skill`, `description: ...`).
+   - Define exact, deterministic instructions in the Markdown body.
+2. Skill Loading & Toolset Integration:
+   - Load the skill from the directory using `google.adk.skills.load_skill_from_dir(pathlib.Path(...))`.
+   - Instantiate `SkillToolset(skills=[greeting_skill], code_executor=...)`.
+3. Agent Configuration:
+   - Configure `google.adk.Agent` with `gemini-3.5-flash`.
+   - Add `SkillToolset` to `tools=[my_skill_toolset]`.
+   - Explicitly instruct the agent to trigger `load_skill('greeting-skill')` upon receiving greeting intents.
+```
+
 ### `skills_agent/agent.py`
 
 ```python

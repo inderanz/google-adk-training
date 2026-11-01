@@ -47,41 +47,58 @@ flowchart TB
 
 ## Theory
 
-### Building on Custom Plugins
+### 1. The Scenario: The Midnight Payroll Glitch at Apex Financial
 
-Having previously built custom plugins for **Observability (Module 25)** and **Responsible AI Guardrails (Module 25.5)**, you are already familiar with how the ADK's plugin architecture cleanly separates cross-cutting infrastructure concerns from your core agent prompt logic. 
+*Imagine this reality in enterprise banking operations.*
 
-As a reminder, **Plugins** inherit from `BasePlugin` and register on the **App** (or Runner) to globally intercept and inspect events. They operate using three primary patterns:
+It is 11:58 PM on the final day of the financial quarter. Apex Global Logistics has scheduled its automated quarterly dividend and bonus payouts. The core automated reconciliation agent is handling thousands of employee records.
 
-1.  **Observing (Return `None`):** Watches the data flow (e.g., your custom `AlertingPlugin` from Module 25).
-2.  **Intervening (Return an Object):** Blocks execution and overrides standard behavior (e.g., caching or PII blocking from Module 25.5).
-3.  **Amending (Modify in place):** Amends the conversation history or configuration before execution.
+Suddenly, an exception is thrown:
+The agent attempts to call a legacy ERP microservice tool. Instead of calling `execute_ledger_adjustment(account_id=..., amount=...)`, the model—under slight nondeterministic prompt drift—generates a tool call named `adjust_ledger_balance`. 
 
-In this module, we will explore one of the most powerful **built-in framework plugins** that uses a combination of *Intervening* and *Amending* to handle a critical production issue: **tool hallucination**.
+In a traditional, fragile agent architecture, this triggers an immediate fatal crash:
+`ToolNotFoundException: adjust_ledger_balance is not registered`.
 
-### The Problem: Fragile Tool Use
+The execution terminates abruptly. The quarter-end batch stalls. The on-call operations engineer is paged out of sleep at midnight to fix a trivial naming discrepancy.
 
-One of the most common issues with LLM agents is **hallucination** or **misuse of tools**.
-*   **Hallucinated Names:** The model might try to call `calculate_sum` when the tool is actually named `add_numbers`.
-*   **Invalid Arguments:** The model might pass a string "five" when the tool expects the integer `5`.
-*   **Transient Errors:** An API might fail temporarily with a 500 error.
+```mermaid
+flowchart TD
+    subgraph Fragile_Architecture["❌ Fragile Agent (Without Plugins)"]
+        A1["LLM Hallucinates Tool Name:<br/>adjust_ledger_balance()"] --> A2["Tool Registry Lookup Fails"]
+        A2 --> A3["💥 Fatal Process Crash<br/>Quarter-end pipeline aborted"]
+    end
 
-Normally, these errors would cause your agent to crash or stop.
+    subgraph Resilient_Architecture["✅ Self-Healing Agent (With ReflectAndRetryToolPlugin)"]
+        B1["LLM Hallucinates Tool Name:<br/>adjust_ledger_balance()"] --> B2["Plugin Intercepts Exception<br/>amends conversation history"]
+        B2 --> B3["Feedback to LLM:<br/>'Tool not found. Did you mean execute_ledger_adjustment?'"]
+        B3 --> B4["🤖 Model Self-Corrects:<br/>execute_ledger_adjustment(...)"]
+        B4 --> B5["🎉 Successful Execution<br/>Zero human intervention"]
+    end
+```
 
-### The Solution: Reflect and Retry
+---
 
-The **`ReflectAndRetryToolPlugin`** is a powerful built-in plugin designed to solve this exact problem using the *Intervening* and *Amending* patterns. It acts as a safety net globally across all your tools.
+### 2. The Solution: App-Level Plugins & Bounded Self-Correction
 
-**How it works:**
-1.  **Intercept:** When any Agent calls a tool, the plugin watches the execution.
-2.  **Detect Failure:** If the tool raises an Exception (or a specific error), the plugin catches it.
-3.  **Reflect:** The plugin intercepts the error and amends the conversation history, sending the error message *back* to the LLM as an observation (e.g., *"Error: Tool 'calc' not found. Available tools: 'calculator'"*).
-4.  **Retry:** The LLM, seeing this error, "reflects" on its mistake and generates a *new* tool call with the corrected name or arguments.
-5.  **Loop:** This process repeats up to a configured `max_retries` limit.
+Rather than expecting 100% deterministic perfection from probabilistic LLM tool generation, production Google Cloud engineering builds **self-healing execution fabrics**.
 
-### Using Plugins in ADK 2.0
+In **Module 25** (Observability) and **Module 25.5** (Responsible AI Guardrails), you built custom plugins inheriting from `BasePlugin`. You learned that plugins attach at the **App** level—governing the entire lifecycle across all sub-agents and runners.
 
-To use a plugin, you instantiate it and add it to your `App` configuration.
+The Google ADK provides powerful built-in production plugins, chief among them: **`ReflectAndRetryToolPlugin`**.
+
+#### The Three Operational Superpowers of ReflectAndRetryToolPlugin:
+1. **Name Hallucination Repair:** When an agent invents a synonym (e.g., calling `super_calc` instead of `secret_calculator`), the plugin catches the dispatch error, amends the message history with available tool candidates, and lets the model self-correct.
+2. **Schema & Argument Type Recovery:** When an agent passes `"100"` as a string to a tool requiring `int`, the Pydantic validation error is bounced back to the model, which immediately re-casts the argument into a valid integer.
+3. **Bounded Safety Loops (`max_retries`):** It strictly bounds recovery attempts (defaulting to 2 or 3). If an error is permanent (e.g., database connection refused), it avoids infinite token-burning loops and fails cleanly with full audit trails.
+
+---
+
+### 3. A Word of Confidence: Separation of Concerns
+
+Notice the architectural beauty of this design:
+* **The Agent Prompt stays clean:** You do not have to write 50 paragraphs of defensive prompting like: *"Please, I beg you, do NOT call super_calc, only call secret_calculator, and if you fail try again!"*
+* **The Tools stay pure:** Your Python functions focus exclusively on business logic without messy internal retry wrappers.
+* **The App enforces the safety net:** The `ReflectAndRetryToolPlugin` sits at the infrastructure boundary, quietly rescuing your agents from runtime glitches before users ever notice.
 
 ```python
 from google.adk.apps.app import App
