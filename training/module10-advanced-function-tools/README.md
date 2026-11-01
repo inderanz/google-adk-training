@@ -120,12 +120,12 @@ sequenceDiagram
     participant Schema as OpenAPI 3.0 Schema
     participant Gemini as Gemini 2.5 Flash
 
-    Dev->>ADK: Register function: update_user_preference(preferred_currency, tool_context: ToolContext)
-    ADK->>ADK: Inspects signature; detects ToolContext type hint
-    ADK->>Schema: Strips 'tool_context' parameter completely!
-    ADK->>Gemini: Sends OpenAPI schema containing ONLY 'preferred_currency'
-    Gemini-->>ADK: Emits ToolCall: update_user_preference(preferred_currency='USD')
-    ADK->>Dev: Injects live server-side ToolContext as second argument!
+    Dev->>ADK: Register function update_user_preference(preferred_currency, tool_context)
+    ADK->>ADK: Inspects signature and detects ToolContext type hint
+    ADK->>Schema: Strips tool_context parameter completely
+    ADK->>Gemini: Sends OpenAPI schema containing ONLY preferred_currency
+    Gemini-->>ADK: Emits ToolCall update_user_preference(preferred_currency="USD")
+    ADK->>Dev: Injects live server-side ToolContext as second argument
 ```
 
 1. **Schema Stripping:** ADK detects `tool_context: ToolContext` and completely excludes it from the OpenAPI schema sent to Gemini.
