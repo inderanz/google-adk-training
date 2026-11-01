@@ -58,7 +58,7 @@ root_agent = Agent(
     instruction="""You are an expert market and news research assistant.
     Always use the `google_search` tool to look up current events, breaking news,
     or recent regulatory updates. Cite your sources clearly in your response.""",
-    tools=[google_search]
+    tools=[google_search],
 )
 ```
 
@@ -94,23 +94,38 @@ from google.genai import types
 
 load_dotenv()
 
+
 # 1. Define the Python Tool Function
 def lookup_sec_filing(ticker: str, filing_type: str = "10-K") -> dict:
     """Retrieves corporate regulatory filings and financial metrics.
-    
+
     Args:
         ticker (str): The stock ticker symbol (e.g., 'GOOGL', 'AAPL', 'MSFT'). Required.
         filing_type (str, optional): The SEC filing type ('10-K', '10-Q', '8-K'). Defaults to '10-K'.
-        
+
     Returns:
         dict: A structured dictionary containing filing status, revenue, and core risk factors.
     """
     mock_filings = {
-        "GOOGL": {"revenue": "$307.4B", "net_income": "$73.8B", "status": "Clean Audit", "ai_investment": "$48B"},
-        "AAPL": {"revenue": "$383.3B", "net_income": "$97.0B", "status": "Clean Audit", "flagship_product": "iPhone"},
+        "GOOGL": {
+            "revenue": "$307.4B",
+            "net_income": "$73.8B",
+            "status": "Clean Audit",
+            "ai_investment": "$48B",
+        },
+        "AAPL": {
+            "revenue": "$383.3B",
+            "net_income": "$97.0B",
+            "status": "Clean Audit",
+            "flagship_product": "iPhone",
+        },
     }
-    data = mock_filings.get(ticker.upper(), {"error": f"Ticker '{ticker}' not found in SEC EDGAR repository."})
+    data = mock_filings.get(
+        ticker.upper(),
+        {"error": f"Ticker '{ticker}' not found in SEC EDGAR repository."},
+    )
     return {"ticker": ticker.upper(), "filing_type": filing_type, "data": data}
+
 
 # TODO: 2. Create the Agent Node
 # - Wrap lookup_sec_filing with FunctionTool
@@ -121,14 +136,17 @@ filing_agent = Agent(
     instruction="""You are a Wall Street equity research analyst.
     Use `lookup_sec_filing` to retrieve corporate financial records.
     Synthesize factual responses strictly based on the tool's output.""",
-    tools=[FunctionTool(lookup_sec_filing)]
+    tools=[FunctionTool(lookup_sec_filing)],
 )
+
 
 async def main():
     # 3. Register on App and execute locally
     app = App(name="sec_research_app", root_agent=filing_agent)
     runner = InMemoryRunner(app=app)
-    session = await runner.session_service.create_session(app_name=app.name, user_id="analyst_1", session_id="s1")
+    session = await runner.session_service.create_session(
+        app_name=app.name, user_id="analyst_1", session_id="s1"
+    )
 
     query = "What was the revenue and AI investment reported in Alphabet's (GOOGL) latest 10-K filing?"
     print(f"User: {query}\n")
@@ -136,11 +154,14 @@ async def main():
     async for event in runner.run_async(
         user_id="analyst_1",
         session_id=session.id,
-        new_message=types.Content(role="user", parts=[types.Part.from_text(text=query)])
+        new_message=types.Content(
+            role="user", parts=[types.Part.from_text(text=query)]
+        ),
     ):
         # TODO: Observe how the ADK reports tool calls and final responses
         if event.is_final_response():
             print(f"Agent: {event.content.parts[0].text}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

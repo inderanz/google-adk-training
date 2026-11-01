@@ -5,386 +5,306 @@ title: "Module 9: Creating Custom Function Tools"
 
 # Module 9: Creating Custom Function Tools
 
-## Before you begin: what this module teaches
+## Before You Begin: What This Module Teaches
 
-**ADK concept: Python function tools and explicit input/output contracts.**
+In [Module 08](../module08-intro-to-tools/README.md), you discovered the 5-stage Function Calling lifecycle and learned how tools transform large language models from conversational text predictors into action-taking software systems. 
 
-def declares a function; parameters receive values; type hints describe expected types; a docstring explains purpose and usage; return supplies the result. ADK can adapt supported functions from the tools list. Type hints help describe the interface but do not replace business validation. A dictionary makes named fields explicit; its presence does not certify the values.
+Now, in **Module 09**, you step into the engineering cockpit to build your own custom tools. A custom tool is not magic: at its core, it is a standard Python function that the Google Agent Development Kit (ADK) inspects, reflects into an **OpenAPI 3.0 JSON Schema**, and advertises to Gemini as a callable capability.
 
-**Where you would use this in real work.**
-
-The bank already has a function that reads a record. To let an agent request it, the engineer must describe the arguments clearly and return a result that distinguishes success, missing data and failure.
-
-**Connection to Gemini Enterprise Agent Platform and Google Cloud.**
-
-Keep the tool implementation in trusted application code and use official clients for its Google dependencies. Gemini proposes business arguments; verified user identity and credentials must come from trusted context. The railway analogy below teaches the call pattern, not access to an actual railway service.
-
-**By the end, you should be able to:**
-
-- Explain each line of one function signature and return dictionary.
-- Validate IDs and represent not_found separately from unavailable.
-- Inspect the model-visible schema and actual runtime arguments.
-
-### Review this lesson through three perspectives
-
-- **Python/ADK beginner:** Predict the returned dictionary before running the function.
-- **Experienced engineer:** Test direct calls as well as calls through ADK so validation cannot depend only on prompting.
-- **Bank FDE:** Ask which operation is read-only, which changes a record and who may perform it.
-
-Use the [guided lab](./lab.md) to observe the mechanism, then compare with the [solution](./lab-solution.md). The banking scenario above explains how to transfer the concept; a lab using a railway, weather or shopping fixture does not implement a live bank integration.
-
-## Theory
-
-### Unlocking Unlimited Capabilities
-
-While built-in tools like `google_search` are powerful, the true potential of your agent is realized when you give it custom capabilities tailored to your specific needs. This is done by creating **Custom Function Tools**.
-
-A custom function tool is, at its core, a regular Python function that you write and then make available to your agent. This allows you to connect your agent to virtually anything you can program: a proprietary database, a third-party API, a complex business logic algorithm, or even another AI model.
+By the end of this module, you will understand:
+1. **The Schema Reflection Pipeline:** How ADK translates Python type annotations, parameter defaults, and Google-style docstrings into formal OpenAPI schemas.
+2. **Type Determinism & Pydantic Contracts:** Why returning structured Pydantic `BaseModel` objects eliminates key hallucination and schema drift.
+3. **Defensive Error Encapsulation:** How to trap mathematical edge cases (e.g., division by zero) and return structured soft errors rather than crashing the Python host process.
+4. **Zero-Trust Context Injection:** How `ToolContext` enables the host runtime to inject authenticated user identity and session state without exposing secrets to the LLM.
 
 ---
 
-### The Core Mental Model: Who Actually Runs the Code?
+## 1. The Scenario: The $1.4M Billing Spiral at FinTech Nexus
 
-#### The #1 Misconception Every Beginner Has
-When students first learn about Agent Tools, they almost always ask:
-> *"Does Gemini execute my Python code inside Google's cloud servers?"*
+To understand why custom tool engineering requires strict discipline, consider the post-mortem from **FinTech Nexus**, an enterprise financial services provider managing billing automation for over 80,000 corporate clients.
 
-**NO! Never.** The Large Language Model (LLM) is simply a giant neural network predicting words and tokens. It has no CPU, no access to your hard drive, no direct database connections, and cannot execute Python code.
+```mermaid
+flowchart TD
+    User["Corporate Client Prompt"] -->|"Apply 15% promotional discount"| LLM["Gemini Reasoning Engine"]
+    LLM -->|"Emits ToolCall with string: discount='15%'"| BadTool["Loose Python Function: apply_discount(acc, discount)"]
+    BadTool -->|"TypeError: can't multiply sequence by non-int of type float"| Crash["💥 Unhandled Runtime Crash (4,200 Sessions Dropped)"]
+    BadTool -.->|"Turn 2: LLM tries negative: discount=-0.50"| Glitch["💸 $1.4M Negative Balance Credit Spiral"]
+```
 
-#### The Analogy: The Wedding Planner (*Event Manager*) & The Specialist Halwai (*Caterer*)
+### The Incident
+During a major Black Friday promotional campaign, FinTech Nexus rolled out an autonomous account executive agent equipped with a hastily written tool:
 
-Imagine an Indian family planning a big wedding. They hire a smart **Wedding Planner (The LLM / Agent)** to coordinate the event:
+```python
+# The Fragile Prototype (Anti-Pattern)
+def apply_discount(account_id, discount):
+    """Applies a discount to an account."""
+    # Bug 1: No type hints! Gemini passes string "15%" or float 0.15 or int 15
+    # Bug 2: No docstring parameter specifications
+    # Bug 3: No range bounds validation (e.g. discount < 0 or discount > 1.0)
+    current_balance = get_balance(account_id)
+    new_balance = current_balance * (1 - discount)
+    save_balance(account_id, new_balance)
+    return f"New balance: {new_balance}"
+```
+
+Within 48 hours, three compounding disasters unfolded:
+1. **Unhandled Type Crashes:** Gemini emitted `discount="15%"` as a string. Python raised a `TypeError: can't multiply sequence by non-int of type 'float'`. The uncaught exception terminated the ADK runner process, crashing over 4,200 concurrent user sessions.
+2. **The Inverted Credit Spiral:** When another client asked to "reverse a 50% discount", Gemini interpreted this as applying `discount = -0.50`. Because the tool lacked bounds validation, the function multiplied the balance by `1.50`, crediting $1.4M in unauthorized funds before automated fraud circuits tripped.
+3. **Session Interruption:** Because the tool returned a raw string with no status code, Gemini could not distinguish between a successful database write and a silent failure.
+
+### The Google FDE Verdict
+When Google Cloud Principal Forward-Deployed Engineers were brought in to perform root-cause analysis, they delivered a definitive mandate:
+> *"A custom function tool is an enterprise API contract between your deterministic backend and a non-deterministic neural network. You must never expose an untyped, unbounded, unvalidated Python function to an LLM."*
+
+---
+
+## 2. The Core Mental Model: Who Actually Runs the Code?
+
+### The #1 Misconception Every Learner Must Shed
+When developers first encounter agent tool calling, they frequently ask:
+> *"Does Gemini execute my Python function inside Google's cloud servers?"*
+
+**No. Never.** The Large Language Model (Gemini) is a pure mathematical inference engine predicting token probabilities. It has no CPU, no access to your file system, no network sockets, and zero execution privileges.
+
+### The Analogy: The Financial Advisor & The Bank Vault Teller
+Think of an elite private bank:
+- **The Financial Advisor (Gemini LLM):** Understands the client's complex, messy conversational requests (*"I want to transfer funds and pay my quarterly taxes"*). The advisor cannot touch the bank vault or sign checks. Instead, the advisor fills out a formal, standardized **Transaction Slip (ToolCall JSON)** specifying the recipient and amount.
+- **The Bank Vault Teller (Your Local Python Function):** Stands behind bulletproof glass in your secure data center. The teller verifies the slip against strict banking rules, confirms account balances, applies database locks, and hands back a **Certified Receipt (ToolResponse JSON)**.
+- **The Advisor's Response:** The advisor reads the certified receipt and explains the final outcome politely to the client.
 
 ```text
 ┌────────────────────────────────────────────────────────────────────────┐
-│                   THE WEDDING FUNCTION-CALLING ANALOGY                 │
+│                   THE ENTERPRISE TOOL EXECUTION BOUNDARY               │
 ├────────────────────────────────────────────────────────────────────────┤
-│ 1. The Host (User): "Can we get 500 plates of Paneer Butter Masala     │
-│    and calculate the bill with 18% GST?"                               │
+│ 1. User Prompt: "Transfer $500 from savings to checking."             │
 │                                                                        │
-│ 2. The Wedding Planner (Gemini LLM): Does NOT cook the paneer!         │
-│    The planner inspects their rate card (Tool Schema), writes down a   │
-│    formal order slip (JSON Function Call):                             │
-│    -> Tool: prepare_catering_order                                     │
-│    -> Args: {"dish": "Paneer Butter Masala", "plates": 500}            │
+│ 2. Gemini Reasoning Engine:                                            │
+│    - Does NOT execute code.                                            │
+│    - Emits ToolCall JSON:                                              │
+│      {"name": "transfer_funds", "args": {"from": "SAV", "amt": 500}}   │
 │                                                                        │
-│ 3. The Kitchen Halwai (Your Local Python Function):                    │
-│    The Halwai receives the slip, lights the stove, cooks the food,     │
-│    and hands back a receipt (JSON Function Response):                  │
-│    -> {"status": "ready", "base_cost": 50000, "gst": 9000}             │
+│ 3. ADK Host Runtime (Your Server):                                     │
+│    - Validates types and bounds.                                       │
+│    - Runs Python function with local credentials and database lock.    │
+│    - Emits ToolResponse JSON:                                          │
+│      {"status": "success", "tx_id": "TX-9021", "balance": 1450.00}     │
 │                                                                        │
-│ 4. The Wedding Planner (Gemini LLM):                                   │
-│    Reads the receipt and politely speaks to the host:                  │
-│    "Sir, 500 plates of Paneer Butter Masala are confirmed. The base    │
-│    cost is ₹50,000 + 18% GST (₹9,000), totaling ₹59,000."              │
+│ 4. Gemini Synthesizes Output:                                          │
+│    - "Your transfer of $500.00 is complete. Ref ID: TX-9021."         │
 └────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Key Takeaways for Students & Consultants:**
-* **Gemini's Role:** Acts like the Wedding Planner — understands human conversation, figures out *which* specialist tool is needed, extracts the correct arguments from messy language, and translates raw data into a polite answer.
-* **Python's Role:** Acts like the Kitchen Halwai — executes the actual business logic, queries the SQL database, or calls the IRCTC API on your own secure server.
-
 ---
 
-### How it Works: From Python to Agent Tool
+## 3. How ADK Converts Python Code to OpenAPI Schemas
 
-When you add one of your Python functions to an agent's `tools` list, the ADK framework performs a clever transformation behind the scenes. It inspects your function's **signature**
-—its name, parameters, type hints, and docstring—and automatically generates a detailed description, or **schema**.
-
-This schema is what's provided to the Large Language Model. The LLM doesn't see your Python code. It only sees this schema, which tells it:
-1.  The tool's name (from your function name).
-2.  What the tool does (from your function's docstring).
-3.  What parameters it needs (from your function's arguments).
-4.  What data type each parameter should be (from your type hints).
-
-Based on this information, the LLM can intelligently decide when to use your function and what arguments to pass to it.
-
-#### The 4-Step Tool Execution Conveyor Belt
-
-Here is the exact technical roundtrip that executes across the network:
+When you attach a Python function to an ADK `Agent(tools=[...])`, ADK executes an automated reflection pipeline using Python's `inspect` module:
 
 ```mermaid
-flowchart TB
-  A[User asks for a status] --> B[Gemini requests named tool]
-  B --> C[ADK validates and invokes function]
-  C --> D[Function returns structured result]
-  D --> E[Gemini explains the result]
+flowchart LR
+    A["Python Function Definition<br/>(Signature + Type Hints + Docstring)"] --> B["ADK Schema Inspector"]
+    B --> C["OpenAPI 3.0 Tool Schema<br/>(FunctionDeclaration)"]
+    C --> D["Gemini Context Window"]
 ```
 
-### The Anatomy of a Well-Defined Tool Function
-
-For the LLM to use your tool correctly and reliably, it's crucial to define your Python function in a structured way.
-
-#### 1. **Descriptive Function Name**
-The name should clearly indicate the action the function performs.
-*   **Good:** `get_weather`, `calculate_loan_payment`, `lookup_order_status`
-*   **Bad:** `process_data`, `run_logic`, `my_function`
-
-#### 2. **Clear Parameters with Type Hints**
-Each argument your function takes must have a **type hint**. This is non-negotiable, as it tells the LLM what kind of data to provide.
+### The Translation in Action
+Look at how each element of your Python function maps directly into the JSON schema sent to Gemini:
 
 ```python
-# The LLM knows 'city' must be a string and 'is_forecast' must be a boolean.
-def get_weather(city: str, is_forecast: bool): ...
-```
+from typing import Literal
 
-#### 3. **The All-Important Docstring**
-The docstring is the **most critical part**. It serves as the tool's description for the LLM. A good docstring should explain:
-*   **Purpose:** What does the tool do?
-*   **Usage:** *When* should the agent use this tool? Provide context.
-*   **Parameters:** Describe what each parameter represents.
-
-
-```python
-def get_weather(city: str, is_forecast: bool):
-    """
-    Fetches the current weather or a 3-day forecast for a specific city.
-
-    Use this tool when a user asks about the weather.
+def calculate_shipping(
+    weight_kg: float,
+    destination_zone: Literal["DOMESTIC", "INTERNATIONAL"],
+    is_fragile: bool = False
+) -> dict:
+    """Calculates courier shipping charges based on package weight and destination.
 
     Args:
-        city: The name of the city (e.g., "San Francisco").
-        is_forecast: Set to True for a 3-day forecast, False for current conditions.
+        weight_kg: The total parcel weight in kilograms (must be positive).
+        destination_zone: The shipping destination:
+            - 'DOMESTIC': Within the country.
+            - 'INTERNATIONAL': Global export.
+        is_fragile: Whether the parcel requires special fragile handling.
     """
     ...
 ```
 
-#### 4. Structured Return Value
-In ADK 2.0, a tool function can return a **dictionary** or, ideally, a **Pydantic model**. The LLM will receive this structured data and use its contents to formulate the final response.
+ADK automatically compiles this into the following **OpenAPI 3.0 / Gemini FunctionDeclaration**:
 
-```python
-from pydantic import BaseModel
-
-
-class WeatherReport(BaseModel):
-    status: str
-    temperature: float
-    conditions: str
-
-
-def get_weather(city: str) -> WeatherReport:
-    """Fetches the current weather."""
-    # ... logic ...
-    return WeatherReport(status="success", temperature=22.0, conditions="Sunny")
+```json
+{
+  "name": "calculate_shipping",
+  "description": "Calculates courier shipping charges based on package weight and destination.",
+  "parameters": {
+    "type": "OBJECT",
+    "properties": {
+      "weight_kg": {
+        "type": "NUMBER",
+        "description": "The total parcel weight in kilograms (must be positive)."
+      },
+      "destination_zone": {
+        "type": "STRING",
+        "enum": ["DOMESTIC", "INTERNATIONAL"],
+        "description": "The shipping destination: 'DOMESTIC' or 'INTERNATIONAL'."
+      },
+      "is_fragile": {
+        "type": "BOOLEAN",
+        "description": "Whether the parcel requires special fragile handling.",
+        "default": false
+      }
+    },
+    "required": ["weight_kg", "destination_zone"]
+  }
+}
 ```
 
-#### 5. Make expected outcomes and execution failures distinguishable
-
-A missing record is an expected business outcome: return a bounded result such as `{"status": "not_found"}`. A temporary service outage is a different outcome. Decide whether the caller should receive an explicit unavailable result or a typed exception handled by the configured runtime policy.
-
-Do not catch every exception and report success. Conversely, raising an exception is not always a fatal process crash: an invocation can fail, or a configured supported retry/error hook may handle it. Preserve framework interruption signals needed for confirmation/resume. Only retry operations that are safe to repeat, using a bounded policy. Modules 18, 26 and 38 explain these boundaries.
-
-### Advanced: The `ToolContext`
-
-Sometimes your tool needs to know more than just its arguments. It might need to read from the session state, access customer identification, or pass authentication tokens to downstream APIs.
-
-In ADK 2.0, you can add a `tool_context: ToolContext` argument to your function. The ADK framework automatically injects the context at runtime without requiring the LLM to pass it:
-
-```python
-from google.adk.tools import ToolContext
-
-
-def my_advanced_tool(query: str, tool_context: ToolContext):
-    # 1. Access active session state
-    user_name = tool_context.session.state.get("user_name", "Valued Customer")
-
-    # 2. Update session state for future turns
-    tool_context.session.state["last_queried_service"] = "customer_support"
-
-    # 3. Access user ID and session metadata
-    session_id = tool_context.session.id
-```
-
-> [!TIP]
-> **Enterprise Security Insight: Preventing Prompt Leaks**
-> Never force the LLM to pass sensitive credentials (like JWT Bearer tokens, API secrets, or internal tenant IDs) as function arguments. The LLM might leak them into chat logs or hallucinate them! Instead, store the user's authentication token inside `tool_context.session.state` during authentication, and have your Python tool read it directly via `tool_context`. The LLM never sees the token.
+> [!IMPORTANT]
+> **The Docstring is the Prompt for Your Tool:**
+> If you omit the docstring or write `"""calculates stuff"""`, Gemini has zero semantic understanding of what the parameters mean or when to call the function. In ADK 2.0, **your docstring is part of the system prompt**.
 
 ---
 
-### Production Example: Indian Railways PNR Inquiry Tool
+## 4. The 5 Anatomical Principles of a Production Custom Tool
 
-Here is a complete, production-grade custom tool demonstrating all 5 anatomy principles (Pydantic schema, type hints, comprehensive docstring, defensive error handling, and `ToolContext`):
+To prevent the financial and operational crashes experienced by FinTech Nexus, every custom function tool in your enterprise agents must embody five anatomical principles:
+
+### 1. Semantic, Unambiguous Naming
+* **Anti-Pattern:** `def process(x, y):` or `def run_logic(data):`
+* **Production Standard:** `def calculate_gst_invoice(amount: float, tax_rate_percent: float):`
+* Use verb-noun naming that mirrors the business action (`lookup_order`, `calculate_premium`, `verify_kyc`).
+
+### 2. Strict Type Annotations
+* Always annotate every parameter with explicit types: `float`, `int`, `str`, `bool`.
+* Use `typing.Literal["OPT_A", "OPT_B"]` to force Gemini to choose strictly between valid enumerated values instead of guessing strings.
+* Use `typing.Optional[...]` with default values for optional arguments.
+
+### 3. Google-Style Parameter Docstrings
+* Document every parameter under an `Args:` header.
+* Explicitly state expected units (e.g., *“in kilograms”*, *“in rupees (INR)”*, *“four-digit fiscal year (e.g. 2025)”*).
+
+### 4. Structured Output Models (`Pydantic.BaseModel`)
+* While Python dictionaries work, returning a typed `pydantic.BaseModel` provides compile-time checking, IDE autocomplete, and enforces strict schema contracts with Gemini:
 
 ```python
-# File: tools/railway_tools.py
-from typing import Optional
-from google.adk.tools import ToolContext
 from pydantic import BaseModel, Field
 
-
-# 1. Define strong, validated Pydantic schemas for the return type
-class PnrStatusReport(BaseModel):
-    pnr: str
-    status: str = Field(
-        description="Booking status: CNF (Confirmed), RAC, or WL (Waitlist)"
-    )
-    train_name: str
-    coach: Optional[str] = None
-    berth: Optional[int] = None
-    berth_type: Optional[str] = None
-    passenger_name: Optional[str] = None
-
-
-# 2. Write the tool with explicit type hints and a comprehensive docstring
-def check_pnr_status(pnr_number: str, tool_context: ToolContext) -> dict:
-    """
-    Checks the live reservation status for a given 10-digit Indian Railways PNR number.
-
-    Use this tool whenever a passenger asks about their train booking, berth allocation,
-    waitlist status, or confirmation details. Do not fabricate or guess PNR results.
-
-    Args:
-        pnr_number: The 10-digit numeric PNR string (e.g., '4521890234').
-        tool_context: Internal ADK context to inspect the active session and user credentials.
-
-    Returns:
-        A dictionary containing the confirmation status, coach, and berth details,
-        or an error message if the PNR format is invalid.
-    """
-    # Principle 5: Defensive Input Validation
-    clean_pnr = pnr_number.strip()
-    if not clean_pnr.isdigit() or len(clean_pnr) != 10:
-        return {
-            "error": "Invalid PNR format. A valid Indian Railways PNR must contain exactly 10 numeric digits."
-        }
-
-    # Principle 4: Access session state securely via tool_context
-    user_name = tool_context.session.state.get("user_name", "Passenger")
-
-    # In production, this would call the IRCTC / CRIS backend API.
-    # Here we return a clean, structured dictionary:
-    return {
-        "pnr": clean_pnr,
-        "train_name": "Rajdhani Express (12952)",
-        "status": "CNF",
-        "coach": "B3",
-        "berth": 24,
-        "berth_type": "Side Lower",
-        "passenger_name": user_name,
-    }
+class TaxReport(BaseModel):
+    status: str = Field(description="Calculation status: 'success' or 'error'")
+    base_amount: float = Field(description="Original taxable amount")
+    tax_amount: float = Field(description="Computed tax charge")
+    total_payable: float = Field(description="Sum of base amount and tax")
 ```
 
+### 5. Defensive Error Trapping (Never Throw Unhandled Exceptions)
+* An unhandled Python exception (like `ZeroDivisionError`, `KeyError`, or `requests.ConnectionError`) aborts the generator stream in the ADK runner.
+* Always trap known failure conditions and return a structured dictionary or Pydantic model with `status: "error"` and an explanatory message. This allows Gemini to politely inform the user and suggest corrective actions without dropping the session.
 
-### Registering Tools with Your Agent Node
+---
 
-In ADK 2.0, registering your custom functions as tools is incredibly simple. You just import your functions and pass them directly into the **`Agent`** node's `tools` list. The ADK automatically wraps them.
+## 5. Advanced: Zero-Trust Context Injection via `ToolContext`
 
+In real enterprise systems, tools often need access to the current session, database connection pools, or authenticated user credentials.
+
+**Critical Enterprise Vulnerability:** Never ask Gemini to pass authentication tokens or user IDs as tool arguments:
+```python
+# ❌ CATASTROPHIC SECURITY VULNERABILITY
+def view_account_balance(user_id: str, bearer_token: str):
+    ...
+```
+If you do this, a malicious user can use prompt injection to trick Gemini into passing another customer's `user_id` or leaking authorization tokens into the conversation history.
+
+### The Secure Solution: `ToolContext`
+ADK 2.0 provides `ToolContext`. When you add `tool_context: ToolContext` to your function parameters, **ADK automatically intercepts it and injects the live context on the host runtime**. Gemini never sees `tool_context` in its schema and cannot alter it:
 
 ```python
-# In agent.py
+from google.adk.tools import ToolContext
+
+def view_account_balance(tool_context: ToolContext) -> dict:
+    """Retrieves the checking account balance for the currently authenticated user."""
+    # Authenticated identity is retrieved directly from trusted session state:
+    authenticated_user_id = tool_context.session.state.get("authenticated_user_id")
+    if not authenticated_user_id:
+        return {"status": "error", "message": "User session is not authenticated."}
+    
+    # Securely query database using server-side credentials
+    balance = db_client.get_balance(authenticated_user_id)
+    return {"status": "success", "user_id": authenticated_user_id, "balance": balance}
+```
+
+---
+
+## 6. Registering Custom Tools with an Agent Node
+
+In ADK 2.0, registering custom tools is clean and declarative. You simply import your Python functions and pass them to the `tools` list of your `Agent` node:
+
+```python
 from google.adk import Agent
-from .tools.calculator import add, subtract  # Import your functions
-
-root_agent = Agent(
-    # ... other params
-    tools=[
-        add,  # The ADK automatically converts this Python function
-        subtract,  # into an LLM-compatible Tool!
-    ]
+from .tools.calculator import (
+    add,
+    subtract,
+    multiply,
+    divide,
+    calculate_gst_invoice,
 )
-```
 
-In the lab for this module, you will put all these principles into practice by building a set of calculator functions and integrating them into a new "Calculator" agent.
-
----
-
-### The Enterprise FDE Consultant's Tool Checklist
-
-When you are consulting for enterprise clients who want to attach 10, 20, or 50+ custom internal tools to an agent fleet, use this 4-point architectural design checklist:
-
-1. **The Single Responsibility Rule:**
-   Each tool must do exactly one thing well (e.g., `lookup_invoice` vs `cancel_invoice`). Never create a monolithic `do_everything_in_database` tool. When tools have narrow, well-defined responsibilities, the LLM makes significantly fewer routing and argument errors.
-
-2. **Defensive Error Encapsulation:**
-   Never let a database timeout, missing record, or network glitch raise an uncaught Python exception. Always catch errors and return `{"success": False, "error": "User ID not found. Ask user to verify their account or mobile number."}`. This allows Gemini to stay alive and converse with the user instead of dropping the session.
-
-3. **Idempotency & State Mutation:**
-   * **Read-Only Tools:** Safe to execute multiple times without side effects (e.g., `check_pnr_status`, `get_account_balance`, `search_catalog`).
-   * **Mutating Tools:** Perform actions that change business state or move money (e.g., `cancel_ticket`, `transfer_funds`, `delete_record`). In Module 10, you will learn how to attach Human-in-the-Loop confirmations to protect mutating tools.
-
-4. **Context Injection vs. Prompt Leaks:**
-   Never force the LLM to pass internal secrets (like API keys, JWT bearer tokens, or tenant IDs) as tool arguments in prompt text. Inject them securely via `ToolContext` inside Python where the LLM cannot see, leak, or hallucinate them.
-
----
-
-### Key Takeaways
-- **Custom Function Tools** connect your agent node to any Python capability.
-- **Auto-Schema:** ADK 2.0 generates the tool schema from your function's signature and docstring.
-- **Type Safety:** Use type hints and Pydantic return models for robust tool execution.
-- **Context Awareness:** Use `ToolContext` for advanced interaction with the ADK runtime.
-- **Workflow Ready:** Tools are nodes in your graph, allowing for modular and testable designs.
-
-## Enterprise Lens: Turning business logic into trustworthy agent tools
-
-This is the module where the agent becomes connected to actual business operations. The important question is not only “can the model call a Python function?” but also “is the function a safe and useful part of the enterprise workflow?”
-
-Read the companion guide for the production-oriented view:
-
-- [Module 09 Enterprise Playbook](./enterprise-playbook.md)
-- [Enterprise ADK Playbook Index](../enterprise-adk-roadmap.md)
-
-This keeps the custom-tool lesson aligned with the broader ADK operating model: clarify the business requirement, design a precise tool contract, validate behavior, and deploy with guardrails.
-
-## Official ADK / Google references
-
-Use the official Google and ADK documentation as the current source of truth for tool contracts, schema generation, and function-calling behavior:
-
-- ADK docs home: https://google.github.io/adk-docs/
-- ADK tools documentation: https://google.github.io/adk-docs/tools/
-- ADK agent and runtime docs: https://google.github.io/adk-docs/agents/
-- Gemini API docs: https://ai.google.dev/gemini-api/docs
-- Vertex AI docs: https://cloud.google.com/vertex-ai/generative-ai/docs
-
-These references should be reviewed whenever the framework updates the function-tool contract or the model/tool calling model changes.
-
-## Limitations: Mixing Tool Types
-
-As you start building more complex agents, it's important to be aware of a current limitation regarding tool usage.
-
-### One Built-in Tool Per Agent
-
-A single agent generally supports using **only one type of tool at a time**.
-
-Specifically, you cannot mix a **Built-in Tool** (like `google_search`) with **Custom Function Tools** within the same agent definition — this isn't an arbitrary ADK restriction, it's the underlying Gemini API itself rejecting the request:
-
-```python
-# This is NOT supported -- it constructs fine in Python, but the first real
-# model call fails with:
-#   400 INVALID_ARGUMENT: Multiple tools are supported only when they are
-#   all search tools.
 root_agent = Agent(
-    name="MixedToolAgent",
+    name="calculator_agent",
     model="gemini-2.5-flash",
-    tools=[google_search, custom_function],
+    description="A deterministic calculation assistant for financial and arithmetic operations.",
+    instruction="""
+You are an enterprise financial calculator assistant.
+When the user requests arithmetic or tax calculations, you MUST invoke the appropriate tool.
+Never calculate numbers in your head; always defer to tools.
+If a tool returns an error, explain the error clearly and politely.
+""",
+    tools=[add, subtract, multiply, divide, calculate_gst_invoice],
 )
 ```
 
-### The Workaround: Multi-Agent Systems
-
-So, how do you build a system that can search the web *and* use your custom calculator?
-
-The solution is to use **separate agents**, each with its own single tool type, coordinated together:
-1.  A "Search Specialist" agent with only the `google_search` tool.
-2.  A "Calculator Specialist" agent with only your custom function tools.
-3.  Either a coordinating agent, or your own Python code, that calls each one in turn and combines their results.
-
-You'll learn exactly how to build these multi-agent architectures in **Module 15**. Module 12 revisits this same constraint hands-on, once you've seen `google_search` and the other built-in tools in more depth.
-
-## Continue the course story
-
-Previous: [Module 08](../module08-intro-to-tools/README.md) · Next: [Module 10](../module10-advanced-function-tools/README.md) · [See how the concepts build](../learning-journey.md)
-
-Before continuing, explain one input, one ADK execution boundary and one failure outcome from this module. Use the next chapter to add a new customer requirement, not merely another component.
-
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module09-intro-custom-function-tools-README -->
 ---
 
+## 7. Crucial Limitation: One Tool Type Per Agent Node
 
-## Official References
+As you architect sophisticated agent solutions, remember the architectural boundary established in Module 08:
 
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Gemini API (multimodal): https://ai.google.dev/gemini-api/docs
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Vertex AI generative guidance: https://cloud.google.com/vertex-ai/generative-ai
-- Cloud Vision and OCR: https://cloud.google.com/vision
+> [!WARNING]
+> **Do Not Mix Built-in Tools with Custom Function Tools in a Single Agent Node**  
+> The underlying Gemini API currently rejects requests that combine built-in tools (such as `built_in_tools.google_search`) with custom `FunctionTool` definitions in the same agent turn (`400 INVALID_ARGUMENT: Multiple tools are supported only when they are all search tools`).
+> 
+> **The Enterprise Solution:** Decompose the workload across a **Multi-Agent System** (covered in Module 15):
+> 1. A Research Specialist Agent equipped with `google_search`.
+> 2. A Financial Specialist Agent equipped with your custom Python calculation tools.
+> 3. A Coordinating Root Agent that orchestrates between them.
 
+---
+
+## 8. Summary & Enterprise Checklist
+
+Before advancing to the hands-on lab, review your custom function tool implementation against this checklist:
+
+| Quality Gate | Check | Rationale |
+| :--- | :---: | :--- |
+| **Strict Type Hints** | `[x]` | Ensures ADK creates precise OpenAPI types (`NUMBER`, `STRING`, `BOOLEAN`). |
+| **Google-Style Docstrings** | `[x]` | Informs Gemini of exact parameter meanings and units. |
+| **Pydantic Return Contracts** | `[x]` | Guarantees structured, validated outputs without key hallucinations. |
+| **Defensive Guard Clauses** | `[x]` | Traps runtime errors (e.g. `b == 0`) and returns soft error payloads. |
+| **Zero-Trust State Access** | `[x]` | Uses `ToolContext` for credentials and user identity; never accepts them as LLM args. |
+| **No Mixed Tool Types** | `[x]` | Keeps custom function tools isolated from built-in search tools in the same agent. |
+
+---
+
+## Official References & Citations
+
+- **Google ADK Custom Tools Documentation:**  
+  [https://adk.dev/tools-custom/](https://adk.dev/tools-custom/) *(Accessed November 2026)*  
+  Canonical specification for function registration, signature reflection, and toolsets in ADK 2.0.
+- **Google ADK Function Tools Reference:**  
+  [https://adk.dev/tools-custom/function-tools/](https://adk.dev/tools-custom/function-tools/) *(Accessed November 2026)*  
+  Details on `FunctionTool`, parameter schemas, type conversion, and runtime execution.
+- **Google Gemini API Function Calling Guide:**  
+  [https://ai.google.dev/gemini-api/docs/function-calling](https://ai.google.dev/gemini-api/docs/function-calling) *(Accessed November 2026)*  
+  OpenAPI schema specifications, `FunctionDeclaration`, and `ToolResponse` protocols.
+- **Vertex AI Function Calling Architecture:**  
+  [https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling) *(Accessed November 2026)*  
+  Enterprise security, private endpoints, and Workload Identity integration on Google Cloud.

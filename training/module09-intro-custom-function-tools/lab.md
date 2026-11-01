@@ -1,153 +1,197 @@
 ---
 sidebar_position: 2
-title: "Challenge Lab"
+title: "Challenge Lab: Building an Enterprise Custom Tool Agent"
 ---
 
 import Setup from '../_setup-snippet.mdx';
 
-# Lab 9: Building a "Calculator" Agent Challenge
+# Lab 9: Building an Enterprise Custom Tool Agent
 
-**Learning checkpoint:** read the [module concepts](./README.md) first. Before each lab step, predict its input, returned value and failure outcome. Use the [course journey](../learning-journey.md) to connect this mechanism to the banking story; the example's fixture is not a live customer record.
-
-
-## Goal
-
-In this lab, you will build an agent that can perform deterministic calculations. You will create custom Python function tools, handle edge cases defensively, and integrate them into an ADK 2.0 agent node.
+**Learning Checkpoint:** Review the [Module 09 Concepts](./README.md) before starting. In this lab, you transition from consumer AI prompt-engineering to enterprise systems engineering by building deterministic, type-safe custom function tools for Google ADK 2.0.
 
 ---
 
-### Step 1: Create the Project and File Structure
+## 🎯 Lab Objectives
+
+By completing this challenge lab, you will:
+1. **Design Type-Safe Tool Contracts:** Write custom Python functions with strict type hints and Google-style docstrings parsed into OpenAPI 3.0 schemas.
+2. **Implement Defensive Error Trapping:** Prevent unhandled runtime exceptions (such as `ZeroDivisionError`) from crashing the ADK runner.
+3. **Build Enterprise Billing Logic:** Create a specialized GST tax invoicing tool that computes itemized tax breakdowns deterministically.
+4. **Register Tools in an ADK Agent Node:** Wire your custom functions into an ADK 2.0 `Agent` instance.
+5. **Programmatically Verify Execution:** Execute test prompts using `InMemoryRunner` to observe and validate tool call events and responses.
+
+---
+
+## Step 1: Environment & Project Setup
 
 <Setup/>
 
-1. **Create the agent project:**
-   ```bash
-   uv run adk create calculator_agent
-   cd calculator_agent
-   ```
+### 1. Initialize the Workspace
+Create a clean directory for your calculator agent project:
 
-2. **Set up authentication:**
-   Create a `.env` file in your `calculator_agent` directory and add your `GOOGLE_API_KEY`:
-   ```bash
-   GOOGLE_API_KEY=your_actual_gemini_api_key_here
-   ```
+```bash
+mkdir -p calculator_agent/tools
+cd calculator_agent
+```
 
-3. **Create the tools package:**
-   Organizing tool code in a dedicated module keeps your agent architecture modular and clean:
-   ```bash
-   mkdir tools
-   touch tools/__init__.py
-   touch tools/calculator.py
-   ```
+### 2. Configure Environment Variables
+Create a `.env` file in `calculator_agent/`:
+
+```env
+GOOGLE_API_KEY=your_gemini_api_key_here
+```
+
+### 3. Initialize Package Structure
+Ensure Python recognizes your tools directory as a package:
+
+```bash
+touch tools/__init__.py
+touch tools/calculator.py
+touch agent.py
+touch run_verification.py
+```
 
 ---
 
-### Step 2: Implement the Tool Functions
+## Step 2: Implement Custom Tools (`tools/calculator.py`)
 
-Open `tools/calculator.py` and implement the tool functions. Pay close attention to docstrings and type hints—they define the schema contract that Gemini inspects.
+Open `tools/calculator.py`. Your task is to complete the tool functions below. 
 
-#### Part A: Core Arithmetic Tools
-Implement the basic arithmetic functions with defensive error handling for division:
+> [!IMPORTANT]
+> **Pedagogical Challenge:**
+> Do not write arbitrary code. Follow the **5 Anatomical Principles** from the Theory section:
+> 1. Use explicit type hints for all arguments.
+> 2. Include comprehensive Google-style docstrings describing the tool's purpose and parameter meanings.
+> 3. Implement defensive guard clauses so that no operation ever raises an unhandled Python exception.
+> 4. Return structured dictionaries with status indicators (`"success"` or `"error"`).
 
 ```python
-# In tools/calculator.py
+"""
+tools/calculator.py
+Enterprise custom function tools for arithmetic and tax calculation.
+"""
+from typing import Dict, Any
 
 
-def add(a: float, b: float) -> dict:
-    """Adds two numbers together.
+def add(a: float, b: float) -> Dict[str, Any]:
+    """Adds two floating-point numbers together.
 
     Use this tool when the user asks to find the sum of two numbers.
 
     Args:
-        a: The first number.
-        b: The second number.
+        a: The first number (addend).
+        b: The second number (addend).
+
+    Returns:
+        A dictionary with 'status' and the computed 'result'.
     """
     # TODO: Calculate the sum of a and b.
-    # Return a dictionary: {"status": "success", "result": a + b}
+    # Return: {"status": "success", "result": a + b}
     pass
 
 
-def subtract(a: float, b: float) -> dict:
+def subtract(a: float, b: float) -> Dict[str, Any]:
     """Subtracts the second number from the first number.
 
     Use this tool when the user asks to find the difference between two numbers.
 
     Args:
-        a: The first number.
-        b: The second number to subtract.
+        a: The starting number (minuend).
+        b: The number to subtract (subtrahend).
+
+    Returns:
+        A dictionary with 'status' and the computed 'result'.
     """
     # TODO: Calculate the difference (a - b).
-    # Return a dictionary: {"status": "success", "result": a - b}
+    # Return: {"status": "success", "result": a - b}
     pass
 
 
-def multiply(a: float, b: float) -> dict:
+def multiply(a: float, b: float) -> Dict[str, Any]:
     """Multiplies two numbers together.
 
     Use this tool when the user asks to find the product of two numbers.
 
     Args:
-        a: The first number.
-        b: The second number to multiply.
+        a: The first factor.
+        b: The second factor.
+
+    Returns:
+        A dictionary with 'status' and the computed 'result'.
     """
     # TODO: Calculate the product (a * b).
-    # Return a dictionary: {"status": "success", "result": a * b}
+    # Return: {"status": "success", "result": a * b}
     pass
 
 
-def divide(a: float, b: float) -> dict:
-    """Divides the first number by the second number.
+def divide(a: float, b: float) -> Dict[str, Any]:
+    """Divides the first number by the second number with defensive error handling.
 
     Use this tool when the user asks to divide one number by another.
 
     Args:
-        a: The numerator.
-        b: The denominator.
+        a: The numerator (dividend).
+        b: The denominator (divisor).
+
+    Returns:
+        A dictionary with 'status', 'result', or an error 'message'.
     """
-    # TODO: Implement defensive error handling!
-    # If b == 0, DO NOT let Python raise ZeroDivisionError.
-    # Return: {"status": "error", "message": "Cannot divide by zero."}
+    # TODO: Implement defensive error trapping!
+    # If b == 0, DO NOT allow Python to raise ZeroDivisionError.
+    # Return: {"status": "error", "message": "Division by zero is undefined."}
     # Otherwise, return: {"status": "success", "result": a / b}
     pass
-```
 
-#### Part B: Enterprise Real-World Challenge (GST Invoicing)
-In enterprise AI consulting, clients rely on tools to calculate financial numbers deterministically instead of letting the LLM hallucinate math.
 
-Add a GST tax calculation tool to `tools/calculator.py`:
-
-```python
-def calculate_gst_invoice(amount: float, tax_rate_percent: float = 18.0) -> dict:
+def calculate_gst_invoice(
+    amount: float, tax_rate_percent: float = 18.0
+) -> Dict[str, Any]:
     """Calculates an itemized GST invoice including CGST, SGST, and the total payable amount.
 
-    Use this tool whenever a user asks to calculate GST, tax, or an invoice total for a purchase.
+    Use this tool whenever a user asks to calculate GST, sales tax, or an invoice total.
+    Never guess or approximate tax calculations without calling this tool.
 
     Args:
-        amount: The base pre-tax amount in rupees (INR) or currency.
-        tax_rate_percent: The GST tax slab percentage (defaults to 18.0%).
+        amount: The base pre-tax amount in currency units (must be positive).
+        tax_rate_percent: The applicable GST tax percentage slab (defaults to 18.0).
+
+    Returns:
+        A dictionary with itemized tax components (base_amount, cgst, sgst, total_gst, total_payable).
     """
-    # TODO: Calculate tax amounts:
-    # 1. Total GST = amount * (tax_rate_percent / 100.0)
-    # 2. CGST (Central GST) = Total GST / 2.0
-    # 3. SGST (State GST) = Total GST / 2.0
-    # 4. Total Payable = amount + Total GST
-    # Return a structured dictionary with these itemized values.
+    # TODO: Guard against negative amounts or tax rates
+    # If amount < 0 or tax_rate_percent < 0:
+    #     Return: {"status": "error", "message": "Amount and tax rate must be non-negative."}
+
+    # TODO: Compute itemized tax:
+    # 1. total_gst = round(amount * (tax_rate_percent / 100.0), 2)
+    # 2. cgst = round(total_gst / 2.0, 2)
+    # 3. sgst = round(total_gst / 2.0, 2)
+    # 4. total_payable = round(amount + total_gst, 2)
+
+    # TODO: Return structured dictionary with:
+    # 'status': 'success',
+    # 'base_amount': amount,
+    # 'tax_rate_percent': tax_rate_percent,
+    # 'cgst': cgst,
+    # 'sgst': sgst,
+    # 'total_gst': total_gst,
+    # 'total_payable': total_payable
     pass
 ```
-
-> [!TIP]
-> **Pydantic Best Practice:** While dictionaries work for basic tools, in production ADK agents you should return **Pydantic models** (`BaseModel`) for strict type validation. See `lab-solution.md` for the Pydantic implementation.
 
 ---
 
-### Step 3: Configure the Agent Node
+## Step 3: Configure the Agent Node (`agent.py`)
 
-Create `agent.py` and register your functions using the ADK 2.0 **`Agent`** class:
+Open `agent.py`. Wire your custom tool functions into an ADK 2.0 `Agent` instance.
 
 ```python
-# In agent.py
+"""
+agent.py
+Root agent definition binding custom tools to Gemini 2.5 Flash.
+"""
 from google.adk import Agent
-from .tools.calculator import (
+from tools.calculator import (
     add,
     subtract,
     multiply,
@@ -155,88 +199,143 @@ from .tools.calculator import (
     calculate_gst_invoice,
 )
 
+# TODO: Complete the root_agent definition:
+# 1. Set name to "calculator_agent"
+# 2. Set model to "gemini-2.5-flash"
+# 3. Write strict instructions commanding the agent to:
+#    - ALWAYS invoke the corresponding tool for math and tax calculations.
+#    - NEVER calculate numbers internally.
+#    - Explain errors gracefully if a tool returns status="error".
+# 4. Register all 5 imported tool functions in the tools list.
+
 root_agent = Agent(
     name="calculator_agent",
     model="gemini-2.5-flash",
-    description="A deterministic calculation assistant for arithmetic and GST billing.",
+    description="Deterministic arithmetic and tax billing agent.",
     instruction="""
-You are a helpful and precise calculator assistant.
-When the user asks you to perform an arithmetic calculation or calculate a GST invoice, you MUST use the appropriate tool.
-Always state the calculated result clearly.
-If a tool returns an error (such as division by zero), explain the problem politely without crashing.
-If the user asks something unrelated to math or billing, politely decline.
+# TODO: Write system instruction following the guidelines above
 """,
-    # TODO: Register all 5 imported tool functions in this list:
     tools=[
-        # add your functions here
+        # TODO: Add your 5 functions here
     ],
 )
 ```
 
 ---
 
-### Step 4: Test and Verify the Agent
+## Step 4: Programmatic Verification (`run_verification.py`)
 
-#### 1. Interactive Terminal Mode
-Start the agent using the ADK CLI:
+In production agent development, relying solely on manual chat is insufficient. You must write automated programmatic verification scripts that test the agent against edge cases.
 
-```bash
-uv run adk run .
+Open `run_verification.py` and implement the test runner using ADK's `InMemoryRunner`:
+
+```python
+"""
+run_verification.py
+Programmatic test runner verifying tool calling and error trapping.
+"""
+import asyncio
+from dotenv import load_dotenv
+from google.adk.runners import InMemoryRunner
+from google.adk.apps import App
+from google.genai import types
+from agent import root_agent
+
+load_dotenv()
+
+
+async def run_test_case(runner: InMemoryRunner, session_id: str, prompt: str):
+    print(f"\n--- User Query: {prompt} ---")
+    tool_invoked = False
+
+    async for event in runner.run_async(
+        user_id="test_engineer",
+        session_id=session_id,
+        new_message=types.Content(
+            role="user",
+            parts=[types.Part.from_text(text=prompt)]
+        ),
+    ):
+        # TODO: Inspect event to verify if a tool was executed
+        # Hint: check if event has content or tool call information
+        
+        # Check if this is the final agent response
+        if event.is_final_response():
+            response_text = event.content.parts[0].text
+            print(f"Agent Response:\n{response_text}")
+
+
+async def main():
+    # 1. Create ADK App and Runner
+    app = App(name="calculator_app", root_agent=root_agent)
+    runner = InMemoryRunner(app=app)
+
+    # 2. Initialize a test session
+    session = await runner.session_service.create_session(
+        app_name=app.name,
+        user_id="test_engineer",
+        session_id="test_session_01"
+    )
+
+    # 3. Test Cases to Verify:
+    # Test A: Basic Arithmetic
+    await run_test_case(runner, session.id, "What is 42.5 + 118.3?")
+
+    # Test B: Defensive Zero Division
+    await run_test_case(runner, session.id, "What is 100 divided by 0?")
+
+    # Test C: Enterprise GST Calculation
+    await run_test_case(runner, session.id, "Calculate the GST invoice for an order of Rs. 15,000 at 18% tax.")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
 ```
-
-Test across each capability:
-* **Addition:** `"What is 42.5 + 118.3?"`
-* **Multiplication:** `"Multiply 15 by 3"`
-* **Defensive Error Test:** `"What is 10 divided by 0?"` $\rightarrow$ Verify the agent politely explains that division by zero is impossible without crashing!
-* **Enterprise GST Invoicing:** `"Calculate the GST bill for an order of ₹25,000 at 18% tax"` $\rightarrow$ Verify it breaks down CGST, SGST, and the total bill.
-* **Out-of-Scope Refusal:** `"What is the capital of France?"` $\rightarrow$ Verify it politely declines as instructed.
-
-#### 2. Visual Trace Inspection
-To visually confirm that Gemini generated the `FunctionCall` and your Python function returned the `FunctionResponse`:
-
-```bash
-uv run adk web .
-```
-Open your browser at `http://localhost:8000`, send a calculation prompt, and click the **Trace** tab to inspect the tool execution events.
 
 ---
 
-### Having Trouble?
+## Step 5: Execute & Validate
 
-If you get stuck, you can find the complete, working code and configuration in the `lab-solution.md` file.
+Run the programmatic test script:
 
-### Lab Summary
+```bash
+uv run python run_verification.py
+```
 
-You have successfully built an agent with custom capabilities:
-* Organized tool code cleanly into a dedicated Python module.
-* Wrote well-defined Python functions with type hints and docstrings to serve as LLM tool contracts.
-* Implemented defensive error handling to prevent runtime crashes.
-* Imported and registered your custom tools directly into the ADK 2.0 `Agent` node.
-* Tested agent reasoning and verified execution traces via the terminal and Web UI.
+### Expected Output Criteria
+1. **Arithmetic Query (`42.5 + 118.3`):** The final answer must state `160.8`.
+2. **Defensive Error Query (`100 / 0`):** The agent must politely inform the user that division by zero is undefined, **without raising any Python exception or crashing**.
+3. **GST Invoicing Query (`Rs. 15,000 @ 18%`):** The response must itemize:
+   - Base Amount: Rs. 15,000.00
+   - CGST (9%): Rs. 1,350.00
+   - SGST (9%): Rs. 1,350.00
+   - Total GST (18%): Rs. 2,700.00
+   - Total Payable: Rs. 17,700.00
 
-### Self-Reflection Questions
-1. The docstring for each function is critical. What do you think would happen if you removed the docstrings from your calculator functions? Would the agent still be able to use them?
-2. Why is it a good practice to return a dictionary or Pydantic model with a `status` key from a tool function, especially for operations that can fail (like division)?
-3. How would you add a new tool to this agent, for example, a function to calculate compound interest? What steps would you need to take?
+---
 
-<hr/>
+## Self-Reflection Questions
 
-### 🕵️ Hidden Solution 🕵️
+1. **Docstring Impact:** What happens if you remove the `Args:` section from `calculate_gst_invoice`? How does this alter the generated OpenAPI schema?
+2. **Exception vs. Soft Error:** Why does returning `{"status": "error", "message": "..."}` allow Gemini to recover, whereas `raise ZeroDivisionError()` terminates the agent turn?
+3. **Pydantic Migration:** Why would an enterprise engineering team replace raw Python dictionaries with Pydantic `BaseModel` classes for tool return types?
 
-Looking for the solution? Here's a hint (Base64 decode me):
+---
+
+### 🕵️ Hidden Solution Hint 🕵️
+
+Stuck or need to verify your implementation? Base64-decode the hint below:
+
 `L2dvb2dsZS1hZGstdHJhaW5pbmcvbW9kdWxlMDktaW50cm8tY3VzdG9tLWZ1bmN0aW9uLXRvb2xzL2xhYi1zb2x1dGlvbg==`
 
 <div style={{color: 'rgba(0,0,0,0.01)', userSelect: 'all', fontSize: '1px'}}>
     The direct link is: <a href="/google-adk-training/module09-intro-custom-function-tools/lab-solution" style={{color: 'inherit', textDecoration: 'none'}}>Lab Solution</a>
 </div>
 
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module09-intro-custom-function-tools-lab -->
 ---
 
 ## Official References
 
-- Google ADK docs (latest): https://google.github.io/adk-docs/
-- Google AI / Gemini docs: https://ai.google.dev/
-- Google GenAI Python SDK reference: https://googleapis.github.io/python-genai/
-- Context7 / current SDK lookup for the exact installed version and API signatures
-- Related module path: review the surrounding modules for continuity, prerequisites, and follow-on concepts
+- **Google ADK Custom Tools:** https://adk.dev/tools-custom/
+- **Google ADK Function Tools:** https://adk.dev/tools-custom/function-tools/
+- **Google Gemini API Function Calling:** https://ai.google.dev/gemini-api/docs/function-calling

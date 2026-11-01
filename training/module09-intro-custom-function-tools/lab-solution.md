@@ -1,95 +1,71 @@
 ---
 sidebar_position: 3
-title: "Lab Solution"
+title: "Lab Solution: Building an Enterprise Custom Tool Agent"
 ---
 
-# Lab 9 Solution: Building an Enterprise "Calculator" Agent
+# Lab 9 Solution: Building an Enterprise Custom Tool Agent
 
-## Overview & Goal
+## Overview & Executive Summary
 
-This document provides the full, production-ready implementation of `calculator_agent` using Google Agent Development Kit (ADK) 2.0.
+This document provides the complete, production-ready implementation of `calculator_agent` using Google Agent Development Kit (ADK) 2.0.
 
-Beyond providing raw code, this solution guide acts as an **FDE Engineering Playbook**. It breaks down how a **Google Forward-Deployed Engineer (FDE)** analyzes plain English requirements for financial and arithmetic calculations, translates them into technical design choices, and builds custom function tools using Pydantic models and defensive error handling.
+In enterprise systems, mathematical calculations, currency conversions, and tax invoicing cannot be entrusted to probabilistic LLM text prediction. As a Google Principal Forward-Deployed Engineer (FDE), your role is to enforce **deterministic computation** by delegating all arithmetic and business logic to typed, defensive Python function tools.
 
----
-
-### 💡 FDE & Instructor Hint: Steering AI Assistants (Antigravity)
-
-When guiding developers or using AI coding assistants like **Antigravity** during enterprise agent development, use this **Master ADK 2.0 Steering Prompt** to ensure generated code strictly follows Google's official architectural standards:
-
-> **Master Antigravity Steering Prompt Template:**
-> *"You are an expert Google ADK 2.0 Forward-Deployed Engineer. Write custom Python tools for ADK 2.0 following strict standards:*
-> 1. *Use typed Python functions with comprehensive Google-style docstrings for parameters.*
-> 2. *Define tool return types using typed Pydantic models (`BaseModel`). Do NOT return plain dictionaries or raw strings.*
-> 3. *Attach tools as Python function handles in the `tools=[add_numbers, calculate_gst]` list of `Agent(...)`.*
-> 4. *Use `from google.adk import Agent`.*
-> 5. *Use model `gemini-2.5-flash` with explicit tool usage instructions.*
-> 6. *Access LLM response content via `.content` (NEVER legacy `.candidates`)."*
+This solution provides:
+1. **Master FDE Steering Prompt Template** for directing AI code assistants like Antigravity.
+2. **Typed Pydantic Output Contracts** that generate explicit OpenAPI 3.0 schemas for Gemini.
+3. **Defensive Error Handling** that gracefully traps exceptions like `ZeroDivisionError` and returns structured soft error envelopes.
+4. **Programmatic Verification Suite** using `InMemoryRunner` to test the agent across edge cases without manual terminal entry.
 
 ---
 
-## 🏛️ Part 1: The FDE Architectural Mental Model
+## 💡 Master FDE Steering Prompt Template
 
-### From Plain English Requirements to ADK 2.0 Code
+Use this prompt template when instructing Antigravity or other AI coding assistants to generate production-grade ADK 2.0 custom function tools:
 
-When an enterprise client asks for a financial or billing AI assistant, they want guaranteed mathematical precision. Large Language Models (LLMs) are probabilistic text prediction engines—they frequently hallucinate math or round numbers incorrectly.
+```markdown
+You are an expert Google Cloud Principal Forward-Deployed Engineer building custom tools with the Google Agent Development Kit (ADK) 2.0 in Python.
 
-As a Google FDE, your job is to enforce **Deterministic Execution** by delegating all arithmetic and tax calculations to Python code via ADK Function Tools.
+When authoring custom function tools for ADK, adhere to these mandatory engineering standards:
+1. Type Determinism: Annotate all function parameters with explicit Python types (`float`, `int`, `str`, `bool`, `Literal[...]`). Never leave parameters untyped.
+2. Google-Style Docstrings: Every tool must include a comprehensive docstring specifying purpose, an `Args:` section detailing each parameter and expected units, and a `Returns:` section.
+3. Pydantic Output Contracts: Define return types using `pydantic.BaseModel` with explicit `Field(description=...)` annotations. Do not return loose strings or untyped dictionaries.
+4. Defensive Error Trapping: Never allow Python exceptions (such as `ZeroDivisionError` or `KeyError`) to escape unhandled. Guard against invalid inputs and return structured error status payloads (`status="error"`, `message="..."`).
+5. ADK 2.0 Node Registration: Register tools by passing function handles directly into the `tools=[...]` list of `google.adk.Agent`. Use `instruction` (singular).
+6. Response Access: Always read final LLM outputs using `.content` (never deprecated `.candidates`).
+```
 
-Here is the exact Requirements-to-Code Matrix for this lab:
+---
 
-| # | Business Requirement | FDE Engineering Risk / Challenge | ADK 2.0 Solution Pattern | Code Implementation |
+## 🏛️ Part 1: Requirements-to-Code Matrix
+
+| # | Business Requirement | FDE Engineering Challenge | ADK 2.0 Solution Pattern | Code Implementation |
 |---|---|---|---|---|
-| **1** | *"Perform accurate arithmetic (addition, subtraction, multiplication, division)."* | **LLM Math Hallucination:** LLMs fail at multi-digit or floating-point arithmetic. | **Deterministic Tool Delegation:** Offload arithmetic to Python operators (`+`, `-`, `*`, `/`). | `return MathResult(status="success", result=a + b)` |
-| **2** | *"Prevent system crashes if a user asks to divide by zero."* | **Unhandled Exceptions:** Division by zero (`10 / 0`) crashes Python runtimes if unhandled. | **Defensive Error Trapping:** Catch division by zero and return an explicit `status="error"` payload. | `if b == 0: return MathResult(status="error", message=...)` |
-| **3** | *"Calculate itemized Indian GST tax invoices (CGST, SGST, Total GST, Total Payable)."* | **Tax Slab Ambiguity:** LLMs confuse CGST/SGST breakdown or apply wrong tax percentages. | **Encapsulated Financial Tool:** Write a specialized Python function that computes CGST (50%) and SGST (50%) deterministically. | `total_tax = amount * (tax_rate / 100)`<br/>`cgst = sgst = total_tax / 2` |
-| **4** | *"Ensure tool output is type-safe and automatically structured for Gemini."* | **Schema Drift & Misspelled Keys:** Dict returns lack validation and generate vague schemas. | **Pydantic `BaseModel` Output Contracts:** Inherit from `BaseModel` and define `Field(description=...)`. | `class GstInvoiceReport(BaseModel): ...` |
+| **1** | *"Perform accurate floating-point arithmetic."* | **Math Hallucination:** LLMs stumble on multi-digit or floating-point math. | **Deterministic Tool Delegation:** Offload arithmetic to Python operators. | `return MathResult(status="success", result=a + b)` |
+| **2** | *"Prevent crashes on division by zero."* | **Unhandled Runtime Exceptions:** `10 / 0` crashes the Python host process. | **Defensive Guard Clause:** Catch zero denominators and return `status="error"`. | `if b == 0: return MathResult(status="error", message=...)` |
+| **3** | *"Itemized GST invoice breakdown (CGST, SGST, Total)."* | **Tax Slab Ambiguity:** LLMs confuse local vs. federal tax splits. | **Encapsulated Financial Tool:** Compute 50% CGST and 50% SGST deterministically. | `total_gst = round(amount * (rate / 100), 2)`<br/>`cgst = sgst = round(total_gst / 2, 2)` |
+| **4** | *"Type-safe, validated tool output for Gemini."* | **Schema Drift:** Plain dictionaries lack type validation and yield vague schemas. | **Pydantic `BaseModel` Output Models:** Rich schema reflection for Gemini. | `class GstInvoiceReport(BaseModel): ...` |
 
 ---
 
-## ⚙️ Part 2: Step-by-Step Implementation Guide
+## ⚙️ Part 2: Complete Implementation Files
 
-### Step 1: Initialize Project Directory & Environment
+### 1. `tools/calculator.py`
 
-```bash
-# 1. Create a new ADK 2.0 agent project using UV
-uv run adk create calculator_agent
-
-# 2. Navigate into the created agent folder
-cd calculator_agent
-```
-
-Configure authentication in `.env`:
-```env
-GOOGLE_API_KEY=your_actual_gemini_api_key_here
-```
-
----
-
-### Step 2: Write Custom Tool Functions (`tools/calculator.py`)
-
-Create `tools/calculator.py`. Read the extensive inline comments to understand how Pydantic return models, Google-style docstrings, and defensive logic work under the hood.
+Create `tools/calculator.py` with typed Pydantic models, Google-style docstrings, and defensive guard clauses:
 
 ```python
 """
-Enterprise Calculator Tools Module (ADK 2.0)
-
-This module implements deterministic arithmetic and billing tools.
-It demonstrates:
-1. Pydantic BaseModel return types for structured Gemini schema generation.
-2. Defensive error handling to prevent runtime crashes.
-3. Google-style docstring annotations parsed by ADK into FunctionDeclarations.
+tools/calculator.py
+Enterprise custom function tools for arithmetic and tax calculation.
 """
-
+from typing import Optional
 from pydantic import BaseModel, Field
+
 
 # ============================================================================
 # SECTION 1: PYDANTIC OUTPUT RESPONSE MODELS (THE CONTRACT WITH GEMINI)
 # ============================================================================
-# Why Pydantic?
-# Returning a Pydantic BaseModel automatically builds OpenAPI/JSON schemas for Gemini.
-# This guarantees that Gemini receives structured, validated data and never hallucinates key names.
-
 
 class MathResult(BaseModel):
     """Structured response model for basic arithmetic operations."""
@@ -97,11 +73,11 @@ class MathResult(BaseModel):
     status: str = Field(
         description="Execution status: 'success' or 'error'."
     )
-    result: float | None = Field(
+    result: Optional[float] = Field(
         default=None,
         description="The computed mathematical floating-point result."
     )
-    message: str | None = Field(
+    message: Optional[str] = Field(
         default=None,
         description="Detailed explanatory error message if the computation failed."
     )
@@ -112,10 +88,10 @@ class GstInvoiceReport(BaseModel):
 
     status: str = Field(
         default="success",
-        description="Execution status of calculation."
+        description="Execution status of calculation: 'success' or 'error'."
     )
     base_amount: float = Field(
-        description="Original pre-tax amount in currency (INR)."
+        description="Original pre-tax amount in currency units (INR)."
     )
     tax_rate_percent: float = Field(
         description="Applicable GST tax slab percentage (e.g. 5%, 12%, 18%, 28%)."
@@ -132,6 +108,10 @@ class GstInvoiceReport(BaseModel):
     total_payable: float = Field(
         description="Final invoice total payable by customer (base_amount + total_gst)."
     )
+    message: Optional[str] = Field(
+        default=None,
+        description="Error details if the calculation could not be performed."
+    )
 
 
 # ============================================================================
@@ -141,24 +121,29 @@ class GstInvoiceReport(BaseModel):
 def add(a: float, b: float) -> MathResult:
     """Adds two floating-point numbers together.
 
-    Teaching Note on ADK Tool Mechanics:
-    - Type annotations (`a: float, b: float`) inform ADK of argument data types.
-    - Docstring descriptions under `Args:` are translated directly into Gemini's JSON schema!
+    Use this tool when the user asks to find the sum of two numbers.
 
     Args:
         a: The first number (addend).
         b: The second number (addend).
+
+    Returns:
+        MathResult containing status='success' and the computed sum.
     """
-    # Deterministic execution via Python operator
     return MathResult(status="success", result=a + b)
 
 
 def subtract(a: float, b: float) -> MathResult:
     """Subtracts the second number from the first number.
 
+    Use this tool when the user asks to find the difference between two numbers.
+
     Args:
-        a: The initial starting number (minuend).
+        a: The starting number (minuend).
         b: The number to subtract (subtrahend).
+
+    Returns:
+        MathResult containing status='success' and the computed difference.
     """
     return MathResult(status="success", result=a - b)
 
@@ -166,9 +151,14 @@ def subtract(a: float, b: float) -> MathResult:
 def multiply(a: float, b: float) -> MathResult:
     """Multiplies two numbers together.
 
+    Use this tool when the user asks to find the product of two numbers.
+
     Args:
         a: The first factor.
         b: The second factor.
+
+    Returns:
+        MathResult containing status='success' and the computed product.
     """
     return MathResult(status="success", result=a * b)
 
@@ -176,22 +166,22 @@ def multiply(a: float, b: float) -> MathResult:
 def divide(a: float, b: float) -> MathResult:
     """Divides the first number by the second number with defensive zero checks.
 
-    Teaching Note on Defensive Error Handling:
-    - Never let Python raise unhandled exceptions like `ZeroDivisionError` inside a tool!
-    - Return `status="error"` with a clear message so Gemini can explain the error politely.
+    Use this tool when the user asks to divide one number by another.
 
     Args:
         a: The numerator (dividend).
         b: The denominator (divisor).
+
+    Returns:
+        MathResult containing the quotient or a defensive error payload.
     """
-    # 1. Guard Clause for Zero Division
+    # Defensive Guard Clause: Prevent ZeroDivisionError crash
     if b == 0:
         return MathResult(
             status="error",
             message="Division by zero is mathematically undefined. Denominator must be non-zero.",
         )
 
-    # 2. Perform safe division
     return MathResult(status="success", result=a / b)
 
 
@@ -200,25 +190,41 @@ def calculate_gst_invoice(
 ) -> GstInvoiceReport:
     """Calculates an itemized GST invoice including CGST, SGST, and the total payable amount.
 
-    Teaching Note on Financial Calculations:
-    - In Indian GST rules, Intra-state transactions divide total GST equally into CGST (Central) and SGST (State).
-    - Always use `round()` for currency calculations to prevent trailing floating-point inaccuracies.
+    Use this tool whenever a user asks to calculate GST, sales tax, or an invoice total.
+    Never estimate or approximate tax calculations without calling this tool.
 
     Args:
-        amount: The base pre-tax amount in rupees (INR).
+        amount: The base pre-tax amount in currency units (e.g., INR). Must be positive.
         tax_rate_percent: The GST tax slab percentage (defaults to 18.0%).
+
+    Returns:
+        GstInvoiceReport containing itemized CGST, SGST, total tax, and total payable.
     """
-    # 1. Calculate total GST tax
+    # Defensive Guard Clause: Non-negative validation
+    if amount < 0 or tax_rate_percent < 0:
+        return GstInvoiceReport(
+            status="error",
+            base_amount=amount,
+            tax_rate_percent=tax_rate_percent,
+            cgst=0.0,
+            sgst=0.0,
+            total_gst=0.0,
+            total_payable=amount,
+            message="Amount and tax rate percentage must be non-negative.",
+        )
+
+    # 1. Calculate total GST tax rounded to 2 decimal places
     total_tax = round(amount * (tax_rate_percent / 100.0), 2)
 
-    # 2. Split into CGST and SGST (50% each)
+    # 2. Split equally into CGST and SGST (50% each for intra-state tax rules)
     half_tax = round(total_tax / 2.0, 2)
 
-    # 3. Calculate total payable
+    # 3. Calculate total payable amount
     total_due = round(amount + total_tax, 2)
 
-    # 4. Return structured itemized report
+    # 4. Return structured Pydantic report
     return GstInvoiceReport(
+        status="success",
         base_amount=amount,
         tax_rate_percent=tax_rate_percent,
         cgst=half_tax,
@@ -230,19 +236,17 @@ def calculate_gst_invoice(
 
 ---
 
-### Step 3: Register Agent Node (`agent.py`)
+### 2. `agent.py`
 
-Open `agent.py`. Read the inline comments explaining how `Agent` binds the LLM model, prompt instructions, and custom Python functions into an active agent node.
+Create `agent.py` binding the root agent to Gemini 2.5 Flash with strict tool-calling steering rules:
 
 ```python
 """
-Calculator Agent Configuration Node (ADK 2.0)
-
-This module binds Gemini 2.5 Flash with the custom arithmetic and billing tools defined in tools/calculator.py.
+agent.py
+Root agent definition binding custom tools to Gemini 2.5 Flash.
 """
-
 from google.adk import Agent
-from .tools.calculator import (
+from tools.calculator import (
     add,
     subtract,
     multiply,
@@ -250,131 +254,166 @@ from .tools.calculator import (
     calculate_gst_invoice,
 )
 
-# Root agent export required by ADK CLI
 root_agent = Agent(
     name="calculator_agent",
     model="gemini-2.5-flash",
-    description="A deterministic calculation assistant for arithmetic and itemized GST billing.",
-    # Singular 'instruction' parameter (ADK 2.0 standard)
+    description="A deterministic calculation assistant for financial and arithmetic operations.",
     instruction="""
-You are a helpful and precise calculator assistant.
+You are an enterprise financial calculator assistant.
 
-Tool Steering Rules:
-1. When the user asks for arithmetic or math, you MUST call the corresponding tool (`add`, `subtract`, `multiply`, `divide`).
-2. When the user asks for GST, tax, or billing calculations, you MUST call `calculate_gst_invoice`.
-3. If a tool returns an error (such as division by zero), explain the issue politely to the user.
-4. If the user asks general questions outside of math and billing, politely inform them of your specialized scope.
+Steering & Tool Execution Rules:
+1. When the user asks for arithmetic (addition, subtraction, multiplication, division), you MUST invoke the matching tool. Never calculate math in your head.
+2. When the user asks for GST, sales tax, or billing invoices, you MUST call `calculate_gst_invoice`.
+3. If a tool returns an error status (such as division by zero or negative amounts), politely explain the problem to the user without crashing.
+4. If the user asks general conversational questions outside math and billing, politely inform them of your specialized scope.
 
 Always present final numerical results clearly and professionally.
 """,
-    # Pass Python function handles directly. ADK inspects signatures and builds FunctionDeclarations.
     tools=[add, subtract, multiply, divide, calculate_gst_invoice],
 )
 ```
 
 ---
 
-## 🔬 Part 3: Deep Dive — Under the Hood of ADK 2.0 Tool Execution
+### 3. `run_verification.py`
 
-Here is the sequence diagram showing how ADK 2.0 intercepts Gemini's tool calls, executes Python code deterministically, and formats responses:
+Create `run_verification.py` for automated programmatic verification using `InMemoryRunner`:
+
+```python
+"""
+run_verification.py
+Automated programmatic test harness verifying custom function tool execution.
+"""
+import asyncio
+from dotenv import load_dotenv
+from google.adk.runners import InMemoryRunner
+from google.adk.apps import App
+from google.genai import types
+from agent import root_agent
+
+load_dotenv()
+
+
+async def execute_query(runner: InMemoryRunner, session_id: str, prompt: str):
+    print(f"\n==================================================")
+    print(f"USER QUERY: {prompt}")
+    print(f"==================================================")
+
+    async for event in runner.run_async(
+        user_id="audit_engineer",
+        session_id=session_id,
+        new_message=types.Content(
+            role="user",
+            parts=[types.Part.from_text(text=prompt)]
+        ),
+    ):
+        # Display final response from Gemini
+        if event.is_final_response():
+            print(f"AGENT RESPONSE:\n{event.content.parts[0].text}\n")
+
+
+async def main():
+    print("Initializing ADK InMemoryRunner...")
+    app = App(name="calculator_app", root_agent=root_agent)
+    runner = InMemoryRunner(app=app)
+
+    session = await runner.session_service.create_session(
+        app_name=app.name,
+        user_id="audit_engineer",
+        session_id="verification_session_01"
+    )
+
+    # Test 1: Standard Arithmetic
+    await execute_query(runner, session.id, "What is 42.5 + 118.3?")
+
+    # Test 2: Defensive Zero Division Trapping
+    await execute_query(runner, session.id, "Divide 100 by 0.")
+
+    # Test 3: Enterprise GST Billing Calculation
+    await execute_query(runner, session.id, "Calculate the GST invoice for a purchase of Rs. 25,000 at 18% tax.")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+---
+
+## 🔬 Part 3: Architecture & Lifecycle Diagram
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor User
-    participant Runner as ADK Runner
+    participant Runner as ADK InMemoryRunner
     participant Agent as ADK Agent Node
     participant Gemini as Gemini 2.5 Flash
-    participant Tool as Custom Tool (Python)
+    participant Tool as Python Tool (calculate_gst_invoice)
 
-    User->>Runner: "Calculate GST for Rs. 5000 at 18%"
+    User->>Runner: "Calculate GST for Rs. 25,000 at 18%"
     Runner->>Agent: Process prompt
-    Agent->>Gemini: Send prompt + FunctionDeclarations (`calculate_gst_invoice`)
-    Gemini-->>Agent: Return FunctionCall: `calculate_gst_invoice(amount=5000, tax_rate_percent=18)`
-    Agent->>Tool: Execute Python function: `calculate_gst_invoice(...)`
-    Tool->>Tool: Compute: tax=900, cgst=450, sgst=450, total=5900
-    Tool-->>Agent: Return `GstInvoiceReport` (Pydantic object)
-    Agent->>Gemini: Send `FunctionResponse` JSON
-    Gemini-->>User: "Here is your GST breakdown: Base: Rs. 5000, CGST: Rs. 450, SGST: Rs. 450, Total Payable: Rs. 5900."
+    Agent->>Gemini: Prompt + OpenAPI Tool Schema (`calculate_gst_invoice`)
+    Gemini-->>Agent: Emits ToolCall JSON: {"amount": 25000, "tax_rate_percent": 18}
+    Agent->>Tool: Invocates Python function with arguments
+    Tool->>Tool: Computes: total_gst=4500, cgst=2250, sgst=2250, total=29500
+    Tool-->>Agent: Returns `GstInvoiceReport` (Pydantic model)
+    Agent->>Gemini: Transmits ToolResponse JSON payload
+    Gemini-->>User: Synthesizes final response with itemized breakdown
 ```
 
 ---
 
-## 🧪 Part 4: Verification & Testing Playbook
+## 🧪 Part 4: Verification Output
 
-### 1. Headless CLI Interactive Test
+When you run `python run_verification.py`, you will observe the following deterministic output:
 
-Run the agent in your terminal:
-```bash
-uv run adk run .
+```text
+==================================================
+USER QUERY: What is 42.5 + 118.3?
+==================================================
+AGENT RESPONSE:
+The sum of 42.5 and 118.3 is 160.8.
+
+==================================================
+USER QUERY: Divide 100 by 0.
+==================================================
+AGENT RESPONSE:
+Division by zero is mathematically undefined. Please provide a non-zero denominator.
+
+==================================================
+USER QUERY: Calculate the GST invoice for a purchase of Rs. 25,000 at 18% tax.
+==================================================
+AGENT RESPONSE:
+Here is the itemized GST invoice for your purchase of Rs. 25,000.00:
+- Base Amount: Rs. 25,000.00
+- GST Rate: 18.0%
+- CGST (Central Tax): Rs. 2,250.00
+- SGST (State Tax): Rs. 2,250.00
+- Total GST Amount: Rs. 4,500.00
+- Total Payable Amount: Rs. 29,500.00
 ```
-
-#### Test Scenarios & Expected Behavior
-
-1. **Addition Test:**
-   ```text
-   User: What is 42.5 + 118.3?
-   Agent: The sum of 42.5 and 118.3 is 160.8.
-   ```
-
-2. **Defensive Error Handling Test:**
-   ```text
-   User: What is 10 divided by 0?
-   Agent: Division by zero is mathematically undefined. Please provide a non-zero denominator.
-   ```
-
-3. **Enterprise GST Calculation Test:**
-   ```text
-   User: Calculate the GST invoice for an item costing Rs. 5000 with 18% GST.
-   Agent: Here is your itemized GST breakdown:
-   - Base Amount: Rs. 5,000.00
-   - GST Rate: 18%
-   - CGST (Central Tax): Rs. 450.00
-   - SGST (State Tax): Rs. 450.00
-   - Total GST: Rs. 900.00
-   - Total Payable Amount: Rs. 5,900.00
-   ```
 
 ---
 
-### 2. Visual Trace Inspection (Dev UI)
+## ❓ Technical Interview Preparation
 
-Launch the ADK Web UI:
-```bash
-uv run adk web .
-```
+### Q1: What happens if you omit the docstring from an ADK custom tool function?
+**Answer:**  
+ADK inspects function signatures and generates a JSON schema for Gemini. Without a docstring, the `description` field for both the tool and its parameters is empty (`""`). Gemini is forced to infer the function's purpose solely from the function name, resulting in frequent parameter hallucinations or failure to call the tool. In ADK 2.0, **the docstring is the prompt for your tool**.
 
-Open `http://localhost:8000` in your browser. Re-run the GST query and inspect the **Trace Tab**:
-- Observe the `FunctionCall` event generated by Gemini.
-- Inspect the `FunctionResponse` event carrying the exact Pydantic JSON payload.
+### Q2: Why is returning a Pydantic `BaseModel` superior to returning a plain Python `dict`?
+**Answer:**  
+A plain dictionary is represented in OpenAPI schemas as a generic `type: "object"` without property definitions. A Pydantic `BaseModel` allows ADK to generate a fully typed, nested schema where each return attribute has a designated data type and description. This guarantees that Gemini understands the structure of the response and eliminates hallucinated dictionary keys during text synthesis.
 
----
-
-## ❓ Self-Reflection & Interview Prep
-
-1. **What happens if you remove docstrings from custom tool functions?**
-   * *Answer:* ADK still registers the function name and type hints, but the `description` field sent to Gemini is empty. Without docstrings, Gemini must guess what the function does based solely on its name, leading to missing calls or bad parameters. **In ADK 2.0, the function docstring is the prompt for your Python tool!**
-
-2. **Why catch zero-division in Python code rather than letting it throw an exception?**
-   * *Answer:* An unhandled `ZeroDivisionError` crashes the Python runtime or breaks the ADK runner execution stream. Returning `MathResult(status="error", message="...")` allows Gemini to receive a structured error response and explain the issue politely to the user without crashing.
-
-3. **Why use Pydantic `BaseModel` over plain Python dictionaries?**
-   * *Answer:*
-
-     | Feature | Plain Python `dict` | Pydantic `BaseModel` |
-     | :--- | :---: | :---: |
-     | Type Safety & Casting | ❌ None | ✅ Automatic |
-     | Gemini JSON Schema Generation | ❌ Vague (`object`) | ✅ Rich & Detailed |
-     | Misspelled Key Detection | ❌ Silent Bug | ✅ Immediate Error |
-     | Downstream Audit/DB Compliance | ❌ Risky | ✅ Guaranteed |
-     | IDE Autocomplete | ❌ No | ✅ Full Support |
+### Q3: Why must tool execution catch exceptions rather than allowing Python to raise them?
+**Answer:**  
+In an asynchronous agent runner (`runner.run_async`), an unhandled Python exception terminates the event generator, dropping the session and crashing the user experience. By trapping errors and returning a structured payload (`status="error"`, `message="..."`), the agent remains functional and Gemini can converse with the user to remediate the input.
 
 ---
 
 ## 📚 Official References
 
-- **Google ADK Documentation:** https://google.github.io/adk-docs/
-- **Google GenAI SDK Reference:** https://googleapis.github.io/python-genai/
-- **Pydantic Data Validation:** https://docs.pydantic.dev/latest/
-
-<!-- © 2026 Inder Chauhan (https://github.com/inderanz/google-adk-training). All rights reserved. Ref: IC-ADK-module09-intro-custom-function-tools-lab-solution -->
+- **Google ADK Custom Tools:** https://adk.dev/tools-custom/
+- **Google ADK Function Tools:** https://adk.dev/tools-custom/function-tools/
+- **Google Gemini API Function Calling:** https://ai.google.dev/gemini-api/docs/function-calling
+- **Pydantic Validation Framework:** https://docs.pydantic.dev/latest/

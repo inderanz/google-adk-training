@@ -92,20 +92,22 @@ Here is the reference architectural pattern for wrapping internal enterprise API
 production_tool_blueprint.py
 Enterprise-grade ADK tool wrapper with audit logging, timeout, and schema hygiene.
 """
+
 from typing import Optional, Dict, Any, Literal
 import time
 import logging
 
 logger = logging.getLogger("enterprise.tools.sec")
 
+
 def lookup_sec_filing_enterprise(
     ticker: str,
     form_type: Literal["10-K", "10-Q", "8-K"] = "10-K",
-    fiscal_year: Optional[int] = None
+    fiscal_year: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Retrieve verified SEC EDGAR filing metadata for a publicly traded company.
 
-    Use this tool whenever a user asks about official corporate filings, audited 
+    Use this tool whenever a user asks about official corporate filings, audited
     financial statements, annual disclosures, or material regulatory events.
     Never guess filing dates or audited numbers without calling this tool.
 
@@ -122,14 +124,14 @@ def lookup_sec_filing_enterprise(
     """
     start_time = time.time()
     clean_ticker = ticker.strip().upper()
-    
+
     # 1. Boundary Defense & Validation
     if not clean_ticker.isalpha() or len(clean_ticker) > 5:
         logger.warning("Invalid ticker format requested by model: %s", ticker)
         return {
             "status": "error",
             "code": "INVALID_INPUT",
-            "message": f"Ticker '{ticker}' is not a valid US stock ticker symbol."
+            "message": f"Ticker '{ticker}' is not a valid US stock ticker symbol.",
         }
 
     # 2. Host-Side Authenticated Invocation (with timing & observability)
@@ -143,23 +145,29 @@ def lookup_sec_filing_enterprise(
             "status": "APPROVED",
             "verification_source": "SEC EDGAR Official Repository",
             "accession_number": "0000320193-24-000106",
-            "disclosure_summary": "Clean unqualified audit opinion rendered. CardioVax-9 approved for clinical Phase III."
+            "disclosure_summary": "Clean unqualified audit opinion rendered. CardioVax-9 approved for clinical Phase III.",
         }
         duration_ms = (time.time() - start_time) * 1000
-        logger.info("Tool 'lookup_sec_filing' succeeded for %s in %.2fms", clean_ticker, duration_ms)
-        
-        return {
-            "status": "success",
-            "data": record
-        }
+        logger.info(
+            "Tool 'lookup_sec_filing' succeeded for %s in %.2fms",
+            clean_ticker,
+            duration_ms,
+        )
+
+        return {"status": "success", "data": record}
     except Exception as exc:
         duration_ms = (time.time() - start_time) * 1000
-        logger.error("Tool execution failed for %s: %s (Duration: %.2fms)", clean_ticker, exc, duration_ms)
+        logger.error(
+            "Tool execution failed for %s: %s (Duration: %.2fms)",
+            clean_ticker,
+            exc,
+            duration_ms,
+        )
         # Soft failure: Return structured error so Gemini can politely inform the user
         return {
             "status": "error",
             "code": "UPSTREAM_UNAVAILABLE",
-            "message": "The SEC filing database is temporarily unreachable. Please retry shortly."
+            "message": "The SEC filing database is temporarily unreachable. Please retry shortly.",
         }
 ```
 
@@ -193,15 +201,15 @@ Before approving any tool-augmented ADK agent for staging or production deployme
 
 ## 6. Official References & Citations
 
-- **Google ADK Custom Tools Guide:**  
-  [https://adk.dev/tools-custom/](https://adk.dev/tools-custom/) *(Accessed November 2026)*  
+- **Google ADK Custom Tools Guide:**
+  [https://adk.dev/tools-custom/](https://adk.dev/tools-custom/) *(Accessed November 2026)*
   Official reference for creating custom tools, function tools, and toolsets in ADK 2.0.
-- **Google ADK Function Tools Reference:**  
-  [https://adk.dev/tools-custom/function-tools/](https://adk.dev/tools-custom/function-tools/) *(Accessed November 2026)*  
+- **Google ADK Function Tools Reference:**
+  [https://adk.dev/tools-custom/function-tools/](https://adk.dev/tools-custom/function-tools/) *(Accessed November 2026)*
   Detailed specification on `FunctionTool`, parameter schemas, type conversion, and runtime execution.
-- **Gemini API Function Calling Documentation:**  
-  [https://ai.google.dev/gemini-api/docs/function-calling](https://ai.google.dev/gemini-api/docs/function-calling) *(Accessed November 2026)*  
+- **Gemini API Function Calling Documentation:**
+  [https://ai.google.dev/gemini-api/docs/function-calling](https://ai.google.dev/gemini-api/docs/function-calling) *(Accessed November 2026)*
   Core mechanics of Gemini function calling, `ToolCall`, and `ToolResponse` protocol buffers.
-- **Vertex AI Generative AI Tool Calling:**  
-  [https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling) *(Accessed November 2026)*  
+- **Vertex AI Generative AI Tool Calling:**
+  [https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling) *(Accessed November 2026)*
   Enterprise SLA, IAM integration, and private endpoint invocation on Google Cloud.

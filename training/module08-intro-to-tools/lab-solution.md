@@ -131,13 +131,14 @@ from google.genai import types
 
 load_dotenv()
 
+
 def lookup_sec_filing(ticker: str, filing_type: str = "10-K") -> dict:
     """Retrieves corporate regulatory filings and financial metrics from SEC EDGAR.
-    
+
     Args:
         ticker (str): The stock ticker symbol (e.g. 'GOOGL', 'AAPL', 'MSFT'). Required.
         filing_type (str, optional): The SEC filing type ('10-K', '10-Q', '8-K'). Defaults to '10-K'.
-        
+
     Returns:
         dict: A structured dictionary containing filing status, revenue, and core risk factors.
     """
@@ -148,7 +149,7 @@ def lookup_sec_filing(ticker: str, filing_type: str = "10-K") -> dict:
             "annual_revenue": "$307.4B",
             "net_income": "$73.8B",
             "ai_infrastructure_capex": "$48.0B",
-            "audit_opinion": "Unqualified (Clean)"
+            "audit_opinion": "Unqualified (Clean)",
         },
         "AAPL": {
             "company_name": "Apple Inc.",
@@ -156,24 +157,25 @@ def lookup_sec_filing(ticker: str, filing_type: str = "10-K") -> dict:
             "annual_revenue": "$383.3B",
             "net_income": "$97.0B",
             "flagship_segment": "Services & Devices",
-            "audit_opinion": "Unqualified (Clean)"
-        }
+            "audit_opinion": "Unqualified (Clean)",
+        },
     }
-    
+
     ticker_clean = ticker.strip().upper()
     filing = mock_edgar_database.get(ticker_clean)
     if not filing:
         return {
             "status": "error",
-            "message": f"Ticker '{ticker}' not found in SEC EDGAR repository. Verify the symbol and try again."
+            "message": f"Ticker '{ticker}' not found in SEC EDGAR repository. Verify the symbol and try again.",
         }
-        
+
     return {
         "status": "success",
         "ticker": ticker_clean,
         "filing_type": filing_type,
-        "filing_data": filing
+        "filing_data": filing,
     }
+
 
 # Agent definition
 filing_agent = Agent(
@@ -184,32 +186,33 @@ filing_agent = Agent(
     1. ALWAYS call the `lookup_sec_filing` tool to obtain verified SEC data.
     2. Quote exact financial figures (revenue, net income, capex) from the tool response.
     3. Never speculate or extrapolate beyond the verified filing data.""",
-    tools=[FunctionTool(lookup_sec_filing)]
+    tools=[FunctionTool(lookup_sec_filing)],
 )
+
 
 async def main():
     app = App(name="sec_research_app", root_agent=filing_agent)
     runner = InMemoryRunner(app=app)
     session = await runner.session_service.create_session(
-        app_name=app.name,
-        user_id="analyst_vip",
-        session_id="research_session_001"
+        app_name=app.name, user_id="analyst_vip", session_id="research_session_001"
     )
 
-    query = "What was Alphabet's (GOOGL) revenue and AI capex in their latest 10-K filing?"
+    query = (
+        "What was Alphabet's (GOOGL) revenue and AI capex in their latest 10-K filing?"
+    )
     print(f"User Query: {query}\n")
 
     async for event in runner.run_async(
         user_id="analyst_vip",
         session_id=session.id,
         new_message=types.Content(
-            role="user",
-            parts=[types.Part.from_text(text=query)]
-        )
+            role="user", parts=[types.Part.from_text(text=query)]
+        ),
     ):
         # Inspect event stream
         if event.is_final_response():
             print(f"Agent Final Response:\n{event.content.parts[0].text}\n")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

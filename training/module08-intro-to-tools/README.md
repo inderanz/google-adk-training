@@ -63,7 +63,7 @@ Because the model lacked tools, it could not access the live internet or the FDA
 
 Believing the AI had synthesized the morning's breaking disclosure, the trading desk placed an aggressive \$14M leveraged long position at market open.
 
-**The Reality:** The FDA had actually issued a **Complete Response Letter (CRL) rejecting the application** due to liver toxicity concerns published at 8:45 AM. 
+**The Reality:** The FDA had actually issued a **Complete Response Letter (CRL) rejecting the application** due to liver toxicity concerns published at 8:45 AM.
 
 Within 45 minutes, the stock cratered **68%**, wiping out **\$9.5M in capital** in a single morning, triggering emergency risk freezes, and prompting an immediate inquiry from compliance regulators.
 
@@ -170,14 +170,16 @@ When building custom tools, **type hints and docstrings are not optional formatt
 Gemini uses your parameter descriptions to decide what data to pass. Consider this official pattern from the Google ADK specification:
 
 ```python
-def lookup_company_filing(ticker: str, filing_type: str = "10-K", year: int = 2026) -> dict:
+def lookup_company_filing(
+    ticker: str, filing_type: str = "10-K", year: int = 2026
+) -> dict:
     """Retrieves authoritative SEC company filings for fundamental analysis.
-    
+
     Args:
         ticker (str): The official stock ticker symbol (e.g. 'GOOGL', 'AAPL'). Mandatory.
         filing_type (str, optional): The SEC filing type ('10-K' for annual, '10-Q' for quarterly, '8-K' for material events). Defaults to '10-K'.
         year (int, optional): The fiscal filing year. Defaults to 2026.
-        
+
     Returns:
         dict: A structured dictionary containing filing status, revenue, and executive risk factors.
     """
