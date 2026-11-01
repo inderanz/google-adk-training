@@ -182,7 +182,7 @@ def generate_portfolio_recommendation(tool_context: ToolContext) -> dict:
             "status": "error",
             "message": "No risk profile found. Please assess the client's risk tolerance first."
         }
-    
+
     allocations = {
         "CONSERVATIVE": {"fixed_income": 70, "equity": 30},
         "BALANCED": {"fixed_income": 40, "equity": 60},
@@ -217,7 +217,7 @@ def fetch_account_holdings(tool_context: ToolContext) -> dict:
     authenticated_user = tool_context.user_id
     if not authenticated_user:
         return {"status": "error", "message": "Unauthenticated caller."}
-    
+
     holdings = db_client.get_portfolio(authenticated_user)
     return {"status": "success", "user_id": authenticated_user, "holdings": holdings}
 ```
@@ -317,15 +317,15 @@ Before advancing to the hands-on lab, verify your stateful agent design against 
 
 ## Official References & Citations
 
-- **Google ADK Custom Tools & ToolContext Reference:**  
-  [https://adk.dev/tools-custom/](https://adk.dev/tools-custom/) *(Accessed November 2026)*  
+- **Google ADK Custom Tools & ToolContext Reference:**
+  [https://adk.dev/tools-custom/](https://adk.dev/tools-custom/) *(Accessed November 2026)*
   Canonical guide on `ToolContext`, dependency injection, and tool execution boundaries.
-- **Google ADK Session State Management:**  
-  [https://adk.dev/sessions/](https://adk.dev/sessions/) *(Accessed November 2026)*  
+- **Google ADK Session State Management:**
+  [https://adk.dev/sessions/](https://adk.dev/sessions/) *(Accessed November 2026)*
   Detailed specification for session services, state scopes, and memory retention.
-- **Google Gemini API Function Calling Guide:**  
-  [https://ai.google.dev/gemini-api/docs/function-calling](https://ai.google.dev/gemini-api/docs/function-calling) *(Accessed November 2026)*  
+- **Google Gemini API Function Calling Guide:**
+  [https://ai.google.dev/gemini-api/docs/function-calling](https://ai.google.dev/gemini-api/docs/function-calling) *(Accessed November 2026)*
   Core specification for OpenAPI parameter extraction and tool schema generation.
-- **Vertex AI Generative AI Enterprise Architecture:**  
-  [https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling) *(Accessed November 2026)*  
+- **Vertex AI Generative AI Enterprise Architecture:**
+  [https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal-representation/function-calling) *(Accessed November 2026)*
   Enterprise SLA, Workload Identity Federation, and private VPC deployment on Google Cloud.
