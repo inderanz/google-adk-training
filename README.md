@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://github.com/inderanz/google-adk-training/blob/main/LICENSE)
 [![Live Reader](https://img.shields.io/badge/Live%20Reader-gyanhq.com%2Fadk--training-blueviolet.svg)](https://gyanhq.com/adk-training/)
 
-> 🌐 **Interactive Online Reader & Curriculum:** Read, bookmark, and track your progress across all 48 interactive modules online at [**gyanhq.com/adk-training**](https://gyanhq.com/adk-training/).  
+> 🌐 **Interactive Online Reader & Curriculum:** Read, bookmark, and track your progress across all 48 interactive modules online at [**gyanhq.com/adk-training**](https://gyanhq.com/adk-training/).
 > 💻 **Hands-On Developer Repository:** This repository contains the complete, pure Python code, challenge labs (`lab.md`), runnable solutions (`lab-solution.md`), and fast verification harnesses (`verify_lab.py`) for local execution.
 
 Welcome! This repository contains a comprehensive, multi-module training course for the **Google Agent Development Kit (ADK)**. Through a series of hands-on modules, you will learn the core and advanced concepts of the ADK to build, test, deploy, and observe your own AI agents.
