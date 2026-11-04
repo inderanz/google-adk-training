@@ -187,3 +187,10 @@ Software components, such as the code in the `sample-agents` directory, are lice
 
 For guidelines on citing or attributing this repository in publications, tutorials, or research, please see **[ATTRIBUTION.md](./ATTRIBUTION.md)** and **[CITATION.cff](https://github.com/inderanz/google-adk-training/blob/main/CITATION.cff)**.
 
+---
+
+## ⚠️ Disclaimer
+
+This is an independent open-source educational project developed and maintained by Inder Chauhan. It is not an officially sponsored Google product and is not affiliated with or endorsed by Google LLC. Google, Google Cloud, Gemini, and Agent Development Kit (ADK) are trademarks or registered trademarks of Google LLC.
+
+

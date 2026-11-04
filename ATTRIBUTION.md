@@ -46,3 +46,10 @@ Under the CC BY-NC-SA 4.0 license:
 - **Prohibited:** Selling, sublicensing, or using this curriculum (in whole or in part) for paid commercial training, corporate bootcamps, or paid subscription platforms without prior written authorization from Inder Chauhan.
 
 For commercial training inquiries or licensing permissions, please contact [Inder Chauhan via LinkedIn](https://www.linkedin.com/in/ichauhan/).
+
+---
+
+## ⚠️ Trademark & Non-Affiliation Disclaimer
+
+This courseware is an independent educational initiative developed by Inder Chauhan. It is not an officially sponsored product of Google LLC and is not affiliated with, endorsed by, or sponsored by Google LLC. Google, Google Cloud, Gemini, and Agent Development Kit (ADK) are trademarks or registered trademarks of Google LLC in the United States and other countries.
+
