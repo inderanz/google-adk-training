@@ -171,3 +171,4 @@ echo ""
 echo -e "${GREEN}=================================================================${NC}"
 echo -e "${GREEN} 🎉 COURSE PUBLISHING & VERIFICATION COMPLETED SUCCESSFULLY!    ${NC}"
 echo -e "${GREEN}=================================================================${NC}"
+

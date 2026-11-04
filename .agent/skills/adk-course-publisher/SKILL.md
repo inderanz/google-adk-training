@@ -145,3 +145,4 @@ bash .agent/skills/adk-course-publisher/scripts/publish_course.sh
 2. **Hermetic Submodule:** Always use relative submodule path `../google-adk-training` or GitHub URL `https://github.com/inderanz/google-adk-training.git`.
 3. **No Web Artifacts in Public Repo:** `google-adk-training` MUST NOT contain `portal/`, `doc/`, `wrangler.jsonc`, or `package.json`.
 4. **Mermaid Validation:** All Mermaid diagrams in `training/module*/README.md` must avoid nested semicolons or unsupported connector syntax that breaks the Docusaurus / Mermaid parser.
+
