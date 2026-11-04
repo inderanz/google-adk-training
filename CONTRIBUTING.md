@@ -6,9 +6,12 @@ Thank you for your interest in contributing to the **Google ADK & Enterprise AI 
 
 ## 🏛️ Scope of This Repository
 
-This repository is the **hands-on Python developer curriculum**:
-* **In Scope:** Module guides (`README.md`), challenge labs (`lab.md`), runnable solutions (`lab-solution.md`), verification harnesses (`verify_lab.py`), and sample agents.
-* **Out of Scope:** Web hosting and Cloudflare infrastructure. (The live interactive reader at [gyanhq.com/adk-training](https://gyanhq.com/adk-training/) is deployed from an isolated production repository).
+This repository contains the **hands-on Python developer curriculum and exercises**:
+* Module theory and concept guides (`README.md`)
+* Hands-on challenge labs (`lab.md`)
+* Reference implementations (`lab-solution.md`)
+* Fast-path verification scripts (`verify_lab.py`)
+* End-to-end sample agents and enterprise patterns
 
 ---
 
@@ -74,7 +77,7 @@ The `main` branch of this repository is protected:
      python3 verify_lab.py
      uv run adk web
      ```
-   * Ensure no node/npm or web infrastructure files are introduced.
+   * Ensure all code follows Python type annotations and passes verification.
 
 6. **Commit & Push to Your Fork:**
    ```bash
